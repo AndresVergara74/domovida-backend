@@ -1,0 +1,20 @@
+ Entornos virtuales de Python (IDEs)
+.venv/
+venv/
+env/
+__pycache__/
+*.pyc
+
+# Bases de datos locales
+*.db
+*.sqlite3
+*.sqlite
+
+# Configuraciones de editores y sistemas operativos
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Archivos de entorno y credenciales (Seguridad)
+.env
