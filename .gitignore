@@ -18,3 +18,4 @@ Thumbs.db
 
 # Archivos de entorno y credenciales (Seguridad)
 .env
+desktop.ini
