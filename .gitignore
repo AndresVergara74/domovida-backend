@@ -1,21 +1,29 @@
- Entornos virtuales de Python (IDEs)
-.venv/
-venv/
-env/
-__pycache__/
-*.pyc
-
-# Bases de datos locales
-*.db
-*.sqlite3
-*.sqlite
-
 # Configuraciones de editores y sistemas operativos
 .vscode/
 .idea/
 .DS_Store
 Thumbs.db
+desktop.ini
 
 # Archivos de entorno y credenciales (Seguridad)
 .env
-desktop.ini
+*.env
+
+# Base de datos local (NO subir)
+*.db
+*.sqlite
+*.sqlite3
+backend/domovida.db
+
+# Dependencias de Node.js
+node_modules/
+frontend/node_modules/
+
+# Archivos temporales de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Logs
+*.log

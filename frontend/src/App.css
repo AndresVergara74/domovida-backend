@@ -1,0 +1,263 @@
+/* src/App.css */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: "DM Sans", system-ui, -apple-system, sans-serif;
+  background: #f5f7fa;
+  color: #1f2937;
+}
+
+.app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.header {
+  margin-bottom: 24px;
+}
+
+.header h1 {
+  font-size: 32px;
+  color: #065f46;
+}
+
+.subtitulo {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.cargando {
+  text-align: center;
+  padding: 80px;
+  font-size: 18px;
+  color: #065f46;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.tabs button {
+  padding: 10px 20px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+}
+
+.tabs button:hover {
+  color: #065f46;
+}
+
+.tabs button.activo {
+  color: #065f46;
+  border-bottom-color: #10b981;
+}
+
+/* Tarjetas */
+.tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.tarjeta {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-left: 4px solid #10b981;
+}
+
+.tarjeta.alerta {
+  border-left-color: #ef4444;
+}
+
+.tarjeta.advertencia {
+  border-left-color: #f59e0b;
+}
+
+.tarjeta .etiqueta {
+  font-size: 13px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tarjeta .valor {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* Gráficos */
+.graficos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.grafico {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.grafico h3 {
+  font-size: 15px;
+  margin-bottom: 12px;
+  color: #374151;
+}
+
+/* Alertas */
+.alertas-lista {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.alertas-lista h3 {
+  font-size: 15px;
+  margin-bottom: 12px;
+  color: #374151;
+}
+
+.alertas-lista ul {
+  list-style: none;
+}
+
+.alerta-item {
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  background: #f9fafb;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  border-left: 3px solid #10b981;
+}
+
+.alerta-item.media {
+  border-left-color: #f59e0b;
+}
+
+.alerta-item.alta,
+.alerta-item.critica {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+.alerta-item .hora {
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.vacio {
+  color: #9ca3af;
+  font-style: italic;
+  font-size: 14px;
+}
+
+/* Tabla */
+.tabla {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
+}
+
+.tabla h3 {
+  font-size: 15px;
+  margin-bottom: 12px;
+  color: #374151;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+th {
+  text-align: left;
+  padding: 10px;
+  background: #f9fafb;
+  color: #374151;
+  font-weight: 600;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+td {
+  padding: 10px;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.fila-alerta {
+  background: #fef2f2;
+}
+
+/* Sensores */
+.sensores h3 {
+  font-size: 15px;
+  margin-bottom: 16px;
+  color: #374151;
+}
+
+.grid-sensores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.sensor-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-left: 4px solid #10b981;
+}
+
+.sensor-card.offline {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.sensor-card h4 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #065f46;
+}
+
+.sensor-card p {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 768px) {
+  .graficos {
+    grid-template-columns: 1fr;
+  }
+}

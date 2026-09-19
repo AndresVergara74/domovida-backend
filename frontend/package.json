@@ -11,5 +11,8 @@
   "devDependencies": {
     "typescript": "~6.0.2",
     "vite": "^8.2.2"
+  },
+  "dependencies": {
+    "recharts": "^3.10.1"
   }
 }
