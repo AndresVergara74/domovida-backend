@@ -200,11 +200,10 @@ def generar_datos_cardiaco():
 def generar_datos_boton_panico():
     """
     Simula botón de pánico.
-    ⚠️ PROBABILIDAD ALTA (30%) SOLO PARA PRUEBAS.
-    En producción se debe volver a 0.02 (2%).
+    2% de probabilidad de que el usuario presione el botón.
     Cuando se activa, es una alerta crítica inmediata.
     """
-    activado = random.random() < 0.30  # ← PROBABILIDAD DE PRUEBA
+    activado = random.random() < 0.02
 
     if activado:
         print("🚨 ¡BOTÓN DE PÁNICO ACTIVADO!")
