@@ -1,6 +1,12 @@
 """
 Notificador de alertas para DomoVida.
 Envía notificaciones push al teléfono del cuidador mediante ntfy.sh.
+
+IMPORTANTE - Política de Privacidad:
+Este módulo aplica el principio de MINIMIZACIÓN DE DATOS conforme a la
+Ley N° 21.719. Las notificaciones NO contienen datos biomédicos sensibles
+(bpm, SpO2) ni identificadores personales (RUT, nombres). Los detalles
+completos quedan disponibles únicamente en el dashboard autenticado.
 """
 
 import requests
@@ -9,20 +15,21 @@ from datetime import datetime
 # ============================================================
 # CONFIGURACIÓN
 # ============================================================
-NTFY_TOPIC = "domovida-alertas-2026"
+# Topic seudonimizado (difícil de adivinar)
+NTFY_TOPIC = "domovida-seguro-2026"
 NTFY_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
 
 
 # ============================================================
-# PLANTILLAS DE MENSAJES POR TIPO DE ALERTA
+# PLANTILLAS DE MENSAJES SEUDONIMIZADOS
 # ============================================================
 
 def formatear_alerta(evento: dict) -> tuple:
     """
     Recibe un evento del backend y devuelve (titulo, mensaje, prioridad).
+    Los mensajes son SEUDONIMIZADOS: no incluyen datos biomédicos específicos.
     """
     tipo = evento.get("tipo", "desconocido")
-    sensor_id = evento.get("sensor_id", "sin_id")
     habitacion = evento.get("habitacion", "sin_ubicacion")
     valor = evento.get("valor", {})
     hora = datetime.now().strftime("%H:%M:%S")
@@ -31,33 +38,30 @@ def formatear_alerta(evento: dict) -> tuple:
     if tipo == "acelerometro" and valor.get("magnitud", 0) > 20:
         return (
             "🚨 CAÍDA DETECTADA",
-            f"Se detectó una caída en {habitacion}.\n"
-            f"Magnitud: {valor.get('magnitud')} m/s²\n"
-            f"Sensor: {sensor_id}\n"
+            f"Evento crítico en {habitacion}.\n"
+            f"Revisar panel DomoVida.\n"
             f"Hora: {hora}",
             "urgent",
         )
 
     # --- EMERGENCIA CARDÍACA ---
     if tipo == "cardiovascular":
-        bpm = valor.get("bpm", 0)
-        spo2 = valor.get("spo2", 0)
         evento_card = valor.get("evento", "normal")
 
         if evento_card == "taquicardia":
             return (
-                "🚨 TAQUICARDIA DETECTADA",
-                f"Frecuencia cardíaca elevada: {bpm} bpm\n"
-                f"SpO2: {spo2}%\n"
+                "🚨 EVENTO CARDÍACO",
+                f"Frecuencia cardíaca anómala detectada.\n"
+                f"Revisar panel DomoVida.\n"
                 f"Hora: {hora}",
                 "urgent",
             )
 
         if evento_card == "bradicardia":
             return (
-                "🚨 BRADICARDIA DETECTADA",
-                f"Frecuencia cardíaca baja: {bpm} bpm\n"
-                f"SpO2: {spo2}%\n"
+                "🚨 EVENTO CARDÍACO",
+                f"Frecuencia cardíaca anómala detectada.\n"
+                f"Revisar panel DomoVida.\n"
                 f"Hora: {hora}",
                 "urgent",
             )
@@ -65,8 +69,8 @@ def formatear_alerta(evento: dict) -> tuple:
     # --- BOTÓN DE PÁNICO ---
     if tipo == "boton_panico" and valor.get("activado"):
         return (
-            "🚨 BOTÓN DE PÁNICO ACTIVADO",
-            f"El adulto mayor activó el botón de pánico.\n"
+            "🚨 BOTÓN DE PÁNICO",
+            f"El usuario activó el botón de pánico.\n"
             f"Ubicación: {habitacion}\n"
             f"Hora: {hora}",
             "urgent",
@@ -75,9 +79,9 @@ def formatear_alerta(evento: dict) -> tuple:
     # --- FUGA DE GAS ---
     if tipo == "gas" and valor.get("nivel_ppm", 0) > 200:
         return (
-            "🚨 FUGA DE GAS DETECTADA",
-            f"Nivel de gas: {valor.get('nivel_ppm')} ppm\n"
-            f"Ubicación: {habitacion}\n"
+            "🚨 FUGA DE GAS",
+            f"Concentración anómala detectada en {habitacion}.\n"
+            f"Revisar panel DomoVida.\n"
             f"Hora: {hora}",
             "urgent",
         )
@@ -86,36 +90,28 @@ def formatear_alerta(evento: dict) -> tuple:
     if tipo == "humo" and valor.get("nivel", 0) > 500:
         return (
             "🚨 HUMO DETECTADO",
-            f"Nivel de humo: {valor.get('nivel')}\n"
-            f"Ubicación: {habitacion}\n"
+            f"Nivel anómalo detectado en {habitacion}.\n"
+            f"Revisar panel DomoVida.\n"
             f"Hora: {hora}",
             "urgent",
         )
 
-    # --- APERTURA (con títulos descriptivos por ubicación) ---
+    # --- APERTURA ---
     if tipo == "apertura" and valor.get("abierto"):
         if habitacion == "entrada":
             return (
                 "🚪 PUERTA PRINCIPAL ABIERTA",
                 f"La puerta de entrada se encuentra abierta.\n"
-                f"Sensor: {sensor_id}\n"
                 f"Hora: {hora}",
                 "high",
             )
         if habitacion == "living":
             return (
-                "🪟 VENTANA DEL LIVING ABIERTA",
-                f"La ventana del living se encuentra abierta.\n"
-                f"Sensor: {sensor_id}\n"
+                "🪟 VENTANA ABIERTA",
+                f"Ventana del living abierta.\n"
                 f"Hora: {hora}",
                 "default",
             )
-        # Apertura genérica
-        return (
-            f"🚪 APERTURA DETECTADA en {habitacion}",
-            f"Sensor: {sensor_id}\nHora: {hora}",
-            "default",
-        )
 
     # --- INACTIVIDAD PROLONGADA ---
     if tipo == "pir" and valor.get("minutos_inactivo", 0) > 12 * 60:
@@ -130,7 +126,7 @@ def formatear_alerta(evento: dict) -> tuple:
     # --- ALERTA GENÉRICA ---
     return (
         f"⚠️ Alerta: {tipo}",
-        f"Evento detectado en {habitacion}. Sensor: {sensor_id}\nHora: {hora}",
+        f"Evento detectado en {habitacion}.\nHora: {hora}",
         "default",
     )
 
@@ -177,6 +173,8 @@ def enviar_notificacion(evento: dict) -> bool:
 
 if __name__ == "__main__":
     print("🧪 Probando notificador de DomoVida...")
+    print(f"📡 Topic: {NTFY_TOPIC}")
+    print()
 
     # Prueba 1: Caída
     enviar_notificacion({
@@ -187,13 +185,23 @@ if __name__ == "__main__":
         "alerta": True,
     })
 
-    # Prueba 2: Apertura de puerta principal
+    # Prueba 2: Evento cardíaco
     enviar_notificacion({
-        "sensor_id": "apertura_puerta_principal",
-        "tipo": "apertura",
-        "habitacion": "entrada",
-        "valor": {"abierto": True},
+        "sensor_id": "wearable_cardiaco",
+        "tipo": "cardiovascular",
+        "habitacion": "wearable",
+        "valor": {"bpm": 175, "spo2": 88, "evento": "taquicardia"},
         "alerta": True,
     })
 
-    print("✅ Pruebas completadas. Revisa tu teléfono.")
+    # Prueba 3: Botón de pánico
+    enviar_notificacion({
+        "sensor_id": "boton_panico_sala",
+        "tipo": "boton_panico",
+        "habitacion": "sala",
+        "valor": {"activado": True},
+        "alerta": True,
+    })
+
+    print()
+    print("✅ Pruebas completadas. Revisa tu teléfono/navegador.")
