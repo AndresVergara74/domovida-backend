@@ -25,17 +25,18 @@ def formatear_alerta(evento: dict) -> tuple:
     sensor_id = evento.get("sensor_id", "sin_id")
     habitacion = evento.get("habitacion", "sin_ubicacion")
     valor = evento.get("valor", {})
+    hora = datetime.now().strftime("%H:%M:%S")
 
     # --- CAÍDA ---
     if tipo == "acelerometro" and valor.get("magnitud", 0) > 20:
-        titulo = "🚨 CAÍDA DETECTADA"
-        mensaje = (
+        return (
+            "🚨 CAÍDA DETECTADA",
             f"Se detectó una caída en {habitacion}.\n"
             f"Magnitud: {valor.get('magnitud')} m/s²\n"
             f"Sensor: {sensor_id}\n"
-            f"Hora: {datetime.now().strftime('%H:%M:%S')}"
+            f"Hora: {hora}",
+            "urgent",
         )
-        return titulo, mensaje, "urgent"
 
     # --- EMERGENCIA CARDÍACA ---
     if tipo == "cardiovascular":
@@ -44,67 +45,92 @@ def formatear_alerta(evento: dict) -> tuple:
         evento_card = valor.get("evento", "normal")
 
         if evento_card == "taquicardia":
-            titulo = "🚨 TAQUICARDIA DETECTADA"
-            mensaje = (
+            return (
+                "🚨 TAQUICARDIA DETECTADA",
                 f"Frecuencia cardíaca elevada: {bpm} bpm\n"
                 f"SpO2: {spo2}%\n"
-                f"Hora: {datetime.now().strftime('%H:%M:%S')}"
+                f"Hora: {hora}",
+                "urgent",
             )
-            return titulo, mensaje, "urgent"
 
         if evento_card == "bradicardia":
-            titulo = "🚨 BRADICARDIA DETECTADA"
-            mensaje = (
+            return (
+                "🚨 BRADICARDIA DETECTADA",
                 f"Frecuencia cardíaca baja: {bpm} bpm\n"
                 f"SpO2: {spo2}%\n"
-                f"Hora: {datetime.now().strftime('%H:%M:%S')}"
+                f"Hora: {hora}",
+                "urgent",
             )
-            return titulo, mensaje, "urgent"
 
     # --- BOTÓN DE PÁNICO ---
     if tipo == "boton_panico" and valor.get("activado"):
-        titulo = "🚨 BOTÓN DE PÁNICO ACTIVADO"
-        mensaje = (
+        return (
+            "🚨 BOTÓN DE PÁNICO ACTIVADO",
             f"El adulto mayor activó el botón de pánico.\n"
             f"Ubicación: {habitacion}\n"
-            f"Hora: {datetime.now().strftime('%H:%M:%S')}"
+            f"Hora: {hora}",
+            "urgent",
         )
-        return titulo, mensaje, "urgent"
 
     # --- FUGA DE GAS ---
     if tipo == "gas" and valor.get("nivel_ppm", 0) > 200:
-        titulo = "🚨 FUGA DE GAS DETECTADA"
-        mensaje = (
+        return (
+            "🚨 FUGA DE GAS DETECTADA",
             f"Nivel de gas: {valor.get('nivel_ppm')} ppm\n"
             f"Ubicación: {habitacion}\n"
-            f"Hora: {datetime.now().strftime('%H:%M:%S')}"
+            f"Hora: {hora}",
+            "urgent",
         )
-        return titulo, mensaje, "urgent"
 
     # --- HUMO ---
     if tipo == "humo" and valor.get("nivel", 0) > 500:
-        titulo = "🚨 HUMO DETECTADO"
-        mensaje = (
+        return (
+            "🚨 HUMO DETECTADO",
             f"Nivel de humo: {valor.get('nivel')}\n"
             f"Ubicación: {habitacion}\n"
-            f"Hora: {datetime.now().strftime('%H:%M:%S')}"
+            f"Hora: {hora}",
+            "urgent",
         )
-        return titulo, mensaje, "urgent"
+
+    # --- APERTURA (con títulos descriptivos por ubicación) ---
+    if tipo == "apertura" and valor.get("abierto"):
+        if habitacion == "entrada":
+            return (
+                "🚪 PUERTA PRINCIPAL ABIERTA",
+                f"La puerta de entrada se encuentra abierta.\n"
+                f"Sensor: {sensor_id}\n"
+                f"Hora: {hora}",
+                "high",
+            )
+        if habitacion == "living":
+            return (
+                "🪟 VENTANA DEL LIVING ABIERTA",
+                f"La ventana del living se encuentra abierta.\n"
+                f"Sensor: {sensor_id}\n"
+                f"Hora: {hora}",
+                "default",
+            )
+        # Apertura genérica
+        return (
+            f"🚪 APERTURA DETECTADA en {habitacion}",
+            f"Sensor: {sensor_id}\nHora: {hora}",
+            "default",
+        )
 
     # --- INACTIVIDAD PROLONGADA ---
     if tipo == "pir" and valor.get("minutos_inactivo", 0) > 12 * 60:
-        titulo = "⚠️ INACTIVIDAD PROLONGADA"
-        mensaje = (
+        return (
+            "⚠️ INACTIVIDAD PROLONGADA",
             f"Sin movimiento detectado por más de 12 horas.\n"
             f"Ubicación: {habitacion}\n"
-            f"Hora: {datetime.now().strftime('%H:%M:%S')}"
+            f"Hora: {hora}",
+            "high",
         )
-        return titulo, mensaje, "high"
 
     # --- ALERTA GENÉRICA ---
     return (
         f"⚠️ Alerta: {tipo}",
-        f"Evento detectado en {habitacion}. Sensor: {sensor_id}",
+        f"Evento detectado en {habitacion}. Sensor: {sensor_id}\nHora: {hora}",
         "default",
     )
 
@@ -152,13 +178,22 @@ def enviar_notificacion(evento: dict) -> bool:
 if __name__ == "__main__":
     print("🧪 Probando notificador de DomoVida...")
 
-    evento_prueba = {
+    # Prueba 1: Caída
+    enviar_notificacion({
         "sensor_id": "acelerometro_dormitorio",
         "tipo": "acelerometro",
         "habitacion": "dormitorio",
         "valor": {"magnitud": 26.53},
         "alerta": True,
-    }
+    })
 
-    enviar_notificacion(evento_prueba)
-    print("✅ Prueba completada. Revisa tu teléfono.")
+    # Prueba 2: Apertura de puerta principal
+    enviar_notificacion({
+        "sensor_id": "apertura_puerta_principal",
+        "tipo": "apertura",
+        "habitacion": "entrada",
+        "valor": {"abierto": True},
+        "alerta": True,
+    })
+
+    print("✅ Pruebas completadas. Revisa tu teléfono.")
