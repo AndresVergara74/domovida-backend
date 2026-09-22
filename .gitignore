@@ -1,11 +1,8 @@
-# Configuraciones de editores y sistemas operativos
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-desktop.ini
+# ============================================================
+# DOMOVIDA - Archivos ignorados por Git
+# ============================================================
 
-# Archivos de entorno y credenciales (Seguridad)
+# Archivos de entorno y credenciales (SEGURIDAD)
 .env
 *.env
 
@@ -13,7 +10,7 @@ desktop.ini
 *.db
 *.sqlite
 *.sqlite3
-backend/domovida.db
+domovida.db
 
 # Dependencias de Node.js
 node_modules/
@@ -25,5 +22,21 @@ __pycache__/
 *.pyo
 *.pyd
 
+# Configuraciones de editores y sistemas operativos
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
 # Logs
 *.log
+
+# Archivos comprimidos
+*.zip
+*.tar.gz
+
+# Entornos virtuales
+venv/
+env/
+.venv/
