@@ -1,6 +1,3 @@
-markdown
-
-
 
 \# Ficha 6: Dashboard y Capturas
 
@@ -424,13 +421,6 @@ La validación se realizará con la \*\*Escala SUS (System Usability Scale)\*\*:
 
 
 
-
-
-\*\*Paso 2:\*\* Guarda con `Ctrl + S` y cierra el Bloc de notas.
-
-
-
-\*\*Paso 3:\*\* Vuelve a la terminal y dime \*\*"listo"\*\*.
 
 
 
