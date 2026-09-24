@@ -38,25 +38,25 @@ En esta fase académica, los sensores son \*\*simulados\*\* mediante el script `
 
 
 
-| # | Sensor | Tipo (`tipo`) | Habitación | Métrica | Umbral de Alerta |
+| # | Sensor                  | Tipo (`tipo`)    | Habitación | Métrica                          | Umbral de Alerta     |
 
-|---|--------|---------------|------------|---------|------------------|
+|---|-------------------------|------------------|------------|----------------------------------|----------------------|
 
-| 1 | Acelerómetro/Giroscopio | `acelerometro` | Dormitorio | ax, ay, az, gx, gy, gz, magnitud | Magnitud > 20 m/s² |
+| 1 | Acelerómetro/Giroscopio | `acelerometro`   | Dormitorio | ax, ay, az, gx, gy, gz, magnitud | Magnitud > 20 m/s²   |
 
-| 2 | PIR Movimiento | `pir` | Living | movimiento, minutos\_inactivo | Inactividad > 12h |
+| 2 | PIR Movimiento          | `pir`            | Living     | movimiento, minutos\_inactivo    | Inactividad > 12h    |
 
-| 3 | Gas | `gas` | Cocina | nivel\_ppm | > 200 ppm |
+| 3 | Gas                     | `gas`            | Cocina     | nivel\_ppm                       | > 200 ppm            |
 
-| 4 | Humo | `humo` | Cocina | nivel | > 500 |
+| 4 | Humo                    | `humo`           | Cocina     | nivel                            | > 500                |
 
-| 5 | Apertura puerta | `apertura` | Entrada | abierto (bool) | Si está abierta |
+| 5 | Apertura puerta         | `apertura`       | Entrada    | abierto (bool)                   | Si está abierta      |
 
-| 6 | Apertura ventana | `apertura` | Living | abierto (bool) | No genera alerta |
+| 6 | Apertura ventana        | `apertura`       | Living     | abierto (bool)                   | No genera alerta     |
 
-| 7 | Cardíaco (wearable) | `cardiovascular` | Wearable | bpm, spo2, evento | bpm > 150 o bpm < 40 |
+| 7 | Cardíaco (wearable)     | `cardiovascular` | Wearable   | bpm, spo2, evento                | bpm > 150 o bpm < 40 |
 
-| 8 | Botón de pánico | `boton\_panico` | Sala | activado (bool) | Si está activado |
+| 8 | Botón de pánico         | `boton\_panico`  | Sala       | activado (bool)                  | Si está activado     |
 
 
 
@@ -302,19 +302,19 @@ python simulate\_sensors.py
 
 📊 Ciclo #1 - 21:33:07
 
-✅ acelerometro\_dormitorio      | tipo: acelerometro
+✅ acelerometro\_dormitorio       | tipo: acelerometro
 
-✅ pir\_living                   | tipo: pir
+✅ pir\_living                    | tipo: pir
 
-✅ gas\_cocina                   | tipo: gas
+✅ gas\_cocina                    | tipo: gas
 
-✅ humo\_cocina                  | tipo: humo
+✅ humo\_cocina                   | tipo: humo
 
 ✅ apertura\_puerta\_principal    | tipo: apertura
 
 ✅ apertura\_ventana\_living      | tipo: apertura
 
-✅ wearable\_cardiaco            | tipo: cardiovascular
+✅ wearable\_cardiaco             | tipo: cardiovascular
 
 ✅ boton\_panico\_sala            | tipo: boton\_panico
 
@@ -360,25 +360,25 @@ Los sensores han sido validados mediante:
 
 \## 4.7 Diferenciación con Soluciones Existentes
 
-\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\
 
-Característica	                DomoVida	        Soluciones Comerciales
+Característica	                  DomoVida	        Soluciones Comerciales
 
-Sensores pasivos sin cámaras	✅ Sí	                ✅ Sí (algunas)
+Sensores pasivos sin cámaras	    ✅ Sí	                  ✅ Sí (algunas)
 
-Detección de caídas	        ✅ Sí	                ✅ Sí
+Detección de caídas	              ✅ Sí	                  ✅ Sí
 
-Detección de infarto	        ✅ Sí (sensor cardíaco)	🟡 Solo en wearables premium
+Detección de infarto	            ✅ Sí (sensor cardíaco)	🟡 Solo en wearables premium
 
-Botón de pánico	                ✅ Sí	                ✅ Sí
+Botón de pánico	                  ✅ Sí	                  ✅ Sí
 
-Código abierto	                ✅ Sí	                ❌ No
+Código abierto	                  ✅ Sí	                  ❌ No
 
-Interoperabilidad HL7 FHIR	🔜 Futuro	        ❌ No reportado
+Interoperabilidad HL7 FHIR	      🔜 Futuro	              ❌ No reportado
 
-Edge Computing (offline)	🔜 Futuro	        ❌ No reportado
+Edge Computing (offline)	        🔜 Futuro	            ❌ No reportado
 
-\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\
 
 
 
@@ -406,13 +406,6 @@ Edge Computing (offline)	🔜 Futuro	        ❌ No reportado
 
 
 
-
-
-\*\*Paso 2:\*\* Guarda con `Ctrl + S` y cierra el Bloc de notas.
-
-
-
-\*\*Paso 3:\*\* Vuelve a la terminal y dime \*\*"listo"\*\*.
 
 
 

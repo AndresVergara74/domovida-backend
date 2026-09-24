@@ -44,17 +44,17 @@ El backend de DomoVida es una API REST desarrollada en \*\*FastAPI\*\* con \*\*P
 
 | Método | Endpoint | Descripción | Estado |
 
-|--------|----------|-------------|--------|
+|--------|----------------------------------|--------------------------------------------|----|
 
-| POST | `/api/sensor-data` | Recibe datos de cualquier sensor | ✅ |
+| POST   | `/api/sensor-data`               | Recibe datos de cualquier sensor           | ✅ |
 
-| GET | `/api/eventos` | Lista los últimos eventos registrados | ✅ |
+| GET    | `/api/eventos`                   | Lista los últimos eventos registrados      | ✅ |
 
-| GET | `/api/alertas/activas` | Eventos con alerta=True en las últimas 24h | ✅ |
+| GET    | `/api/alertas/activas`           | Eventos con alerta=True en las últimas 24h | ✅ |
 
-| GET | `/api/alertas/inactividad` | Estado de sensores PIR (online/offline) | ✅ |
+| GET    | `/api/alertas/inactividad`       | Estado de sensores PIR (online/offline)    | ✅ |
 
-| GET | `/` | Endpoint raíz de bienvenida | ✅ |
+| GET    | `/`                              | Endpoint raíz de bienvenida                | ✅ |
 
 
 
@@ -323,16 +323,6 @@ requests
 
 
 
-
-\*\*Paso 1:\*\* Pega esto en el Bloc de notas, justo debajo de lo que ya tenías.
-
-
-
-\*\*Paso 2:\*\* Guarda con `Ctrl + S` y cierra.
-
-
-
-\*\*Paso 3:\*\* Vuelve a la terminal y dime \*\*"listo"\*\*.
 
 
 

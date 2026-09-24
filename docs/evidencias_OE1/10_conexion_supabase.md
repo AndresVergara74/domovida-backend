@@ -455,8 +455,3 @@ La arquitectura híbrida de DomoVida está \*\*completamente funcional\*\*:
 Esta arquitectura cumple con los principios de \*\*Edge Computing\*\* documentados en la tesis y está alineada con los objetivos del proyecto Capstone.
 
 ```
-
-
-
-
-

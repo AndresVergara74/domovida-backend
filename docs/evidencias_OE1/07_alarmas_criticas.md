@@ -376,15 +376,15 @@ Si activado = true → 🚨 BOTÓN DE PÁNICO ACTIVADO
 
 
 
-| Competidor   | Detección de caídas | Detección de infarto          | Botón de pánico |
+| Competidor       | Detección de caídas | Detección de infarto              | Botón de pánico |
 
-|--------------|---------------------|-------------------------------|-----------------|
+|------------------|---------------------|-----------------------------------|-----------------|
 
-| \*\*Mistatas\*\* | ✅ Sí              | ❌ No reportado               | ✅ Sí           |
+| \*\*Mistatas\*\* | ✅ Sí              | ❌ No reportado                   | ✅ Sí           |
 
-| \*\*Quida\*\*    | ✅ Sí              | ❌ No reportado               | ❌ No reportado |
+| \*\*Quida\*\*    | ✅ Sí              | ❌ No reportado                   | ❌ No reportado |
 
-| \*\*GCare\*\*    | ✅ Sí              | ❌ No reportado               | ✅ Sí           |
+| \*\*GCare\*\*    | ✅ Sí              | ❌ No reportado                   | ✅ Sí           |
 
 | \*\*DomoVida\*\* | ✅ Sí              | ✅ \*\*Sí (wearable cardíaco)\*\* | ✅ Sí           |
 
@@ -415,14 +415,4 @@ Si activado = true → 🚨 BOTÓN DE PÁNICO ACTIVADO
 \- 🔜 Añadir \*\*detección de incendios\*\* con cámara termal
 
 \- 🔜 Implementar \*\*detección de fugas de gas\*\* con sensor MQ-2
-
-
-
-
-
-\*\*Paso 2:\*\* Guarda con `Ctrl + S` y cierra el Bloc de notas.
-
-
-
-\*\*Paso 3:\*\* Vuelve a la terminal y dime \*\*"listo"\*\*.
 
