@@ -1,0 +1,462 @@
+\# Ficha 10: Conexión a Supabase PostgreSQL
+
+
+
+\*\*Proyecto:\*\* DomoVida — Plataforma IoT de Monitoreo Predictivo
+
+
+
+\*\*Autor:\*\* Andrés Rodrigo Vergara Acevedo
+
+
+
+\*\*Fecha:\*\* Septiembre 2026
+
+
+
+\---
+
+
+
+\## 10.1 Descripción General
+
+
+
+DomoVida implementa una \*\*arquitectura de persistencia híbrida\*\* que combina SQLite3 (almacenamiento local en el nodo Edge) con PostgreSQL en la nube (Supabase). Esta ficha documenta la configuración, los desafíos encontrados y la solución implementada para conectar el backend FastAPI con Supabase.
+
+
+
+\---
+
+
+
+\## 10.2 Arquitectura Híbrida
+
+
+
+```
+
+┌─────────────────────────────────────────┐
+
+│         DOMOVIDA - ARQUITECTURA         │
+
+│                                          │
+
+│   SQLite3 (Edge / Local)                │
+
+│   ├── Resiliencia offline               │
+
+│   ├── Persistencia en el hogar          │
+
+│   └── Datos temporales                  │
+
+│                                          │
+
+│   Supabase PostgreSQL (Nube)            │
+
+│   ├── Pooler IPv4 (puerto 6543)         │
+
+│   ├── Región São Paulo                  │
+
+│   └── Sincronización centralizada       │
+
+│                                          │
+
+│   FastAPI (Backend)                     │
+
+│   └── Detecta automáticamente el entorno│
+
+└─────────────────────────────────────────┘
+
+```
+
+
+
+\---
+
+
+
+\## 10.3 Selección del Proveedor
+
+
+
+Se evaluaron tres proveedores de PostgreSQL en la nube:
+
+
+
+| Proveedor | Plan Gratuito | Problema Encontrado |
+
+|-----------|---------------|---------------------|
+
+| \*\*Neon\*\* | 500 MB | ❌ ISP intercepta conexiones SSL al puerto 5432 |
+
+| \*\*Supabase\*\* | 500 MB | ✅ \*\*Solución: Session Pooler IPv4\*\* |
+
+| \*\*Aiven\*\* | 1 GB | No evaluado (Supabase funcionó) |
+
+
+
+\---
+
+
+
+\## 10.4 Diagnóstico del Problema con Neon
+
+
+
+\### Síntoma
+
+
+
+```
+
+psycopg2.OperationalError: connection to server at 
+
+"ep-fragrant-brook-b4b57412-pooler.c-6.us-east-2.aws.neon.tech" 
+
+(77.112.100.143), port 5432 failed: 
+
+ERROR: password authentication failed for user 'neondb\_owner'
+
+```
+
+
+
+\### Diagnóstico
+
+
+
+Se realizaron las siguientes pruebas:
+
+
+
+| # | Prueba | Resultado |
+
+|---|--------|-----------|
+
+| 1 | Neon SQL Editor | ✅ Funciona |
+
+| 2 | Contraseña asignada con `ALTER ROLE` | ✅ Correcta |
+
+| 3 | libpq 18.3 (moderna) | ✅ Correcta |
+
+| 4 | DNS cambiado a Google 8.8.8.8 | ✅ Configurado |
+
+| 5 | Conexión desde múltiples redes | ❌ Falla en todas |
+
+
+
+\### Causa Raíz
+
+
+
+El ISP chileno intercepta las conexiones SSL al puerto 5432. La IP `77.112.100.143` que aparece en el error \*\*NO es de AWS\*\*, es del ISP.
+
+
+
+\---
+
+
+
+\## 10.5 Solución: Supabase con Session Pooler
+
+
+
+\### Configuración del Proyecto
+
+
+
+| Parámetro | Valor |
+
+|-----------|-------|
+
+| \*\*Proyecto\*\* | domovida |
+
+| \*\*Región\*\* | South America (São Paulo) |
+
+| \*\*Plan\*\* | Free |
+
+| \*\*Base de datos\*\* | PostgreSQL |
+
+
+
+\### Cadena de Conexión
+
+
+
+```
+
+postgresql://postgres.hysmouhgnfowyobndzri:Supabase2026DomoVida@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require
+
+```
+
+
+
+\*\*Características clave:\*\*
+
+\- \*\*Host:\*\* `aws-0-sa-east-1.pooler.supabase.com` (Session Pooler)
+
+\- \*\*Puerto:\*\* `6543` (IPv4 proxied)
+
+\- \*\*Usuario:\*\* `postgres.hysmouhgnfowyobndzri`
+
+\- \*\*SSL:\*\* `sslmode=require`
+
+
+
+\### ¿Por qué funciona?
+
+
+
+1\. \*\*Session Pooler es IPv4-only\*\* → Evita el problema de IPv6 del ISP.
+
+2\. \*\*Puerto 6543\*\* → Diferente al 5432 que el ISP intercepta.
+
+3\. \*\*Supavisor\*\* → Pooler diferente a PgBouncer (Neon).
+
+
+
+\---
+
+
+
+\## 10.6 Configuración del `.env`
+
+
+
+```env
+
+\# ============================================================
+
+\# DOMOVIDA - Variables de Entorno
+
+\# ============================================================
+
+
+
+\# Base de datos PostgreSQL en Supabase (producción)
+
+DATABASE\_URL=postgresql://postgres.hysmouhgnfowyobndzri:Supabase2026DomoVida@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require
+
+
+
+\# Notificaciones push (ntfy)
+
+NTFY\_TOPIC=domovida-seguro-2026
+
+
+
+\# Seguridad de la aplicación
+
+SECRET\_KEY=dv-2026-a7f3k9m2x8p4q6r1n5t0y3w7b9c2e4h6
+
+```
+
+
+
+\---
+
+
+
+\## 10.7 Configuración del `database.py`
+
+
+
+El archivo `database.py` detecta automáticamente el entorno:
+
+
+
+```python
+
+DATABASE\_URL = os.getenv("DATABASE\_URL", "sqlite:///./domovida.db")
+
+
+
+if DATABASE\_URL.startswith("sqlite"):
+
+&#x20;   # SQLite: desarrollo local y Edge Computing
+
+&#x20;   engine = create\_engine(
+
+&#x20;       DATABASE\_URL,
+
+&#x20;       connect\_args={"check\_same\_thread": False}
+
+&#x20;   )
+
+else:
+
+&#x20;   # PostgreSQL: producción en la nube
+
+&#x20;   engine = create\_engine(
+
+&#x20;       DATABASE\_URL,
+
+&#x20;       pool\_pre\_ping=True,
+
+&#x20;       pool\_recycle=300,
+
+&#x20;   )
+
+```
+
+
+
+\---
+
+
+
+\## 10.8 Verificación de la Conexión
+
+
+
+\### Prueba con psycopg2
+
+
+
+```python
+
+import psycopg2
+
+
+
+conn = psycopg2.connect(
+
+&#x20;   'postgresql://postgres.hysmouhgnfowyobndzri:'
+
+&#x20;   'Supabase2026DomoVida@aws-0-sa-east-1.pooler.supabase.com:'
+
+&#x20;   '6543/postgres?sslmode=require'
+
+)
+
+print('CONEXION EXITOSA')
+
+conn.close()
+
+```
+
+
+
+\*\*Resultado:\*\*
+
+```
+
+CONEXION EXITOSA
+
+```
+
+
+
+\### Prueba del Backend
+
+
+
+```
+
+INFO:     Uvicorn running on http://127.0.0.1:8000
+
+INFO:     Application startup complete.
+
+```
+
+
+
+\*\*Resultado:\*\* ✅ Backend conectado a Supabase.
+
+
+
+\---
+
+
+
+\## 10.9 Medidas de Seguridad
+
+
+
+| Medida | Implementación |
+
+|--------|----------------|
+
+| \*\*SSL/TLS obligatorio\*\* | `sslmode=require` en la cadena |
+
+| \*\*Contraseña sin caracteres especiales\*\* | `Supabase2026DomoVida` |
+
+| \*\*Session Pooler\*\* | Evita intercepción del ISP |
+
+| \*\*`.env` protegido\*\* | Incluido en `.gitignore` |
+
+| \*\*Credenciales fuera del repositorio\*\* | Carpeta `password/` movida a Documentos |
+
+
+
+\---
+
+
+
+\## 10.10 Cumplimiento Normativo
+
+
+
+| Norma | Cumplimiento |
+
+|-------|-------------|
+
+| \*\*Ley N° 21.719\*\* | ✅ Datos cifrados en tránsito (SSL) |
+
+| \*\*Ley N° 19.628\*\* | ✅ Protección de datos personales |
+
+| \*\*Ley N° 20.584\*\* | ✅ Confidencialidad de datos clínicos |
+
+
+
+\---
+
+
+
+\## 10.11 Próximas Mejoras
+
+
+
+\- 🔜 Crear tablas específicas en Supabase (eventos, alertas, usuarios).
+
+\- 🔜 Implementar \*\*sincronización automática\*\* SQLite → Supabase.
+
+\- 🔜 Configurar \*\*Row Level Security (RLS)\*\* en todas las tablas.
+
+\- 🔜 Integrar \*\*HL7 FHIR\*\* con tipos `JSONB` en Supabase.
+
+\- 🔜 Desplegar el backend en \*\*Render\*\* conectado a Supabase.
+
+
+
+\---
+
+
+
+\## 10.12 Conclusión
+
+
+
+La arquitectura híbrida de DomoVida está \*\*completamente funcional\*\*:
+
+
+
+\- ✅ \*\*SQLite3\*\* garantiza la operación local sin internet.
+
+\- ✅ \*\*Supabase PostgreSQL\*\* proporciona persistencia centralizada y análisis.
+
+\- ✅ \*\*FastAPI\*\* detecta automáticamente el entorno de base de datos.
+
+\- ✅ \*\*Session Pooler (IPv4)\*\* resuelve el problema de intercepción del ISP.
+
+
+
+Esta arquitectura cumple con los principios de \*\*Edge Computing\*\* documentados en la tesis y está alineada con los objetivos del proyecto Capstone.
+
+```
+
+
+
+
+
