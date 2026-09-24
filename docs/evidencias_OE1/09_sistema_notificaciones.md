@@ -354,9 +354,9 @@ if datos.alerta:
 
 
 
-| Norma                                     | Cumplimiento                        |
+| Norma                                         | Cumplimiento                        |
 
-|-------------------------------------------|-------------------------------------|
+|-----------------------------------------------|-------------------------------------|
 
 | \*\*Ley N° 21.719\*\* (Protección de datos)   | ✅ Notificaciones seudonimizadas    |
 
@@ -365,24 +365,6 @@ if datos.alerta:
 | \*\*Ley N° 20.584\*\* (Derechos del paciente) | ✅ Confidencialidad garantizada     |
 
 ```
-
-
-
-\*\*Paso 1:\*\* Guarda con `Ctrl + S` y cierra el Bloc de notas.
-
-
-
-\*\*Paso 2:\*\* Vuelve a la terminal y dime \*\*"listo"\*\*.
-
-
-
-\---
-
-
-
-\*\*Cuando confirmes, hacemos commit y push de esta ficha, y luego creamos la Ficha 10.\*\* 💪
-
-
 
 
 
