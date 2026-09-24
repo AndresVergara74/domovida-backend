@@ -441,4 +441,49 @@ Esta integración demuestra el funcionamiento end-to-end del sistema y constituy
 ```
 
 
+---
+
+## 13.9 Verificación Final del Dashboard
+
+### Fecha de verificación: 24 de septiembre de 2026
+
+### Configuración verificada
+
+| Componente | Puerto | Estado |
+|------------|--------|--------|
+| **Backend FastAPI** | 8000 | ✅ Corriendo |
+| **Frontend React** | 5173 | ✅ Corriendo |
+| **Supabase PostgreSQL** | Nube (São Paulo) | ✅ Conectado |
+
+### Valores mostrados en el dashboard
+
+| Tarjeta | Valor | Fuente |
+|---------|-------|--------|
+| **EVENTOS TOTALES** | 50 | Tabla `eventos` en Supabase |
+| **ALERTAS ACTIVAS** | 4 | Tabla `alertas` en Supabase |
+| **SENSORES ONLINE** | 1 | Endpoint `/api/alertas/inactividad` |
+| **INACTIVIDAD** | 0 | Endpoint `/api/alertas/inactividad` |
+
+### Gráfico del acelerómetro
+
+El gráfico de línea muestra la magnitud del acelerómetro en tiempo real, con valores entre 9 y 12 m/s² (dentro del rango normal).
+
+### Nota sobre CORS
+
+El backend FastAPI está configurado para aceptar peticiones desde:
+- `http://localhost:3000` (React Create App)
+- `http://localhost:5173` (Vite - frontend actual)
+- `http://127.0.0.1:5173`
+- `http://127.0.0.1:3000`
+
+**Importante:** Si el frontend se ejecuta en un puerto diferente (ej: 5174), el navegador bloqueará las peticiones por CORS. Por eso es importante asegurar que Vite use el puerto 5173.
+
+### Conclusión de la verificación
+
+✅ **El sistema completo está funcionando correctamente:**
+- Los sensores envían datos al backend
+- El backend los guarda en Supabase
+- Los triggers crean alertas automáticamente
+- El dashboard los visualiza en tiempo real
+- Las notificaciones llegan al teléfono del cuidador
 

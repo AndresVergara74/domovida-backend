@@ -9,6 +9,8 @@ body {
   font-family: "DM Sans", system-ui, -apple-system, sans-serif;
   background: #f5f7fa;
   color: #1f2937;
+  /* Mejora para móvil: evita zoom involuntario */
+  -webkit-text-size-adjust: 100%;
 }
 
 .app {
@@ -17,6 +19,9 @@ body {
   padding: 24px;
 }
 
+/* ============================================================
+   HEADER
+   ============================================================ */
 .header {
   margin-bottom: 24px;
 }
@@ -24,6 +29,8 @@ body {
 .header h1 {
   font-size: 32px;
   color: #065f46;
+  /* Responsive: reduce tamaño en móvil */
+  word-wrap: break-word;
 }
 
 .subtitulo {
@@ -38,12 +45,22 @@ body {
   color: #065f46;
 }
 
-/* Tabs */
+/* ============================================================
+   TABS
+   ============================================================ */
 .tabs {
   display: flex;
   gap: 8px;
   margin-bottom: 24px;
   border-bottom: 2px solid #e5e7eb;
+  /* Responsive: scroll horizontal en móvil */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+}
+
+.tabs::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 .tabs button {
@@ -56,6 +73,9 @@ body {
   cursor: pointer;
   border-bottom: 3px solid transparent;
   transition: all 0.2s;
+  white-space: nowrap;
+  /* Área táctil mínima recomendada */
+  min-height: 44px;
 }
 
 .tabs button:hover {
@@ -67,7 +87,9 @@ body {
   border-bottom-color: #10b981;
 }
 
-/* Tarjetas */
+/* ============================================================
+   TARJETAS DE RESUMEN
+   ============================================================ */
 .tarjetas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -107,7 +129,9 @@ body {
   color: #1f2937;
 }
 
-/* Gráficos */
+/* ============================================================
+   GRÁFICOS
+   ============================================================ */
 .graficos {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -120,6 +144,8 @@ body {
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  /* Responsive: evita overflow de gráficos */
+  overflow: hidden;
 }
 
 .grafico h3 {
@@ -128,7 +154,9 @@ body {
   color: #374151;
 }
 
-/* Alertas */
+/* ============================================================
+   ALERTAS
+   ============================================================ */
 .alertas-lista {
   background: white;
   border-radius: 12px;
@@ -156,6 +184,9 @@ body {
   align-items: center;
   font-size: 14px;
   border-left: 3px solid #10b981;
+  /* Responsive: permite wrap en móvil */
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .alerta-item.media {
@@ -179,13 +210,16 @@ body {
   font-size: 14px;
 }
 
-/* Tabla */
+/* ============================================================
+   TABLA
+   ============================================================ */
 .tabla {
   background: white;
   border-radius: 12px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .tabla h3 {
@@ -198,6 +232,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  min-width: 600px; /* Fuerza scroll horizontal en móvil */
 }
 
 th {
@@ -218,7 +253,9 @@ td {
   background: #fef2f2;
 }
 
-/* Sensores */
+/* ============================================================
+   SENSORES
+   ============================================================ */
 .sensores h3 {
   font-size: 15px;
   margin-bottom: 16px;
@@ -256,8 +293,97 @@ td {
   margin-bottom: 4px;
 }
 
+/* ============================================================
+   RESPONSIVE — TABLETS (768px o menos)
+   ============================================================ */
 @media (max-width: 768px) {
+  .app {
+    padding: 16px;
+  }
+
+  .header h1 {
+    font-size: 26px;
+  }
+
   .graficos {
     grid-template-columns: 1fr;
+  }
+
+  .tarjeta .valor {
+    font-size: 28px;
+  }
+
+  .tabs button {
+    padding: 10px 14px;
+    font-size: 14px;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE — MÓVILES (480px o menos)
+   ============================================================ */
+@media (max-width: 480px) {
+  .app {
+    padding: 12px;
+  }
+
+  .header h1 {
+    font-size: 22px;
+  }
+
+  .subtitulo {
+    font-size: 12px;
+  }
+
+  .tarjetas {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .tarjeta {
+    padding: 16px;
+  }
+
+  .tarjeta .valor {
+    font-size: 24px;
+  }
+
+  .tarjeta .etiqueta {
+    font-size: 11px;
+  }
+
+  .grafico {
+    padding: 14px;
+  }
+
+  .grafico h3 {
+    font-size: 13px;
+  }
+
+  .alerta-item {
+    font-size: 13px;
+    padding: 10px;
+  }
+
+  .tabla {
+    padding: 14px;
+  }
+
+  .tabla h3 {
+    font-size: 13px;
+  }
+
+  .sensor-card {
+    padding: 12px;
+  }
+
+  .tabs button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .cargando {
+    padding: 40px;
+    font-size: 16px;
   }
 }
