@@ -611,10 +611,3 @@ aws s3 mb s3://domovida-backups ...
 
 
 
-
-\*\*Paso 2:\*\* Guarda con `Ctrl + S` y cierra el Bloc de notas.
-
-
-
-\*\*Paso 3:\*\* Vuelve a la terminal y dime \*\*"listo"\*\*.
-
