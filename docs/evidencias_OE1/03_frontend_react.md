@@ -34,21 +34,21 @@ El frontend de DomoVida es una aplicación web desarrollada en \*\*React\*\* con
 
 
 
-| Componente | Tecnología | Propósito |
+| Componente    | Tecnología    | Propósito                            |
 
-|------------|-----------|-----------|
+|---------------|---------------|--------------------------------------|
 
-| Framework | React 18+ | Interfaz de usuario |
+| Framework     | React 18+     | Interfaz de usuario                  |
 
-| Lenguaje | TypeScript | Tipado estático |
+| Lenguaje      | TypeScript    | Tipado estático                      |
 
-| Bundler | Vite | Compilación y servidor de desarrollo |
+| Bundler       | Vite          | Compilación y servidor de desarrollo |
 
-| Gráficos | Recharts | Visualización de datos |
+| Gráficos      | Recharts      | Visualización de datos               |
 
-| Mapa (futuro) | React-Leaflet | Geolocalización |
+| Mapa (futuro) | React-Leaflet | Geolocalización                      |
 
-| HTTP Client | Fetch API | Comunicación con backend |
+| HTTP Client   | Fetch API     | Comunicación con backend             |
 
 
 
@@ -74,17 +74,17 @@ El frontend de DomoVida es una aplicación web desarrollada en \*\*React\*\* con
 
 
 
-| Tarjeta | Descripción | Datos |
+| Tarjeta                 | Descripción                       | Datos       |
 
-|---------|-------------|-------|
+|-------------------------|-----------------------------------|-------------|
 
-| \*\*Eventos Totales\*\* | Total de eventos recibidos | Últimos 50 |
+| \*\*Eventos Totales\*\* | Total de eventos recibidos        | Últimos 50  |
 
 | \*\*Alertas Activas\*\* | Eventos con alerta en últimas 24h | Tiempo real |
 
-| \*\*Sensores Online\*\* | Sensores PIR activos | Últimas 12h |
+| \*\*Sensores Online\*\* | Sensores PIR activos              | Últimas 12h |
 
-| \*\*Inactividad\*\* | Sensores PIR sin movimiento | Últimas 12h |
+| \*\*Inactividad\*\*     | Sensores PIR sin movimiento       | Últimas 12h |
 
 
 
@@ -329,22 +329,4 @@ VITE v8.2.2  ready in 523 ms
 
 
 🔜 Diseño responsive para móviles
-
-
-
-
-
-\*\*Paso 2:\*\* Guarda con `Ctrl + S` y cierra el Bloc de notas.
-
-
-
-\*\*Paso 3:\*\* Vuelve a la terminal y dime \*\*"listo"\*\*.
-
-
-
-
-
-
-
-
 
