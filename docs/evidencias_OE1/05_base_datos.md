@@ -36,17 +36,17 @@ DomoVida utiliza una \*\*arquitectura de persistencia híbrida\*\* que combina u
 
 ┌──────────────────────────────────────────────────┐
 
-│ CAPA LOCAL (Edge Computing) │
+│ CAPA LOCAL (Edge Computing)                      │
 
-│ │
+│                                                  │
 
-│ SQLite3 → backend/domovida.db │
+│ SQLite3 → backend/domovida.db                    │
 
-│ • Persistencia rápida │
+│ • Persistencia rápida                            │
 
-│ • Sin dependencia de internet │
+│ • Sin dependencia de internet                    │
 
-│ • Resiliencia ante fallas de red │
+│ • Resiliencia ante fallas de red                 │
 
 └──────────────────────────────────────────────────┘
 
@@ -58,17 +58,17 @@ DomoVida utiliza una \*\*arquitectura de persistencia híbrida\*\* que combina u
 
 ┌──────────────────────────────────────────────────┐
 
-│ CAPA NUBE (Escalabilidad) │
+│ CAPA NUBE (Escalabilidad)                        │
 
-│ │
+│                                                  │
 
-│ PostgreSQL → AWS RDS │
+│ PostgreSQL → AWS RDS                             │
 
-│ • Análisis agregado de múltiples hogares │
+│ • Análisis agregado de múltiples hogares         │
 
-│ • Backups automáticos │
+│ • Backups automáticos                            │
 
-│ • Machine Learning distribuido │
+│ • Machine Learning distribuido                   │
 
 └──────────────────────────────────────────────────┘
 
@@ -290,15 +290,15 @@ Futuro: Implementar capa adicional de seudonimización con hashing para los sens
 
 Aspecto	                                Estado
 
-Base de datos SQLite3	                ✅ Funcionando
+Base de datos SQLite3	                  ✅ Funcionando
 
-Tabla eventos	                        ✅ Creada
+Tabla eventos	                          ✅ Creada
 
-Registros almacenados	                ✅ +965 eventos
+Registros almacenados	                  ✅ +965 eventos
 
 Seudonimización básica	                ✅ Implementada
 
-Migración a PostgreSQL (AWS RDS)	🔜 Objetivo 2
+Migración a PostgreSQL (AWS RDS)	      🔜 Objetivo 2
 
 Sincronización híbrida	                🔜 Futuro
 
@@ -315,12 +315,7 @@ Ver el archivo de base de datos
 ls backend/domovida.db
 
 
-
-
-
 Abrir la base de datos con SQLite (si está instalado)
-
-
 
 
 
@@ -363,16 +358,6 @@ SELECT COUNT(\*) FROM eventos;
 
 
 🔜 Implementar cifrado a nivel de columna para datos sensibles
-
-
-
-
-
-\*\*Paso 2:\*\* Guarda con `Ctrl + S` y cierra el Bloc de notas.
-
-
-
-\*\*Paso 3:\*\* Vuelve a la terminal y dime \*\*"listo"\*\*.
 
 
 
