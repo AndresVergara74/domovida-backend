@@ -16,17 +16,29 @@ export function useDomovida() {
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [sensores, setSensores] = useState<SensorEstado[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [conectado, setConectado] = useState(false);
+  const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null);
 
   async function cargarTodo() {
-    const [ev, al, se] = await Promise.all([
-      obtenerEventos(50),
-      obtenerAlertasActivas(),
-      obtenerInactividad(),
-    ]);
-    setEventos(ev);
-    setAlertas(al);
-    setSensores(se);
-    setCargando(false);
+    try {
+      const [ev, al, se] = await Promise.all([
+        obtenerEventos(50),
+        obtenerAlertasActivas(),
+        obtenerInactividad(),
+      ]);
+
+      // Si llegamos aquí, la API respondió correctamente
+      setEventos(ev);
+      setAlertas(al);
+      setSensores(se);
+      setConectado(true);
+      setUltimaActualizacion(new Date());
+    } catch (error) {
+      console.error("Error al cargar datos:", error);
+      setConectado(false);
+    } finally {
+      setCargando(false);
+    }
   }
 
   useEffect(() => {
@@ -35,5 +47,13 @@ export function useDomovida() {
     return () => clearInterval(intervalo);
   }, []);
 
-  return { eventos, alertas, sensores, cargando, refrescar: cargarTodo };
+  return {
+    eventos,
+    alertas,
+    sensores,
+    cargando,
+    conectado,
+    ultimaActualizacion,
+    refrescar: cargarTodo,
+  };
 }

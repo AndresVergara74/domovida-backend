@@ -29,3 +29,13 @@ class Evento(Base):
     valor = Column(JSON)  # Datos específicos del sensor
     alerta = Column(Boolean, default=False)
     timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+
+    # ============================================================
+    # CAMPOS PARA GESTIÓN DE ALERTAS
+    # ============================================================
+    # Estos campos permiten saber si una alerta fue atendida
+    # por el cuidador y quién la resolvió.
+    # ============================================================
+    resuelto = Column(Boolean, default=False, index=True)
+    resuelto_en = Column(DateTime, nullable=True)
+    resuelto_por = Column(String(100), nullable=True)
