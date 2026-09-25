@@ -22,3 +22,10 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ============================================================
+# VARIABLES DE ENTORNO (NO SUBIR CREDENCIALES)
+# ============================================================
+.env
+.env.local
+.env.*.local
