@@ -1,39 +1,70 @@
 // src/App.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 import { useDomovida } from "./useDomovida";
+import { useWebSocket } from "./useWebSocket";
 import "./App.css";
 
 const COLORES = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 
-// ============================================================
-// ESTADO DEL SISTEMA
-// ============================================================
-// NOTA: Actualmente es un componente de prototipo. En una etapa
-// posterior, estos estados se obtendrán mediante health checks
-// del backend (endpoint /api/health).
-// ============================================================
-const ESTADO_SISTEMA = [
-  { nombre: "Raspberry Pi (Edge)", icono: "🍓", online: true },
-  { nombre: "API FastAPI", icono: "⚙️", online: true },
-  { nombre: "PostgreSQL (Supabase)", icono: "🗄️", online: true },
-  { nombre: "MQTT Broker", icono: "📡", online: true },
-  { nombre: "ntfy (Notificaciones)", icono: "📱", online: true },
-];
-
 function App() {
   const { eventos, alertas, sensores, cargando, conectado } = useDomovida();
+  const { conectado: wsConectado, alertasTiempoReal } = useWebSocket();
   const [pestana, setPestana] = useState<"general" | "historial" | "sensores">("general");
+  const [estadoSistema, setEstadoSistema] = useState<any[]>([]);
+  const [notificacionVisible, setNotificacionVisible] = useState(false);
+  const [ultimaAlertaRT, setUltimaAlertaRT] = useState<any>(null);
+
+  // ============================================================
+  // Cargar estado del sistema desde /api/health
+  // ============================================================
+  useEffect(() => {
+    async function cargarHealth() {
+      try {
+        const response = await fetch("http://localhost:8000/api/health");
+        const data = await response.json();
+        setEstadoSistema(data.componentes || []);
+      } catch (error) {
+        console.error("Error al cargar health:", error);
+      }
+    }
+    cargarHealth();
+    const intervalo = setInterval(cargarHealth, 30000);
+    return () => clearInterval(intervalo);
+  }, []);
+
+  // ============================================================
+  // Mostrar notificación flotante cuando llega una alerta en tiempo real
+  // ============================================================
+  useEffect(() => {
+    if (alertasTiempoReal.length > 0) {
+      const ultima = alertasTiempoReal[0];
+      if (!ultimaAlertaRT || ultima.id !== ultimaAlertaRT.id) {
+        setUltimaAlertaRT(ultima);
+        setNotificacionVisible(true);
+        const timeout = setTimeout(() => setNotificacionVisible(false), 5000);
+        return () => clearTimeout(timeout);
+      }
+    }
+  }, [alertasTiempoReal, ultimaAlertaRT]);
 
   if (cargando) {
     return <div className="cargando">Cargando DomoVida...</div>;
   }
 
   // ============================================================
-  // CORRECCIÓN 1: Eventos de HOY (no todos)
+  // Combinar alertas del backend + alertas del WebSocket
+  // ============================================================
+  const todasLasAlertas = [
+    ...alertasTiempoReal,
+    ...alertas.filter((a) => !alertasTiempoReal.some((rt) => rt.id === a.id)),
+  ];
+
+  // ============================================================
+  // Eventos de HOY
   // ============================================================
   const hoy = new Date();
   const eventosHoy = eventos.filter((e) => {
@@ -46,7 +77,7 @@ function App() {
   });
 
   // ============================================================
-  // CORRECCIÓN 2: Última actividad PIR (ordenada explícitamente)
+  // Última actividad PIR
   // ============================================================
   const actividadesPIR = eventos
     .filter((e) => e.tipo === "pir" && e.valor?.movimiento === true)
@@ -57,9 +88,6 @@ function App() {
 
   const ultimaActividad = actividadesPIR[0];
 
-  // ============================================================
-  // CORRECCIÓN 3: Inactividad real (o "Sin datos" si no hay actividad)
-  // ============================================================
   const minutosInactivo = ultimaActividad
     ? Math.floor(
         (Date.now() - new Date(ultimaActividad.timestamp).getTime()) / 60000
@@ -67,7 +95,7 @@ function App() {
     : null;
 
   // ============================================================
-  // Gráfico: Actividad del hogar (basado en eventos PIR)
+  // Gráfico: Actividad del hogar
   // ============================================================
   const datosActividad = eventos
     .filter((e) => e.tipo === "pir")
@@ -84,7 +112,7 @@ function App() {
   // Gráfico: Alertas por tipo
   // ============================================================
   const datosAlertasTipo = Object.entries(
-    alertas.reduce((acc: Record<string, number>, a) => {
+    todasLasAlertas.reduce((acc: Record<string, number>, a) => {
       acc[a.tipo] = (acc[a.tipo] || 0) + 1;
       return acc;
     }, {})
@@ -94,12 +122,33 @@ function App() {
   // KPIs
   // ============================================================
   const totalEventosHoy = eventosHoy.length;
-  const totalAlertas = alertas.length;
+  const totalAlertas = todasLasAlertas.length;
   const sensoresOnline = sensores.filter((s) => s.online).length;
   const totalSensores = sensores.length;
 
   return (
     <div className="app">
+      {/* ============================================ */}
+      {/* NOTIFICACIÓN FLOTANTE DE ALERTA EN TIEMPO REAL */}
+      {/* ============================================ */}
+      {notificacionVisible && ultimaAlertaRT && (
+        <div className="notificacion-tiempo-real">
+          <div className="notificacion-icono">🚨</div>
+          <div className="notificacion-contenido">
+            <strong>Alerta en tiempo real</strong>
+            <p>
+              {ultimaAlertaRT.sensor_id} · {ultimaAlertaRT.habitacion}
+            </p>
+          </div>
+          <button
+            className="notificacion-cerrar"
+            onClick={() => setNotificacionVisible(false)}
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       <header className="header">
         <div className="header-content">
           <h1>🏠 DomoVida</h1>
@@ -110,7 +159,11 @@ function App() {
         <div className="header-status">
           <span className={`status-badge ${conectado ? "online" : "offline"}`}>
             <span className={`status-dot ${conectado ? "online" : "offline"}`}></span>
-            {conectado ? "Sistema conectado" : "Sistema desconectado"}
+            {conectado ? "API conectada" : "API desconectada"}
+          </span>
+          <span className={`status-badge ${wsConectado ? "online" : "offline"}`}>
+            <span className={`status-dot ${wsConectado ? "online" : "offline"}`}></span>
+            {wsConectado ? "Tiempo real activo" : "Tiempo real inactivo"}
           </span>
         </div>
       </header>
@@ -139,12 +192,12 @@ function App() {
       {pestana === "general" && (
         <>
           {/* ============================================ */}
-          {/* ESTADO DEL SISTEMA */}
+          {/* ESTADO DEL SISTEMA (desde /api/health) */}
           {/* ============================================ */}
           <section className="estado-sistema">
             <h3>Estado del sistema</h3>
             <div className="estado-grid">
-              {ESTADO_SISTEMA.map((s) => (
+              {estadoSistema.map((s) => (
                 <div
                   key={s.nombre}
                   className={`estado-item ${s.online ? "online" : "offline"}`}
@@ -247,16 +300,19 @@ function App() {
           </section>
 
           <section className="alertas-lista">
-            <h3>Alertas recientes</h3>
-            {alertas.length === 0 ? (
+            <h3>
+              Alertas recientes
+              {wsConectado && <span className="live-badge">● EN VIVO</span>}
+            </h3>
+            {todasLasAlertas.length === 0 ? (
               <p className="vacio">Sin alertas activas</p>
             ) : (
               <ul>
-                {alertas.slice(0, 8).map((a) => (
-                  <li key={a.id} className={`alerta-item ${a.severidad}`}>
+                {todasLasAlertas.slice(0, 8).map((a) => (
+                  <li key={a.id} className={`alerta-item ${a.severidad || "alta"}`}>
                     <div>
                       <strong>{a.tipo}</strong>
-                      {a.mensaje && `: ${a.mensaje}`}
+                      {a.habitacion && ` · ${a.habitacion}`}
                     </div>
                     <span className="hora">
                       {new Date(a.timestamp).toLocaleTimeString("es-CL")}

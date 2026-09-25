@@ -551,6 +551,7 @@ body.dark {
   --bg: #0f172a;
   --bg-card: #1e293b;
   --text: #f1f5f9;
+
   --text-secondary: #94a3b8;
   --border: #334155;
   --primary-light: #064e3b;
@@ -560,4 +561,262 @@ body.dark {
 
 body.dark .tarjeta::before {
   opacity: 0.15;
+}
+
+/* ============================================================
+   NOTIFICACIÓN FLOTANTE EN TIEMPO REAL
+   ============================================================ */
+.notificacion-tiempo-real {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 320px;
+  max-width: 420px;
+  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.notificacion-icono {
+  font-size: 28px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.notificacion-contenido {
+  flex: 1;
+}
+
+.notificacion-contenido strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.notificacion-contenido p {
+  font-size: 13px;
+  opacity: 0.95;
+  font-weight: 500;
+}
+
+.notificacion-cerrar {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.notificacion-cerrar:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: rotate(90deg);
+}
+
+/* ============================================================
+   HEADER STATUS (badges de conexión)
+   ============================================================ */
+.header-status {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+}
+
+.status-badge.online {
+  color: var(--primary-dark);
+  background: var(--primary-light);
+}
+
+.status-badge.offline {
+  color: #991b1b;
+  background: var(--danger-light);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.online {
+  background: var(--primary);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25);
+  animation: pulseDot 2s ease-in-out infinite;
+}
+
+.status-dot.offline {
+  background: var(--danger);
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.25);
+}
+
+@keyframes pulseDot {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.25); }
+  50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.1); }
+}
+
+/* ============================================================
+   BADGE "EN VIVO"
+   ============================================================ */
+.live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: white;
+  background: linear-gradient(135deg, var(--danger), #dc2626);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+  animation: pulseDot 1.8s ease-in-out infinite;
+}
+
+/* ============================================================
+   ESTADO DEL SISTEMA
+   ============================================================ */
+.estado-sistema {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 32px;
+}
+
+.estado-sistema h3 {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: var(--text);
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.estado-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.estado-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  border-left: 3px solid var(--primary);
+  transition: var(--transition);
+}
+
+.estado-item.offline {
+  border-left-color: var(--danger);
+  background: var(--danger-light);
+}
+
+.estado-item:hover {
+  transform: translateX(4px);
+}
+
+.estado-icono {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.estado-nombre {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.estado-badge {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.estado-badge.online {
+  color: var(--primary-dark);
+  background: var(--primary-light);
+}
+
+.estado-badge.offline {
+  color: #991b1b;
+  background: var(--danger-light);
+}
+
+/* ============================================================
+   RESPONSIVE — NOTIFICACIÓN Y ESTADO
+   ============================================================ */
+@media (max-width: 480px) {
+  .notificacion-tiempo-real {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    min-width: auto;
+  }
+
+  .header-status {
+    width: 100%;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .estado-grid {
+    grid-template-columns: 1fr;
+  }
 }
