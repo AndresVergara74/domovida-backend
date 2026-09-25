@@ -7,11 +7,13 @@ import { useEffect, useRef, useState, useCallback } from "react";
 // Tipo de alerta recibida por WebSocket
 export interface AlertaWebSocket {
   id: number;
-  sensor_id: string;
+  sensor_id?: string;
   tipo: string;
-  habitacion: string;
-  valor: Record<string, any>;
-  alerta: boolean;
+  habitacion?: string;
+  valor?: Record<string, any>;
+  alerta?: boolean;
+  mensaje?: string;
+  severidad?: "baja" | "media" | "alta" | "critica";
   timestamp: string;
 }
 
@@ -27,8 +29,8 @@ export function useWebSocket() {
   const [ultimaAlerta, setUltimaAlerta] = useState<AlertaWebSocket | null>(null);
   const [alertasTiempoReal, setAlertasTiempoReal] = useState<AlertaWebSocket[]>([]);
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const pingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // URL del WebSocket (configurable desde .env)
   const WS_URL =

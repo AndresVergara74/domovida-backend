@@ -17,8 +17,12 @@ export interface Evento {
 export interface Alerta {
   id: number;
   tipo: string;
-  mensaje: string;
-  severidad: "baja" | "media" | "alta" | "critica";
+  mensaje?: string;
+  severidad?: "baja" | "media" | "alta" | "critica";
+  habitacion?: string;
+  sensor_id?: string;
+  valor?: Record<string, any>;
+  alerta?: boolean;
   timestamp: string;
 }
 
