@@ -10,8 +10,11 @@ import "./App.css";
 
 const COLORES = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 
+// URL base de la API (usa variable de entorno o fallback)
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
 function App() {
-  const { eventos, alertas, sensores, cargando, conectado } = useDomovida();
+  const { eventos, alertas, sensores, cargando, conectado, refrescar } = useDomovida();
   const { conectado: wsConectado, alertasTiempoReal } = useWebSocket();
   const [pestana, setPestana] = useState<"general" | "historial" | "sensores">("general");
   const [estadoSistema, setEstadoSistema] = useState<any[]>([]);
@@ -19,12 +22,18 @@ function App() {
   const [ultimaAlertaRT, setUltimaAlertaRT] = useState<any>(null);
 
   // ============================================================
+  // Estados para "Marcar como atendida"
+  // ============================================================
+  const [resolviendoId, setResolviendoId] = useState<number | null>(null);
+  const [alertasResueltas, setAlertasResueltas] = useState<Set<number>>(new Set());
+
+  // ============================================================
   // Cargar estado del sistema desde /api/health
   // ============================================================
   useEffect(() => {
     async function cargarHealth() {
       try {
-        const response = await fetch("http://localhost:8000/api/health");
+        const response = await fetch(`${API_URL}/api/health`);
         const data = await response.json();
         setEstadoSistema(data.componentes || []);
       } catch (error) {
@@ -50,6 +59,42 @@ function App() {
       }
     }
   }, [alertasTiempoReal, ultimaAlertaRT]);
+
+  // ============================================================
+  // FUNCIÓN: Marcar una alerta como atendida
+  // ============================================================
+  async function resolverAlerta(alertaId: number) {
+    setResolviendoId(alertaId);
+
+    try {
+      const response = await fetch(`${API_URL}/api/alertas/${alertaId}/resolver`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resuelto_por: "Cuidador DomoVida",
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      // Marcar como resuelta en el estado local
+      setAlertasResueltas((prev) => new Set(prev).add(alertaId));
+
+      // Refrescar los datos del backend
+      if (refrescar) {
+        await refrescar();
+      }
+
+      console.log(`✅ Alerta ${alertaId} marcada como atendida`);
+    } catch (error) {
+      console.error(`❌ Error al resolver alerta ${alertaId}:`, error);
+      alert("No se pudo marcar la alerta como atendida. Intenta de nuevo.");
+    } finally {
+      setResolviendoId(null);
+    }
+  }
 
   if (cargando) {
     return <div className="cargando">Cargando DomoVida...</div>;
@@ -308,17 +353,34 @@ function App() {
               <p className="vacio">Sin alertas activas</p>
             ) : (
               <ul>
-                {todasLasAlertas.slice(0, 8).map((a) => (
-                  <li key={a.id} className={`alerta-item ${a.severidad || "alta"}`}>
-                    <div>
-                      <strong>{a.tipo}</strong>
-                      {a.habitacion && ` · ${a.habitacion}`}
-                    </div>
-                    <span className="hora">
-                      {new Date(a.timestamp).toLocaleTimeString("es-CL")}
-                    </span>
-                  </li>
-                ))}
+                {todasLasAlertas.slice(0, 8).map((a) => {
+                  const resuelta = alertasResueltas.has(a.id);
+                  const resolviendo = resolviendoId === a.id;
+
+                  return (
+                    <li key={a.id} className={`alerta-item ${a.severidad || "alta"}`}>
+                      <div className="alerta-info">
+                        <strong>{a.tipo}</strong>
+                        {a.habitacion && ` · ${a.habitacion}`}
+                        <span className="hora">
+                          {new Date(a.timestamp).toLocaleTimeString("es-CL")}
+                        </span>
+                      </div>
+
+                      {resuelta ? (
+                        <span className="alerta-resuelta-badge">✓ Atendida</span>
+                      ) : (
+                        <button
+                          className="btn-atender"
+                          onClick={() => resolverAlerta(a.id)}
+                          disabled={resolviendo}
+                        >
+                          {resolviendo ? "Atendiendo..." : "✓ Atender"}
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </section>
