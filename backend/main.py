@@ -18,16 +18,20 @@ app = FastAPI(
     description="Backend para monitoreo de adultos mayores con WebSocket en tiempo real"
 )
 
-# CORS - permite frontend en Vite (5173, 5174) y CRA (3000)
+# CORS - permite frontend en Vite (5173, 5174), CRA (3000) y producción en Vercel
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        # Desarrollo local
         "http://localhost:3000",
         "http://localhost:5173",
         "http://localhost:5174",
         "http://127.0.0.1:5173",
         "http://127.0.0.1:5174",
         "http://127.0.0.1:3000",
+        # Producción en Vercel
+        "https://domovida-backend.vercel.app",
+        "https://domovida-backend-git-main-andresvergara74.vercel.app",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -56,7 +60,7 @@ def root():
             "inactividad": "/api/alertas/inactividad",
             "resolver_alerta": "PATCH /api/alertas/{id}/resolver",
             "health": "/api/health",
-            "websocket": "ws://localhost:8000/api/ws/alertas",
+            "websocket": "wss://domovida-backend.onrender.com/api/ws/alertas",
             "docs": "/docs",
         },
     }
