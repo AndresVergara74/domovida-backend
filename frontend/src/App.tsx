@@ -4,6 +4,8 @@ import {
   LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
+// Iconos Lucide (reemplazan emojis)
+import { Home, Moon, Sun, AlertTriangle, Bell } from "lucide-react";
 import { useDomovida } from "./useDomovida";
 import { useWebSocket } from "./useWebSocket";
 import "./App.css";
@@ -201,7 +203,9 @@ function App() {
       {/* ============================================ */}
       {notificacionVisible && ultimaAlertaRT && (
         <div className="notificacion-tiempo-real">
-          <div className="notificacion-icono">🚨</div>
+          <div className="notificacion-icono">
+            <Bell size={28} />
+          </div>
           <div className="notificacion-contenido">
             <strong>Alerta en tiempo real</strong>
             <p>
@@ -219,7 +223,10 @@ function App() {
 
       <header className="header">
         <div className="header-content">
-          <h1>🏠 DomoVida</h1>
+          <h1 className="titulo-app">
+            <Home size={32} strokeWidth={2.5} />
+            DomoVida
+          </h1>
           <p className="subtitulo">
             Monitoreo predictivo y asistencia inteligente
           </p>
@@ -243,7 +250,7 @@ function App() {
             title={temaOscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
             aria-label={temaOscuro ? "Modo claro" : "Modo oscuro"}
           >
-            {temaOscuro ? "☀️" : "🌙"}
+            {temaOscuro ? <Sun size={20} /> : <Moon size={20} />}
           </button>
         </div>
       </header>
@@ -307,7 +314,13 @@ function App() {
               <span className="etiqueta">Alertas activas</span>
               <span className="valor">{totalAlertas}</span>
               <span className="detalle">
-                {totalAlertas > 0 ? "⚠ revisar" : "🟢 sin alertas"}
+                {totalAlertas > 0 ? (
+                  <>
+                    <AlertTriangle size={14} /> revisar
+                  </>
+                ) : (
+                  "🟢 sin alertas"
+                )}
               </span>
             </div>
             <div className="tarjeta">

@@ -1,4 +1,4 @@
-/* src/App.css — DomoVida Dashboard v2.0 */
+/* src/App.css — DomoVida Dashboard v3.0 */
 
 /* ============================================================
    RESET Y VARIABLES GLOBALES
@@ -49,6 +49,7 @@ body {
   color: var(--text);
   -webkit-text-size-adjust: 100%;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ============================================================
@@ -78,7 +79,11 @@ body {
   gap: 16px;
 }
 
-.header-content h1 {
+/* TÍTULO CON ICONO (Lucide Home) */
+.titulo-app {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-size: 36px;
   font-weight: 800;
   background: linear-gradient(135deg, var(--primary-dark), var(--primary));
@@ -87,6 +92,13 @@ body {
   background-clip: text;
   letter-spacing: -0.5px;
   margin-bottom: 4px;
+}
+
+.titulo-app svg {
+  color: var(--primary);
+  stroke: var(--primary);
+  flex-shrink: 0;
+  -webkit-text-fill-color: var(--primary);
 }
 
 .subtitulo {
@@ -150,7 +162,7 @@ body {
 }
 
 /* ============================================================
-   TARJETAS DE RESUMEN (Glassmorphism)
+   TARJETAS DE RESUMEN
    ============================================================ */
 .tarjetas {
   display: grid;
@@ -233,6 +245,19 @@ body {
   line-height: 1;
 }
 
+.tarjeta .detalle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+.tarjeta .detalle svg {
+  flex-shrink: 0;
+}
+
 /* ============================================================
    GRÁFICOS
    ============================================================ */
@@ -279,6 +304,10 @@ body {
   margin-bottom: 16px;
   color: var(--text);
   font-weight: 700;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .alertas-lista ul {
@@ -297,7 +326,7 @@ body {
   border-left: 4px solid var(--primary);
   transition: var(--transition);
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
 }
 
 .alerta-item:hover {
@@ -324,7 +353,16 @@ body {
   background: #fecaca;
 }
 
-.alerta-item .hora {
+.alerta-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+
+.alerta-info .hora {
+  margin-left: auto;
   color: var(--text-secondary);
   font-size: 12px;
   font-weight: 600;
@@ -336,6 +374,44 @@ body {
   font-size: 14px;
   padding: 20px;
   text-align: center;
+}
+
+/* ============================================================
+   BOTÓN "MARCAR COMO ATENDIDA"
+   ============================================================ */
+.btn-atender {
+  padding: 6px 14px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-atender:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.btn-atender:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.alerta-resuelta-badge {
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ============================================================
@@ -445,208 +521,7 @@ tr:hover td {
 }
 
 /* ============================================================
-   RESPONSIVE — TABLETS (768px o menos)
-   ============================================================ */
-@media (max-width: 768px) {
-  .app {
-    padding: 20px 16px;
-  }
-
-  .header h1 {
-    font-size: 28px;
-  }
-
-  .graficos {
-    grid-template-columns: 1fr;
-  }
-
-  .tarjeta .valor {
-    font-size: 32px;
-  }
-
-  .tabs button {
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-}
-
-/* ============================================================
-   RESPONSIVE — MÓVILES (480px o menos)
-   ============================================================ */
-@media (max-width: 480px) {
-  .app {
-    padding: 16px 12px;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .header h1 {
-    font-size: 24px;
-  }
-
-  .subtitulo {
-    font-size: 13px;
-  }
-
-  .tarjetas {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .tarjeta {
-    padding: 20px;
-  }
-
-  .tarjeta .valor {
-    font-size: 28px;
-  }
-
-  .tarjeta .etiqueta {
-    font-size: 11px;
-  }
-
-  .grafico {
-    padding: 16px;
-  }
-
-  .grafico h3 {
-    font-size: 14px;
-  }
-
-  .alerta-item {
-    font-size: 13px;
-    padding: 12px;
-  }
-
-  .tabla {
-    padding: 16px;
-  }
-
-  .tabla h3 {
-    font-size: 14px;
-  }
-
-  .sensor-card {
-    padding: 16px;
-  }
-
-  .tabs button {
-    padding: 8px 14px;
-    font-size: 13px;
-  }
-
-  .cargando {
-    padding: 60px;
-    font-size: 16px;
-  }
-}
-
-/* ============================================================
-   MODO OSCURO (opcional, activado por clase .dark)
-   ============================================================ */
-body.dark {
-  --bg: #0f172a;
-  --bg-card: #1e293b;
-  --text: #f1f5f9;
-
-  --text-secondary: #94a3b8;
-  --border: #334155;
-  --primary-light: #064e3b;
-  --danger-light: #7f1d1d;
-  --warning-light: #78350f;
-}
-
-body.dark .tarjeta::before {
-  opacity: 0.15;
-}
-
-/* ============================================================
-   NOTIFICACIÓN FLOTANTE EN TIEMPO REAL
-   ============================================================ */
-.notificacion-tiempo-real {
-  position: fixed;
-  top: 24px;
-  right: 24px;
-  z-index: 9999;
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  border-radius: var(--radius-lg);
-  padding: 16px 20px;
-  box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 320px;
-  max-width: 420px;
-  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideInRight {
-  from {
-    opacity: 0;
-    transform: translateX(100px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.notificacion-icono {
-  font-size: 28px;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.15); }
-}
-
-.notificacion-contenido {
-  flex: 1;
-}
-
-.notificacion-contenido strong {
-  display: block;
-  font-size: 14px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 4px;
-}
-
-.notificacion-contenido p {
-  font-size: 13px;
-  opacity: 0.95;
-  font-weight: 500;
-}
-
-.notificacion-cerrar {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: white;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition);
-  flex-shrink: 0;
-}
-
-.notificacion-cerrar:hover {
-  background: rgba(255, 255, 255, 0.35);
-  transform: rotate(90deg);
-}
-
-/* ============================================================
-   HEADER STATUS (badges de conexión)
+   HEADER STATUS (badges + botón tema)
    ============================================================ */
 .header-status {
   display: flex;
@@ -702,13 +577,46 @@ body.dark .tarjeta::before {
 }
 
 /* ============================================================
+   BOTÓN DE MODO OSCURO (TOGGLE)
+   ============================================================ */
+.btn-tema {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.btn-tema:hover {
+  transform: scale(1.1) rotate(15deg);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-tema:active {
+  transform: scale(0.95);
+}
+
+.btn-tema:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* ============================================================
    BADGE "EN VIVO"
    ============================================================ */
 .live-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-left: 12px;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 11px;
@@ -797,9 +705,217 @@ body.dark .tarjeta::before {
 }
 
 /* ============================================================
-   RESPONSIVE — NOTIFICACIÓN Y ESTADO
+   NOTIFICACIÓN FLOTANTE EN TIEMPO REAL
+   ============================================================ */
+.notificacion-tiempo-real {
+  position: fixed;
+  top: 24px;
+  right: 24px;
+  z-index: 9999;
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+  color: white;
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  box-shadow: 0 10px 40px rgba(239, 68, 68, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 320px;
+  max-width: 420px;
+  animation: slideInRight 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(100px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.notificacion-icono {
+  font-size: 28px;
+  animation: pulse 1.5s ease-in-out infinite;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notificacion-icono svg {
+  color: white;
+  stroke: white;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+}
+
+.notificacion-contenido {
+  flex: 1;
+}
+
+.notificacion-contenido strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.notificacion-contenido p {
+  font-size: 13px;
+  opacity: 0.95;
+  font-weight: 500;
+}
+
+.notificacion-cerrar {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: white;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.notificacion-cerrar:hover {
+  background: rgba(255, 255, 255, 0.35);
+  transform: rotate(90deg);
+}
+
+/* ============================================================
+   MODO OSCURO
+   ============================================================ */
+body.dark {
+  --bg: #0f172a;
+  --bg-card: #1e293b;
+  --text: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --border: #334155;
+  --primary-light: #064e3b;
+  --danger-light: #7f1d1d;
+  --warning-light: #78350f;
+  --info-light: #1e3a8a;
+}
+
+body.dark .tarjeta::before {
+  opacity: 0.15;
+}
+
+/* ============================================================
+   RESPONSIVE — TABLETS (768px o menos)
+   ============================================================ */
+@media (max-width: 768px) {
+  .app {
+    padding: 20px 16px;
+  }
+
+  .titulo-app {
+    font-size: 28px;
+  }
+
+  .titulo-app svg {
+    width: 26px;
+    height: 26px;
+  }
+
+  .graficos {
+    grid-template-columns: 1fr;
+  }
+
+  .tarjeta .valor {
+    font-size: 32px;
+  }
+
+  .tabs button {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE — MÓVILES (480px o menos)
    ============================================================ */
 @media (max-width: 480px) {
+  .app {
+    padding: 16px 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .titulo-app {
+    font-size: 24px;
+  }
+
+  .titulo-app svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .subtitulo {
+    font-size: 13px;
+  }
+
+  .tarjetas {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .tarjeta {
+    padding: 20px;
+  }
+
+  .tarjeta .valor {
+    font-size: 28px;
+  }
+
+  .tarjeta .etiqueta {
+    font-size: 11px;
+  }
+
+  .grafico {
+    padding: 16px;
+  }
+
+  .grafico h3 {
+    font-size: 14px;
+  }
+
+  .alerta-item {
+    font-size: 13px;
+    padding: 12px;
+  }
+
+  .tabla {
+    padding: 16px;
+  }
+
+  .tabla h3 {
+    font-size: 14px;
+  }
+
+  .sensor-card {
+    padding: 16px;
+  }
+
+  .tabs button {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .cargando {
+    padding: 60px;
+    font-size: 16px;
+  }
+
   .notificacion-tiempo-real {
     top: 12px;
     right: 12px;
@@ -819,108 +935,9 @@ body.dark .tarjeta::before {
   .estado-grid {
     grid-template-columns: 1fr;
   }
-}
 
-/* ============================================================
-   BOTÓN "MARCAR COMO ATENDIDA"
-   ============================================================ */
-.alerta-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-}
-
-.alerta-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  flex-wrap: wrap;
-}
-
-.alerta-info .hora {
-  margin-left: auto;
-  color: var(--text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-}
-
-.btn-atender {
-  padding: 6px 14px;
-  border: none;
-  border-radius: 8px;
-  background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: var(--transition);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.btn-atender:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-}
-
-.btn-atender:disabled {
-  opacity: 0.6;
-  cursor: wait;
-}
-
-.alerta-resuelta-badge {
-  padding: 6px 14px;
-  border-radius: 8px;
-  background: var(--primary-light);
-  color: var(--primary-dark);
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-/* ============================================================
-   BOTÓN DE MODO OSCURO (TOGGLE)
-   ============================================================ */
-.btn-tema {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: none;
-  border-radius: 999px;
-  background: var(--bg-card);
-  color: var(--text);
-  font-size: 20px;
-  cursor: pointer;
-  box-shadow: var(--shadow-sm);
-  transition: var(--transition);
-  flex-shrink: 0;
-}
-
-.btn-tema:hover {
-  transform: scale(1.1) rotate(15deg);
-  box-shadow: var(--shadow-md);
-}
-
-.btn-tema:active {
-  transform: scale(0.95);
-}
-
-.btn-tema:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
-}
-
-/* En móvil, el botón de tema se alinea con los otros badges */
-@media (max-width: 480px) {
   .btn-tema {
     width: 40px;
     height: 40px;
-    font-size: 18px;
   }
 }
