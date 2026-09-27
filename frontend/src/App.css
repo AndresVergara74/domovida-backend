@@ -10,7 +10,6 @@
 }
 
 :root {
-  /* Colores principales */
   --primary: #10b981;
   --primary-dark: #059669;
   --primary-light: #d1fae5;
@@ -20,26 +19,18 @@
   --warning-light: #fef3c7;
   --info: #3b82f6;
   --info-light: #dbeafe;
-
-  /* Neutros */
   --bg: #f8fafc;
   --bg-card: #ffffff;
   --text: #0f172a;
   --text-secondary: #64748b;
   --border: #e2e8f0;
-
-  /* Sombras */
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.12);
-
-  /* Bordes */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-
-  /* Transiciones */
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -52,9 +43,7 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* ============================================================
-   LAYOUT PRINCIPAL
-   ============================================================ */
+/* LAYOUT PRINCIPAL */
 .app {
   max-width: 1280px;
   margin: 0 auto;
@@ -67,9 +56,7 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* ============================================================
-   HEADER
-   ============================================================ */
+/* HEADER */
 .header {
   margin-bottom: 32px;
   display: flex;
@@ -79,7 +66,6 @@ body {
   gap: 16px;
 }
 
-/* TÍTULO CON ICONO (Lucide Home) */
 .titulo-app {
   display: flex;
   align-items: center;
@@ -115,9 +101,7 @@ body {
   font-weight: 600;
 }
 
-/* ============================================================
-   TABS
-   ============================================================ */
+/* TABS */
 .tabs {
   display: flex;
   gap: 4px;
@@ -161,9 +145,7 @@ body {
   box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
-/* ============================================================
-   TARJETAS DE RESUMEN
-   ============================================================ */
+/* TARJETAS */
 .tarjetas {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -258,9 +240,7 @@ body {
   flex-shrink: 0;
 }
 
-/* ============================================================
-   GRÁFICOS
-   ============================================================ */
+/* GRÁFICOS */
 .graficos {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -289,9 +269,7 @@ body {
   letter-spacing: -0.3px;
 }
 
-/* ============================================================
-   ALERTAS
-   ============================================================ */
+/* ALERTAS */
 .alertas-lista {
   background: var(--bg-card);
   border-radius: var(--radius-lg);
@@ -376,9 +354,7 @@ body {
   text-align: center;
 }
 
-/* ============================================================
-   BOTÓN "MARCAR COMO ATENDIDA"
-   ============================================================ */
+/* BOTÓN ATENDER */
 .btn-atender {
   padding: 6px 14px;
   border: none;
@@ -414,9 +390,7 @@ body {
   flex-shrink: 0;
 }
 
-/* ============================================================
-   TABLA
-   ============================================================ */
+/* TABLA */
 .tabla {
   background: var(--bg-card);
   border-radius: var(--radius-lg);
@@ -470,9 +444,7 @@ tr:hover td {
   background: #fecaca !important;
 }
 
-/* ============================================================
-   SENSORES
-   ============================================================ */
+/* SENSORES */
 .sensores h3 {
   font-size: 16px;
   margin-bottom: 20px;
@@ -520,9 +492,7 @@ tr:hover td {
   justify-content: space-between;
 }
 
-/* ============================================================
-   HEADER STATUS (badges + botón tema)
-   ============================================================ */
+/* HEADER STATUS */
 .header-status {
   display: flex;
   gap: 8px;
@@ -576,9 +546,7 @@ tr:hover td {
   50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0.1); }
 }
 
-/* ============================================================
-   BOTÓN DE MODO OSCURO (TOGGLE)
-   ============================================================ */
+/* MODO OSCURO */
 .btn-tema {
   display: inline-flex;
   align-items: center;
@@ -610,9 +578,7 @@ tr:hover td {
   outline-offset: 2px;
 }
 
-/* ============================================================
-   BADGE "EN VIVO"
-   ============================================================ */
+/* BADGE EN VIVO */
 .live-badge {
   display: inline-flex;
   align-items: center;
@@ -628,9 +594,7 @@ tr:hover td {
   animation: pulseDot 1.8s ease-in-out infinite;
 }
 
-/* ============================================================
-   ESTADO DEL SISTEMA
-   ============================================================ */
+/* ESTADO DEL SISTEMA */
 .estado-sistema {
   background: var(--bg-card);
   border-radius: var(--radius-lg);
@@ -704,9 +668,7 @@ tr:hover td {
   background: var(--danger-light);
 }
 
-/* ============================================================
-   NOTIFICACIÓN FLOTANTE EN TIEMPO REAL
-   ============================================================ */
+/* NOTIFICACIÓN TIEMPO REAL */
 .notificacion-tiempo-real {
   position: fixed;
   top: 24px;
@@ -788,9 +750,7 @@ tr:hover td {
   transform: rotate(90deg);
 }
 
-/* ============================================================
-   MODO OSCURO
-   ============================================================ */
+/* MODO OSCURO VARIABLES */
 body.dark {
   --bg: #0f172a;
   --bg-card: #1e293b;
@@ -807,144 +767,7 @@ body.dark .tarjeta::before {
   opacity: 0.15;
 }
 
-/* ============================================================
-   RESPONSIVE — TABLETS (768px o menos)
-   ============================================================ */
-@media (max-width: 768px) {
-  .app {
-    padding: 20px 16px;
-  }
-
-  .titulo-app {
-    font-size: 28px;
-  }
-
-  .titulo-app svg {
-    width: 26px;
-    height: 26px;
-  }
-
-  .graficos {
-    grid-template-columns: 1fr;
-  }
-
-  .tarjeta .valor {
-    font-size: 32px;
-  }
-
-  .tabs button {
-    padding: 10px 16px;
-    font-size: 14px;
-  }
-}
-
-/* ============================================================
-   RESPONSIVE — MÓVILES (480px o menos)
-   ============================================================ */
-@media (max-width: 480px) {
-  .app {
-    padding: 16px 12px;
-  }
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .titulo-app {
-    font-size: 24px;
-  }
-
-  .titulo-app svg {
-    width: 22px;
-    height: 22px;
-  }
-
-  .subtitulo {
-    font-size: 13px;
-  }
-
-  .tarjetas {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .tarjeta {
-    padding: 20px;
-  }
-
-  .tarjeta .valor {
-    font-size: 28px;
-  }
-
-  .tarjeta .etiqueta {
-    font-size: 11px;
-  }
-
-  .grafico {
-    padding: 16px;
-  }
-
-  .grafico h3 {
-    font-size: 14px;
-  }
-
-  .alerta-item {
-    font-size: 13px;
-    padding: 12px;
-  }
-
-  .tabla {
-    padding: 16px;
-  }
-
-  .tabla h3 {
-    font-size: 14px;
-  }
-
-  .sensor-card {
-    padding: 16px;
-  }
-
-  .tabs button {
-    padding: 8px 14px;
-    font-size: 13px;
-  }
-
-  .cargando {
-    padding: 60px;
-    font-size: 16px;
-  }
-
-  .notificacion-tiempo-real {
-    top: 12px;
-    right: 12px;
-    left: 12px;
-    min-width: auto;
-  }
-
-  .header-status {
-    width: 100%;
-  }
-
-  .status-badge {
-    font-size: 11px;
-    padding: 6px 10px;
-  }
-
-  .estado-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .btn-tema {
-    width: 40px;
-    height: 40px;
-  }
-}
-
-/* ============================================================
-   FILTROS DEL HISTORIAL
-   ============================================================ */
+/* FILTROS */
 .tabla-header {
   display: flex;
   align-items: center;
@@ -1057,7 +880,6 @@ body.dark .tarjeta::before {
   font-size: 14px;
 }
 
-/* Modo oscuro para filtros */
 body.dark .filtros {
   background: #0f172a;
 }
@@ -1071,27 +893,7 @@ body.dark .btn-limpiar-filtros {
   color: #fecaca;
 }
 
-/* Responsive para filtros */
-@media (max-width: 768px) {
-  .filtros-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .filtros-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .tabla-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-/* ============================================================
-   BOTÓN DE CONSENTIMIENTO (HEADER)
-   ============================================================ */
+/* BOTÓN CONSENTIMIENTO */
 .btn-consentimiento {
   display: inline-flex;
   align-items: center;
@@ -1120,9 +922,7 @@ body.dark .btn-limpiar-filtros {
   outline-offset: 2px;
 }
 
-/* ============================================================
-   MODAL DE CONSENTIMIENTO INFORMADO
-   ============================================================ */
+/* MODAL CONSENTIMIENTO */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1420,7 +1220,6 @@ body.dark .btn-limpiar-filtros {
   box-shadow: none;
 }
 
-/* Modo oscuro del modal */
 body.dark .modal-consentimiento {
   background: #1e293b;
 }
@@ -1438,40 +1237,305 @@ body.dark .form-group input {
   background: #1e293b;
 }
 
-/* Responsive del modal */
-@media (max-width: 640px) {
-  .modal-overlay {
-    padding: 10px;
+/* MAPA DEL HOGAR */
+.mapa-hogar-container {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+}
+
+.mapa-header {
+  margin-bottom: 20px;
+}
+
+.mapa-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  letter-spacing: -0.3px;
+}
+
+.mapa-descripcion {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.punto-verde {
+  color: var(--primary);
+  font-weight: 700;
+}
+
+.punto-rojo {
+  color: var(--danger);
+  font-weight: 700;
+}
+
+.mapa-wrapper {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.mapa-wrapper .leaflet-container {
+  font-family: inherit;
+  z-index: 1;
+}
+
+.sensor-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.popup-sensor {
+  font-family: inherit;
+  min-width: 200px;
+}
+
+.popup-sensor h4 {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--primary-dark);
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.popup-sensor p {
+  font-size: 12px;
+  color: var(--text);
+  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.popup-sensor strong {
+  color: var(--text-secondary);
+  font-weight: 700;
+}
+
+.mapa-leyenda {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  padding: 14px 16px;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.leyenda-punto {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 2px solid white;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.leyenda-punto.online {
+  background: var(--primary);
+}
+
+.leyenda-punto.offline {
+  background: var(--danger);
+}
+
+.leyenda-circulo {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px dashed var(--primary);
+  background: rgba(16, 185, 129, 0.1);
+  display: inline-block;
+}
+
+body.dark .mapa-wrapper {
+  border-color: #334155;
+}
+
+body.dark .mapa-leyenda {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .app {
+    padding: 20px 16px;
   }
 
-  .modal-header {
-    padding: 18px 20px;
+  .titulo-app {
+    font-size: 28px;
   }
 
-  .modal-header-titulo h2 {
-    font-size: 18px;
+  .titulo-app svg {
+    width: 26px;
+    height: 26px;
   }
 
-  .modal-body {
-    padding: 18px 20px;
+  .graficos {
+    grid-template-columns: 1fr;
   }
 
-  .modal-footer {
-    padding: 14px 20px;
-    flex-direction: column-reverse;
+  .tarjeta .valor {
+    font-size: 32px;
   }
 
-  .btn-rechazar,
-  .btn-aceptar {
-    width: 100%;
-    justify-content: center;
+  .tabs button {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .filtros-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .mapa-hogar-container {
+    padding: 16px;
+  }
+
+  .mapa-wrapper .leaflet-container {
+    height: 400px !important;
+  }
+
+  .mapa-leyenda {
+    gap: 14px;
   }
 }
 
 @media (max-width: 480px) {
+  .app {
+    padding: 16px 12px;
+  }
+
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .titulo-app {
+    font-size: 24px;
+  }
+
+  .titulo-app svg {
+    width: 22px;
+    height: 22px;
+  }
+
+  .subtitulo {
+    font-size: 13px;
+  }
+
+  .tarjetas {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .tarjeta {
+    padding: 20px;
+  }
+
+  .tarjeta .valor {
+    font-size: 28px;
+  }
+
+  .tarjeta .etiqueta {
+    font-size: 11px;
+  }
+
+  .grafico {
+    padding: 16px;
+  }
+
+  .grafico h3 {
+    font-size: 14px;
+  }
+
+  .alerta-item {
+    font-size: 13px;
+    padding: 12px;
+  }
+
+  .tabla {
+    padding: 16px;
+  }
+
+  .tabla h3 {
+    font-size: 14px;
+  }
+
+  .sensor-card {
+    padding: 16px;
+  }
+
+  .tabs button {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+
+  .cargando {
+    padding: 60px;
+    font-size: 16px;
+  }
+
+  .notificacion-tiempo-real {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    min-width: auto;
+  }
+
+  .header-status {
+    width: 100%;
+  }
+
+  .status-badge {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  .estado-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-tema {
+    width: 40px;
+    height: 40px;
+  }
+
   .btn-consentimiento {
     width: 40px;
     height: 40px;
   }
-}
 
+  .filtros-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tabla-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .mapa-wrapper .leaflet-container {
+    height: 320px !important;
+  }
+
+  .mapa-leyenda {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

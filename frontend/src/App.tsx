@@ -5,10 +5,11 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 // Iconos Lucide (reemplazan emojis)
-import { Home, Moon, Sun, AlertTriangle, Bell, Filter, X, Shield } from "lucide-react";
+import { Home, Moon, Sun, AlertTriangle, Bell, Filter, X, Shield, MapPin } from "lucide-react";
 import { useDomovida } from "./useDomovida";
 import { useWebSocket } from "./useWebSocket";
 import Consentimiento from "./Consentimiento";
+import MapaHogar from "./MapaHogar";
 import "./App.css";
 
 const COLORES = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
@@ -19,7 +20,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 function App() {
   const { eventos, alertas, sensores, cargando, conectado, refrescar } = useDomovida();
   const { conectado: wsConectado, alertasTiempoReal } = useWebSocket();
-  const [pestana, setPestana] = useState<"general" | "historial" | "sensores">("general");
+  const [pestana, setPestana] = useState<"general" | "historial" | "sensores" | "ubicacion">("general");
   const [estadoSistema, setEstadoSistema] = useState<any[]>([]);
   const [notificacionVisible, setNotificacionVisible] = useState(false);
   const [ultimaAlertaRT, setUltimaAlertaRT] = useState<any>(null);
@@ -359,6 +360,12 @@ function App() {
         >
           Sensores
         </button>
+        <button
+          className={pestana === "ubicacion" ? "activo" : ""}
+          onClick={() => setPestana("ubicacion")}
+        >
+          Ubicación
+        </button>
       </nav>
 
       {pestana === "general" && (
@@ -652,6 +659,12 @@ function App() {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {pestana === "ubicacion" && (
+        <section className="ubicacion">
+          <MapaHogar sensores={sensores} />
         </section>
       )}
     </div>
