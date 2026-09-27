@@ -63,16 +63,57 @@ export async function obtenerAlertasActivas(): Promise<Alerta[]> {
 }
 
 /**
- * Obtiene el estado de los sensores (para detectar inactividad)
+ * Obtiene el estado de los sensores derivado de los últimos eventos.
+ * Cada sensor único (por sensor_id) aparece una vez, con su última lectura.
  */
-export async function obtenerInactividad(): Promise<SensorEstado[]> {
+export async function obtenerSensores(): Promise<SensorEstado[]> {
   try {
-    const response = await fetch(`${API_URL}/api/alertas/inactividad`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return await response.json();
+    const eventos = await obtenerEventos(200);
+    const mapaSensores = new Map<string, SensorEstado>();
+
+    for (const evento of eventos) {
+      if (!mapaSensores.has(evento.sensor_id)) {
+        mapaSensores.set(evento.sensor_id, {
+          sensor_id: evento.sensor_id,
+          tipo: evento.tipo,
+          habitacion: evento.habitacion || "desconocida",
+          ultima_lectura: evento.timestamp,
+          online: true,
+        });
+      }
+    }
+
+    return Array.from(mapaSensores.values());
+  } catch (error) {
+    console.error("Error al obtener sensores:", error);
+    return [];
+  }
+}
+
+/**
+ * Obtiene los minutos de inactividad desde el último evento PIR
+ */
+export async function obtenerInactividad(): Promise<number> {
+  try {
+    const eventos = await obtenerEventos(50);
+    const eventosPIR = eventos
+      .filter((e) => e.tipo === "pir" && e.valor?.movimiento === true)
+      .sort(
+        (a, b) =>
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+
+    if (eventosPIR.length === 0) return 0;
+
+    const ultimaActividad = eventosPIR[0];
+    const minutos = Math.floor(
+      (Date.now() - new Date(ultimaActividad.timestamp).getTime()) / 60000
+    );
+
+    return minutos;
   } catch (error) {
     console.error("Error al obtener inactividad:", error);
-    return [];
+    return 0;
   }
 }
 

@@ -18,7 +18,7 @@ const COLORES = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
 function App() {
-  const { eventos, alertas, sensores, cargando, conectado, refrescar } = useDomovida();
+  const { eventos, alertas, sensores, minutosInactivo, cargando, conectado, refrescar } = useDomovida();
   const { conectado: wsConectado, alertasTiempoReal } = useWebSocket();
   const [pestana, setPestana] = useState<"general" | "historial" | "sensores" | "ubicacion">("general");
   const [estadoSistema, setEstadoSistema] = useState<any[]>([]);
@@ -187,24 +187,6 @@ function App() {
       fecha.getFullYear() === hoy.getFullYear()
     );
   });
-
-  // ============================================================
-  // Última actividad PIR
-  // ============================================================
-  const actividadesPIR = eventos
-    .filter((e) => e.tipo === "pir" && e.valor?.movimiento === true)
-    .sort(
-      (a, b) =>
-        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-
-  const ultimaActividad = actividadesPIR[0];
-
-  const minutosInactivo = ultimaActividad
-    ? Math.floor(
-        (Date.now() - new Date(ultimaActividad.timestamp).getTime()) / 60000
-      )
-    : null;
 
   // ============================================================
   // Gráfico: Actividad del hogar
@@ -415,7 +397,7 @@ function App() {
                 {sensoresOnline}/{totalSensores}
               </span>
               <span className="detalle">
-                {sensoresOnline === totalSensores
+                {sensoresOnline === totalSensores && totalSensores > 0
                   ? "● todos online"
                   : `⚠ ${totalSensores - sensoresOnline} offline`}
               </span>

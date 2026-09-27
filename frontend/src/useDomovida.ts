@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import {
   obtenerEventos,
   obtenerAlertasActivas,
+  obtenerSensores,
   obtenerInactividad,
   type Evento,
   type Alerta,
@@ -15,30 +16,21 @@ export function useDomovida() {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [sensores, setSensores] = useState<SensorEstado[]>([]);
+  const [minutosInactivo, setMinutosInactivo] = useState<number>(0);
   const [cargando, setCargando] = useState(true);
-  const [conectado, setConectado] = useState(false);
-  const [ultimaActualizacion, setUltimaActualizacion] = useState<Date | null>(null);
 
   async function cargarTodo() {
-    try {
-      const [ev, al, se] = await Promise.all([
-        obtenerEventos(50),
-        obtenerAlertasActivas(),
-        obtenerInactividad(),
-      ]);
-
-      // Si llegamos aquí, la API respondió correctamente
-      setEventos(ev);
-      setAlertas(al);
-      setSensores(se);
-      setConectado(true);
-      setUltimaActualizacion(new Date());
-    } catch (error) {
-      console.error("Error al cargar datos:", error);
-      setConectado(false);
-    } finally {
-      setCargando(false);
-    }
+    const [ev, al, se, inac] = await Promise.all([
+      obtenerEventos(50),
+      obtenerAlertasActivas(),
+      obtenerSensores(),
+      obtenerInactividad(),
+    ]);
+    setEventos(ev);
+    setAlertas(al);
+    setSensores(se);
+    setMinutosInactivo(inac);
+    setCargando(false);
   }
 
   useEffect(() => {
@@ -51,9 +43,8 @@ export function useDomovida() {
     eventos,
     alertas,
     sensores,
+    minutosInactivo,
     cargando,
-    conectado,
-    ultimaActualizacion,
     refrescar: cargarTodo,
   };
 }
