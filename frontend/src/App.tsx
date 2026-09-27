@@ -5,7 +5,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 // Iconos Lucide (reemplazan emojis)
-import { Home, Moon, Sun, AlertTriangle, Bell } from "lucide-react";
+import { Home, Moon, Sun, AlertTriangle, Bell, Filter, X } from "lucide-react";
 import { useDomovida } from "./useDomovida";
 import { useWebSocket } from "./useWebSocket";
 import "./App.css";
@@ -30,14 +30,19 @@ function App() {
   const [alertasResueltas, setAlertasResueltas] = useState<Set<number>>(new Set());
 
   // ============================================================
+  // Estados para FILTROS DEL HISTORIAL
+  // ============================================================
+  const [filtroSensor, setFiltroSensor] = useState<string>("todos");
+  const [filtroTipo, setFiltroTipo] = useState<string>("todos");
+  const [filtroHabitacion, setFiltroHabitacion] = useState<string>("todas");
+  const [filtroAlerta, setFiltroAlerta] = useState<string>("todos");
+
+  // ============================================================
   // Estado para MODO OSCURO
   // ============================================================
   const [temaOscuro, setTemaOscuro] = useState<boolean>(() => {
-    // Leer preferencia guardada en localStorage
     const guardado = localStorage.getItem("domovida-tema");
     if (guardado) return guardado === "dark";
-
-    // Si no hay preferencia, usar la del sistema operativo
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
@@ -189,12 +194,49 @@ function App() {
   ).map(([name, value]) => ({ name, value }));
 
   // ============================================================
+  // FILTROS: Opciones únicas para los selectores
+  // ============================================================
+  const sensoresUnicos = Array.from(new Set(eventos.map((e) => e.sensor_id))).sort();
+  const tiposUnicos = Array.from(new Set(eventos.map((e) => e.tipo))).sort();
+  const habitacionesUnicas = Array.from(
+    new Set(eventos.map((e) => e.habitacion).filter(Boolean))
+  ).sort();
+
+  // ============================================================
+  // FILTROS: Aplicar filtros a los eventos
+  // ============================================================
+  const eventosFiltrados = eventos.filter((e) => {
+    if (filtroSensor !== "todos" && e.sensor_id !== filtroSensor) return false;
+    if (filtroTipo !== "todos" && e.tipo !== filtroTipo) return false;
+    if (filtroHabitacion !== "todas" && e.habitacion !== filtroHabitacion) return false;
+    if (filtroAlerta === "solo_alertas" && !e.alerta && !e.caida_detectada) return false;
+    if (filtroAlerta === "sin_alertas" && (e.alerta || e.caida_detectada)) return false;
+    return true;
+  });
+
+  // ============================================================
+  // FUNCIÓN: Limpiar todos los filtros
+  // ============================================================
+  function limpiarFiltros() {
+    setFiltroSensor("todos");
+    setFiltroTipo("todos");
+    setFiltroHabitacion("todas");
+    setFiltroAlerta("todos");
+  }
+
+  // ============================================================
   // KPIs
   // ============================================================
   const totalEventosHoy = eventosHoy.length;
   const totalAlertas = todasLasAlertas.length;
   const sensoresOnline = sensores.filter((s) => s.online).length;
   const totalSensores = sensores.length;
+
+  const hayFiltrosActivos =
+    filtroSensor !== "todos" ||
+    filtroTipo !== "todos" ||
+    filtroHabitacion !== "todas" ||
+    filtroAlerta !== "todos";
 
   return (
     <div className="app">
@@ -241,9 +283,6 @@ function App() {
             {wsConectado ? "Tiempo real activo" : "Tiempo real inactivo"}
           </span>
 
-          {/* ============================================ */}
-          {/* BOTÓN DE MODO OSCURO */}
-          {/* ============================================ */}
           <button
             className="btn-tema"
             onClick={() => setTemaOscuro(!temaOscuro)}
@@ -278,9 +317,6 @@ function App() {
 
       {pestana === "general" && (
         <>
-          {/* ============================================ */}
-          {/* ESTADO DEL SISTEMA (desde /api/health) */}
-          {/* ============================================ */}
           <section className="estado-sistema">
             <h3>Estado del sistema</h3>
             <div className="estado-grid">
@@ -301,9 +337,6 @@ function App() {
             </div>
           </section>
 
-          {/* ============================================ */}
-          {/* TARJETAS DE RESUMEN */}
-          {/* ============================================ */}
           <section className="tarjetas">
             <div className="tarjeta">
               <span className="etiqueta">Eventos detectados</span>
@@ -437,7 +470,87 @@ function App() {
 
       {pestana === "historial" && (
         <section className="tabla">
-          <h3>Últimos eventos</h3>
+          <div className="tabla-header">
+            <h3>Últimos eventos</h3>
+            <span className="contador-eventos">
+              {eventosFiltrados.length} de {eventos.length} eventos
+            </span>
+          </div>
+
+          {/* ============================================ */}
+          {/* FILTROS DEL HISTORIAL */}
+          {/* ============================================ */}
+          <div className="filtros">
+            <div className="filtros-header">
+              <Filter size={16} />
+              <span>Filtros</span>
+              {hayFiltrosActivos && (
+                <button className="btn-limpiar-filtros" onClick={limpiarFiltros}>
+                  <X size={14} /> Limpiar
+                </button>
+              )}
+            </div>
+
+            <div className="filtros-grid">
+              <div className="filtro-item">
+                <label>Sensor</label>
+                <select
+                  value={filtroSensor}
+                  onChange={(e) => setFiltroSensor(e.target.value)}
+                >
+                  <option value="todos">Todos los sensores</option>
+                  {sensoresUnicos.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filtro-item">
+                <label>Tipo</label>
+                <select
+                  value={filtroTipo}
+                  onChange={(e) => setFiltroTipo(e.target.value)}
+                >
+                  <option value="todos">Todos los tipos</option>
+                  {tiposUnicos.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filtro-item">
+                <label>Habitación</label>
+                <select
+                  value={filtroHabitacion}
+                  onChange={(e) => setFiltroHabitacion(e.target.value)}
+                >
+                  <option value="todas">Todas las habitaciones</option>
+                  {habitacionesUnicas.map((h) => (
+                    <option key={h} value={h}>
+                      {h}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="filtro-item">
+                <label>Alerta</label>
+                <select
+                  value={filtroAlerta}
+                  onChange={(e) => setFiltroAlerta(e.target.value)}
+                >
+                  <option value="todos">Todas</option>
+                  <option value="solo_alertas">Solo con alerta</option>
+                  <option value="sin_alertas">Sin alerta</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           <table>
             <thead>
               <tr>
@@ -449,18 +562,26 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              {eventos.slice(0, 30).map((e) => (
-                <tr
-                  key={e.id}
-                  className={e.alerta || e.caida_detectada ? "fila-alerta" : ""}
-                >
-                  <td>{e.sensor_id}</td>
-                  <td>{e.tipo}</td>
-                  <td>{e.habitacion || "-"}</td>
-                  <td>{e.alerta || e.caida_detectada ? "🚨 Sí" : "No"}</td>
-                  <td>{new Date(e.timestamp).toLocaleString("es-CL")}</td>
+              {eventosFiltrados.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="tabla-vacia">
+                    No hay eventos que coincidan con los filtros
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                eventosFiltrados.slice(0, 50).map((e) => (
+                  <tr
+                    key={e.id}
+                    className={e.alerta || e.caida_detectada ? "fila-alerta" : ""}
+                  >
+                    <td>{e.sensor_id}</td>
+                    <td>{e.tipo}</td>
+                    <td>{e.habitacion || "-"}</td>
+                    <td>{e.alerta || e.caida_detectada ? "🚨 Sí" : "No"}</td>
+                    <td>{new Date(e.timestamp).toLocaleString("es-CL")}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </section>
