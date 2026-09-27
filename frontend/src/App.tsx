@@ -28,6 +28,31 @@ function App() {
   const [alertasResueltas, setAlertasResueltas] = useState<Set<number>>(new Set());
 
   // ============================================================
+  // Estado para MODO OSCURO
+  // ============================================================
+  const [temaOscuro, setTemaOscuro] = useState<boolean>(() => {
+    // Leer preferencia guardada en localStorage
+    const guardado = localStorage.getItem("domovida-tema");
+    if (guardado) return guardado === "dark";
+
+    // Si no hay preferencia, usar la del sistema operativo
+    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+  });
+
+  // ============================================================
+  // Efecto: aplicar/quitar clase "dark" al body
+  // ============================================================
+  useEffect(() => {
+    if (temaOscuro) {
+      document.body.classList.add("dark");
+      localStorage.setItem("domovida-tema", "dark");
+    } else {
+      document.body.classList.remove("dark");
+      localStorage.setItem("domovida-tema", "light");
+    }
+  }, [temaOscuro]);
+
+  // ============================================================
   // Cargar estado del sistema desde /api/health
   // ============================================================
   useEffect(() => {
@@ -79,10 +104,8 @@ function App() {
         throw new Error(`HTTP ${response.status}`);
       }
 
-      // Marcar como resuelta en el estado local
       setAlertasResueltas((prev) => new Set(prev).add(alertaId));
 
-      // Refrescar los datos del backend
       if (refrescar) {
         await refrescar();
       }
@@ -210,6 +233,18 @@ function App() {
             <span className={`status-dot ${wsConectado ? "online" : "offline"}`}></span>
             {wsConectado ? "Tiempo real activo" : "Tiempo real inactivo"}
           </span>
+
+          {/* ============================================ */}
+          {/* BOTÓN DE MODO OSCURO */}
+          {/* ============================================ */}
+          <button
+            className="btn-tema"
+            onClick={() => setTemaOscuro(!temaOscuro)}
+            title={temaOscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+            aria-label={temaOscuro ? "Modo claro" : "Modo oscuro"}
+          >
+            {temaOscuro ? "☀️" : "🌙"}
+          </button>
         </div>
       </header>
 
