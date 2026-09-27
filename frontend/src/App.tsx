@@ -5,9 +5,10 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 // Iconos Lucide (reemplazan emojis)
-import { Home, Moon, Sun, AlertTriangle, Bell, Filter, X } from "lucide-react";
+import { Home, Moon, Sun, AlertTriangle, Bell, Filter, X, Shield } from "lucide-react";
 import { useDomovida } from "./useDomovida";
 import { useWebSocket } from "./useWebSocket";
+import Consentimiento from "./Consentimiento";
 import "./App.css";
 
 const COLORES = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
@@ -22,6 +23,14 @@ function App() {
   const [estadoSistema, setEstadoSistema] = useState<any[]>([]);
   const [notificacionVisible, setNotificacionVisible] = useState(false);
   const [ultimaAlertaRT, setUltimaAlertaRT] = useState<any>(null);
+
+  // ============================================================
+  // Estado para CONSENTIMIENTO INFORMADO
+  // ============================================================
+  const [consentimientoAceptado, setConsentimientoAceptado] = useState<boolean>(() => {
+    return localStorage.getItem("domovida-consentimiento") !== null;
+  });
+  const [mostrarConsentimiento, setMostrarConsentimiento] = useState<boolean>(false);
 
   // ============================================================
   // Estados para "Marcar como atendida"
@@ -126,8 +135,35 @@ function App() {
     }
   }
 
+  // ============================================================
+  // FUNCIONES: Consentimiento
+  // ============================================================
+  function handleAceptarConsentimiento() {
+    setConsentimientoAceptado(true);
+    setMostrarConsentimiento(false);
+  }
+
+  function handleRechazarConsentimiento() {
+    setMostrarConsentimiento(false);
+    alert(
+      "Has rechazado el consentimiento. DomoVida no puede activar el monitoreo sin tu autorización."
+    );
+  }
+
   if (cargando) {
     return <div className="cargando">Cargando DomoVida...</div>;
+  }
+
+  // ============================================================
+  // Si no ha aceptado el consentimiento, mostrar el modal
+  // ============================================================
+  if (!consentimientoAceptado || mostrarConsentimiento) {
+    return (
+      <Consentimiento
+        onAceptar={handleAceptarConsentimiento}
+        onRechazar={handleRechazarConsentimiento}
+      />
+    );
   }
 
   // ============================================================
@@ -282,6 +318,16 @@ function App() {
             <span className={`status-dot ${wsConectado ? "online" : "offline"}`}></span>
             {wsConectado ? "Tiempo real activo" : "Tiempo real inactivo"}
           </span>
+
+          {/* Botón de consentimiento */}
+          <button
+            className="btn-consentimiento"
+            onClick={() => setMostrarConsentimiento(true)}
+            title="Ver consentimiento informado"
+            aria-label="Ver consentimiento informado"
+          >
+            <Shield size={20} />
+          </button>
 
           <button
             className="btn-tema"
@@ -477,9 +523,6 @@ function App() {
             </span>
           </div>
 
-          {/* ============================================ */}
-          {/* FILTROS DEL HISTORIAL */}
-          {/* ============================================ */}
           <div className="filtros">
             <div className="filtros-header">
               <Filter size={16} />
