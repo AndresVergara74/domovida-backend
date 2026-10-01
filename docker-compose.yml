@@ -18,15 +18,15 @@ services:
       - "8000:8000"
     environment:
       # Base de datos: SQLite en el volumen (local) o Supabase si se define en .env
-      - DATABASE_URL=${DATABASE_URL:-sqlite:////app/data/domovida.db}
+      - DATABASE_URL=${DOCKER_DATABASE_URL:-sqlite:////app/data/domovida.db}
       # Supabase (se cargan desde .env, no hardcodeadas)
       - SUPABASE_URL=${SUPABASE_URL}
       - SUPABASE_KEY=${SUPABASE_KEY}
       - SUPABASE_DB_URL=${SUPABASE_DB_URL}
       # Notificaciones ntfy
       - NTFY_TOPIC=${NTFY_TOPIC:-domovida-seguro-2026}
-      # Entorno
-      - ENVIRONMENT=${ENVIRONMENT:-production}
+      # Orígenes CORS extra (por ejemplo, la IP pública de AWS EC2)
+      - CORS_ORIGINS=${CORS_ORIGINS:-}
     volumes:
       # Persistir SQLite fuera del contenedor
       - backend_data:/app/data
