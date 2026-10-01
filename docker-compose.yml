@@ -1,0 +1,80 @@
+# ============================================================
+# DomoVida - Orquestador Docker Compose
+# Levanta backend + frontend con un solo comando:
+#   docker compose up --build
+# ============================================================
+
+services:
+  # ==========================================================
+  # BACKEND - FastAPI
+  # ==========================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: domovida-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      # Base de datos: SQLite en el volumen (local) o Supabase si se define en .env
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////app/data/domovida.db}
+      # Supabase (se cargan desde .env, no hardcodeadas)
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_KEY=${SUPABASE_KEY}
+      - SUPABASE_DB_URL=${SUPABASE_DB_URL}
+      # Notificaciones ntfy
+      - NTFY_TOPIC=${NTFY_TOPIC:-domovida-seguro-2026}
+      # Entorno
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+    volumes:
+      # Persistir SQLite fuera del contenedor
+      - backend_data:/app/data
+    networks:
+      - domovida-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ==========================================================
+  # FRONTEND - React + Vite (servido con Nginx)
+  # ==========================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # URL del backend y del WebSocket para el build de Vite
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
+        VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:8000/api/ws/alertas}
+    container_name: domovida-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - domovida-network
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+# ============================================================
+# VOLÚMENES - Persistencia de datos
+# ============================================================
+volumes:
+  backend_data:
+    driver: local
+
+# ============================================================
+# REDES - Comunicación interna entre servicios
+# ============================================================
+networks:
+  domovida-network:
+    driver: bridge
