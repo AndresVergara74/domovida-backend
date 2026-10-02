@@ -43,3 +43,6 @@ env/
 # Archivos de npm de la raíz (NO subir)
 package-lock.json
 .env
+
+# Carpeta temporal de archivos por borrar (no subir)
+_to_delete/
