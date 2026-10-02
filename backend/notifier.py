@@ -11,6 +11,10 @@ completos quedan disponibles únicamente en el dashboard autenticado.
 
 import requests
 from datetime import datetime
+from zoneinfo import ZoneInfo
+
+# Hora de Chile para los mensajes (el servidor de Render usa UTC)
+ZONA_CHILE = ZoneInfo("America/Santiago")
 
 # ============================================================
 # CONFIGURACIÓN
@@ -32,7 +36,7 @@ def formatear_alerta(evento: dict) -> tuple:
     tipo = evento.get("tipo", "desconocido")
     habitacion = evento.get("habitacion", "sin_ubicacion")
     valor = evento.get("valor", {})
-    hora = datetime.now().strftime("%H:%M:%S")
+    hora = datetime.now(ZONA_CHILE).strftime("%H:%M:%S")
 
     # --- CAÍDA ---
     if tipo == "acelerometro" and valor.get("magnitud", 0) > 20:

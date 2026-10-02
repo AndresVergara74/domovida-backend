@@ -12,6 +12,7 @@ Sensores simulados:
 - Botón de Pánico (evento manual del usuario)
 """
 
+import os
 import requests
 import random
 import time
@@ -21,7 +22,10 @@ from datetime import datetime
 # ============================================================
 # CONFIGURACIÓN
 # ============================================================
-API_URL = "http://localhost:8000/api/sensor-data"
+# Backend de destino: por defecto local. Para enviar a Render (u otro servidor):
+#   PowerShell:  $env:DOMOVIDA_API_URL="https://domovida-backend.onrender.com"
+BACKEND_URL = os.getenv("DOMOVIDA_API_URL", "http://localhost:8000").rstrip("/")
+API_URL = f"{BACKEND_URL}/api/sensor-data"
 INTERVALO_SEGUNDOS = 5
 
 # Estado simulado del adulto mayor
@@ -227,7 +231,7 @@ def generar_datos_boton_panico():
 def enviar_datos(datos):
     """Envía los datos al backend FastAPI."""
     try:
-        response = requests.post(API_URL, json=datos, timeout=5)
+        response = requests.post(API_URL, json=datos, timeout=15)
         if response.status_code in [200, 201]:
             icono = "🚨" if datos.get("alerta") else "✅"
             print(f"{icono} {datos['sensor_id']:30s} | tipo: {datos['tipo']}")

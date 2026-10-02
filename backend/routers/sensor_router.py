@@ -6,6 +6,8 @@ Integra:
 - Notificaciones push vía ntfy.sh
 - Notificaciones en tiempo real vía WebSocket
 """
+import asyncio
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from database import get_db
@@ -55,16 +57,23 @@ async def recibir_datos_sensor(datos: SensorDataIn, db: Session = Depends(get_db
             "timestamp": datos.timestamp.isoformat() if datos.timestamp else None,
         }
 
-        # 2a. Notificación push vía ntfy
-        try:
-            enviar_notificacion(evento_dict)
-        except Exception as e:
-            print(f"⚠️ Error al enviar notificación ntfy: {e}")
-
-        # 2b. Notificación en tiempo real vía WebSocket
+        # 2a. Notificación en tiempo real vía WebSocket (primero: es el canal más rápido)
         try:
             await notificar_alerta(evento_dict)
         except Exception as e:
             print(f"⚠️ Error al enviar notificación WebSocket: {e}")
 
+        # 2b. Notificación push vía ntfy en segundo plano (no bloquea la respuesta).
+        # Ajuste PR-01 (02-10-2026): antes ntfy se enviaba primero y el WebSocket
+        # esperaba a que terminara la llamada HTTP a ntfy.sh.
+        asyncio.get_running_loop().run_in_executor(None, _enviar_ntfy_seguro, evento_dict)
+
     return evento
+
+
+def _enviar_ntfy_seguro(evento_dict: dict) -> None:
+    """Envía la notificación ntfy capturando errores (se ejecuta en un hilo aparte)."""
+    try:
+        enviar_notificacion(evento_dict)
+    except Exception as e:
+        print(f"⚠️ Error al enviar notificación ntfy: {e}")
