@@ -1,0 +1,178 @@
+{
+  "resourceType": "Bundle",
+  "type": "searchset",
+  "total": 3,
+  "entry": [
+    {
+      "fullUrl": "Observation/evento-28819",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "evento-28819",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "activity"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "1912002",
+              "display": "Fall (event)"
+            }
+          ],
+          "text": "Fall (event)"
+        },
+        "subject": {
+          "reference": "Patient/domovida-p001",
+          "display": "Adulto mayor (seudonimizado)"
+        },
+        "device": {
+          "display": "Sensor acelerometro_dormitorio (dormitorio)"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "AA"
+              }
+            ]
+          }
+        ],
+        "effectiveDateTime": "2026-10-02T15:06:23.791000+00:00",
+        "valueQuantity": {
+          "value": 25,
+          "unit": "m/s2",
+          "system": "http://unitsofmeasure.org",
+          "code": "m/s2"
+        },
+        "note": [
+          {
+            "text": "Evento marcado como alerta por las reglas de umbral de DomoVida."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "Observation/evento-28818",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "evento-28818",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "activity"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "1912002",
+              "display": "Fall (event)"
+            }
+          ],
+          "text": "Fall (event)"
+        },
+        "subject": {
+          "reference": "Patient/domovida-p001",
+          "display": "Adulto mayor (seudonimizado)"
+        },
+        "device": {
+          "display": "Sensor acelerometro_dormitorio (dormitorio)"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "AA"
+              }
+            ]
+          }
+        ],
+        "effectiveDateTime": "2026-10-02T15:06:20.834000+00:00",
+        "valueQuantity": {
+          "value": 25,
+          "unit": "m/s2",
+          "system": "http://unitsofmeasure.org",
+          "code": "m/s2"
+        },
+        "note": [
+          {
+            "text": "Evento marcado como alerta por las reglas de umbral de DomoVida."
+          }
+        ]
+      }
+    },
+    {
+      "fullUrl": "Observation/evento-28817",
+      "resource": {
+        "resourceType": "Observation",
+        "id": "evento-28817",
+        "status": "final",
+        "category": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/observation-category",
+                "code": "activity"
+              }
+            ]
+          }
+        ],
+        "code": {
+          "coding": [
+            {
+              "system": "http://snomed.info/sct",
+              "code": "1912002",
+              "display": "Fall (event)"
+            }
+          ],
+          "text": "Fall (event)"
+        },
+        "subject": {
+          "reference": "Patient/domovida-p001",
+          "display": "Adulto mayor (seudonimizado)"
+        },
+        "device": {
+          "display": "Sensor acelerometro_dormitorio (dormitorio)"
+        },
+        "interpretation": [
+          {
+            "coding": [
+              {
+                "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationInterpretation",
+                "code": "AA"
+              }
+            ]
+          }
+        ],
+        "effectiveDateTime": "2026-10-02T15:06:17.846000+00:00",
+        "valueQuantity": {
+          "value": 25,
+          "unit": "m/s2",
+          "system": "http://unitsofmeasure.org",
+          "code": "m/s2"
+        },
+        "note": [
+          {
+            "text": "Evento marcado como alerta por las reglas de umbral de DomoVida."
+          }
+        ]
+      }
+    }
+  ]
+}
