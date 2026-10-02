@@ -7,6 +7,7 @@ import {
   obtenerAlertasActivas,
   obtenerSensores,
   obtenerInactividad,
+  verificarConexion,
   type Evento,
   type Alerta,
   type SensorEstado,
@@ -18,18 +19,21 @@ export function useDomovida() {
   const [sensores, setSensores] = useState<SensorEstado[]>([]);
   const [minutosInactivo, setMinutosInactivo] = useState<number>(0);
   const [cargando, setCargando] = useState(true);
+  const [conectado, setConectado] = useState(false);
 
   async function cargarTodo() {
-    const [ev, al, se, inac] = await Promise.all([
+    const [ev, al, se, inac, ok] = await Promise.all([
       obtenerEventos(50),
       obtenerAlertasActivas(),
       obtenerSensores(),
       obtenerInactividad(),
+      verificarConexion(),
     ]);
     setEventos(ev);
     setAlertas(al);
     setSensores(se);
     setMinutosInactivo(inac);
+    setConectado(ok);
     setCargando(false);
   }
 
@@ -45,6 +49,7 @@ export function useDomovida() {
     sensores,
     minutosInactivo,
     cargando,
+    conectado,
     refrescar: cargarTodo,
   };
 }

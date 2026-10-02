@@ -133,3 +133,14 @@ export async function enviarDatosSensor(datos: Partial<Evento>): Promise<boolean
     return false;
   }
 }
+
+// ── Verificar conexión con el backend ──
+// Consulta /api/health y devuelve true si el backend responde correctamente.
+export async function verificarConexion(): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_URL}/api/health`);
+    return response.ok;
+  } catch (error) {
+    return false;
+  }
+}

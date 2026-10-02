@@ -42,3 +42,4 @@ env/
 .venv/
 # Archivos de npm de la raíz (NO subir)
 package-lock.json
+.env

@@ -19,13 +19,22 @@ export default function Consentimiento({ onAceptar, onRechazar }: Consentimiento
     checkLeido &&
     checkAcepto;
 
-  function handleAceptar() {
+  async function handleAceptar() {
     if (!puedeAceptar) return;
 
-    // Guardar en localStorage (seudonimizado: solo iniciales + timestamp)
+    // Seudonimización con SHA-256 con sal (Ley N° 21.719)
+    // La sal es un valor fijo del proyecto, no secreto, pero evita ataques de diccionario
+    const SAL = "domovida-2026-ley21719";
+    const encoder = new TextEncoder();
+    const datos = encoder.encode(rut.trim() + SAL);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", datos);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const rutHash = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+
+    // Guardar en localStorage (seudonimizado: solo iniciales + hash SHA-256)
     const registro = {
       iniciales: nombre.trim().split(" ").map((p) => p[0]).join("").toUpperCase(),
-      rutHash: btoa(rut.trim()).slice(0, 12), // hash simple (seudonimización)
+      rutHash: rutHash, // SHA-256 con sal (irreversible)
       fecha: new Date().toISOString(),
       version: "1.0",
     };
@@ -137,7 +146,7 @@ export default function Consentimiento({ onAceptar, onRechazar }: Consentimiento
                 placeholder="Ej: 12.345.678-9"
               />
               <span className="nota-campo">
-                El RUT se almacena como hash (seudonimizado), nunca en texto plano.
+                El RUT se almacena como hash SHA-256 con sal (seudonimizado), nunca en texto plano.
               </span>
             </div>
           </div>
