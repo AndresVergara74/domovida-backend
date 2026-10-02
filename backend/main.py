@@ -7,6 +7,7 @@ from routers import (
     alerta_router,
     health_router,
     websocket_router,
+    fhir_router,
 )
 
 # Crear tablas
@@ -53,6 +54,7 @@ app.include_router(sensor_router.router, prefix="/api", tags=["Sensores"])
 app.include_router(evento_router.router, prefix="/api", tags=["Eventos"])
 app.include_router(alerta_router.router, prefix="/api", tags=["Alertas"])
 app.include_router(health_router.router, prefix="/api", tags=["Health"])
+app.include_router(fhir_router.router, prefix="/api", tags=["HL7 FHIR"])
 
 # Incluir router WebSocket
 app.include_router(websocket_router.router, prefix="/api", tags=["WebSocket"])
@@ -70,6 +72,7 @@ def root():
             "inactividad": "/api/alertas/inactividad",
             "resolver_alerta": "PATCH /api/alertas/{id}/resolver",
             "health": "/api/health",
+            "fhir": "/api/fhir/Observation",
             "websocket": "wss://domovida-backend.onrender.com/api/ws/alertas",
             "docs": "/docs",
         },
