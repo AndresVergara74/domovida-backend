@@ -27,6 +27,7 @@ caso("Sin cabecera X-API-Key", cliente.post("/api/sensor-data").status_code, 401
 caso("Clave incorrecta", cliente.post("/api/sensor-data", headers={"X-API-Key": "otra"}).status_code, 401)
 caso("Clave vacía", cliente.post("/api/sensor-data", headers={"X-API-Key": ""}).status_code, 401)
 caso("Clave correcta", cliente.post("/api/sensor-data", headers={"X-API-Key": CLAVE}).status_code, 200)
+caso("Clave correcta con espacio al final", cliente.post("/api/sensor-data", headers={"X-API-Key": CLAVE + " "}).status_code, 200)
 caso("Clave correcta con mayúsculas cambiadas", cliente.post("/api/sensor-data", headers={"X-API-Key": CLAVE.upper()}).status_code, 401)
 os.environ.pop("DOMOVIDA_API_KEY")
 caso("Sin DOMOVIDA_API_KEY en el servidor (modo desarrollo)", cliente.post("/api/sensor-data").status_code, 200)

@@ -9,6 +9,7 @@ entorno DOMOVIDA_API_KEY (en Render: Environment; en local: archivo .env).
 Si DOMOVIDA_API_KEY no está definida, la verificación queda desactivada
 (modo desarrollo / modo borde sin configurar) y se avisa en el log.
 """
+import hashlib
 import logging
 import os
 import secrets
@@ -33,7 +34,21 @@ def clave_valida(recibida: Optional[str], esperada: Optional[str]) -> bool:
         return True  # verificación desactivada
     if not recibida:
         return False
+    recibida = recibida.strip()  # tolera espacios o saltos de línea al copiar
     return secrets.compare_digest(recibida.encode(), esperada.encode())
+
+
+def info_clave() -> dict:
+    """Datos NO secretos para diagnosticar la configuración (sin exponer la clave):
+    si está activa, su largo y los primeros 8 caracteres de su huella SHA-256."""
+    clave = clave_configurada()
+    if clave is None:
+        return {"activa": False, "longitud": 0, "huella": None}
+    return {
+        "activa": True,
+        "longitud": len(clave),
+        "huella": hashlib.sha256(clave.encode()).hexdigest()[:8],
+    }
 
 
 _aviso_mostrado = False

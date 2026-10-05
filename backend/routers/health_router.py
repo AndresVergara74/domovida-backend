@@ -16,6 +16,7 @@ from database import get_db, engine
 import requests
 import os
 from datetime import datetime
+from seguridad import info_clave
 
 router = APIRouter()
 
@@ -171,5 +172,6 @@ def health_check(db: Session = Depends(get_db)):
         "componentes_total": total,
         "componentes_simulados": len(componentes) - total,
         "componentes": componentes,
+        "clave_api_sensores": info_clave(),  # PS-01 (sin exponer la clave)
         "timestamp": datetime.utcnow().isoformat(),
     }
