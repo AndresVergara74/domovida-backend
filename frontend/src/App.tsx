@@ -5,11 +5,13 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from "recharts";
 // Iconos Lucide (reemplazan emojis)
-import { Home, Moon, Sun, AlertTriangle, Bell, Filter, X, Shield, MapPin } from "lucide-react";
+import { Home, Moon, Sun, AlertTriangle, Bell, Filter, X, Shield, MapPin, LogIn, LogOut } from "lucide-react";
 import { useDomovida } from "./useDomovida";
 import { useWebSocket } from "./useWebSocket";
 import Consentimiento from "./Consentimiento";
 import MapaHogar from "./MapaHogar";
+import LoginCuidador from "./LoginCuidador";
+import { authHabilitada, leerSesion, cerrarSesion, type Sesion } from "./auth";
 import "./App.css";
 
 const COLORES = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
@@ -38,6 +40,13 @@ function App() {
   // ============================================================
   const [resolviendoId, setResolviendoId] = useState<number | null>(null);
   const [alertasResueltas, setAlertasResueltas] = useState<Map<number, Date>>(new Map());
+
+  // ============================================================
+  // Sesión del cuidador (PS-01): necesaria para atender alertas
+  // ============================================================
+  const [sesion, setSesion] = useState<Sesion | null>(() => leerSesion());
+  const [mostrarLogin, setMostrarLogin] = useState(false);
+  const [alertaPendiente, setAlertaPendiente] = useState<number | null>(null);
 
   // ============================================================
   // Estados para FILTROS DEL HISTORIAL
@@ -105,17 +114,36 @@ function App() {
   // ============================================================
   // FUNCIÓN: Marcar una alerta como atendida
   // ============================================================
-  async function resolverAlerta(alertaId: number) {
+  async function resolverAlerta(alertaId: number, sesionActual: Sesion | null = sesion) {
+    // Si el inicio de sesión está configurado y no hay sesión vigente, pedirla primero
+    const vigente = sesionActual && sesionActual.expira > Date.now() ? sesionActual : null;
+    if (authHabilitada && !vigente) {
+      setAlertaPendiente(alertaId);
+      setMostrarLogin(true);
+      return;
+    }
+
     setResolviendoId(alertaId);
 
     try {
+      const cabeceras: Record<string, string> = { "Content-Type": "application/json" };
+      if (vigente) cabeceras["Authorization"] = `Bearer ${vigente.token}`;
       const response = await fetch(`${API_URL}/api/alertas/${alertaId}/resolver`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: cabeceras,
         body: JSON.stringify({
           resuelto_por: "Cuidador DomoVida",
         }),
       });
+
+      if (response.status === 401) {
+        // Sesión vencida o rechazada por el backend: volver a pedirla
+        cerrarSesion();
+        setSesion(null);
+        setAlertaPendiente(alertaId);
+        setMostrarLogin(true);
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
@@ -134,6 +162,24 @@ function App() {
     } finally {
       setResolviendoId(null);
     }
+  }
+
+  // ============================================================
+  // FUNCIONES: Sesión del cuidador
+  // ============================================================
+  function handleLoginExitoso(nueva: Sesion) {
+    setSesion(nueva);
+    setMostrarLogin(false);
+    if (alertaPendiente !== null) {
+      const id = alertaPendiente;
+      setAlertaPendiente(null);
+      resolverAlerta(id, nueva);
+    }
+  }
+
+  function handleCerrarSesion() {
+    cerrarSesion();
+    setSesion(null);
   }
 
   // ============================================================
@@ -259,6 +305,15 @@ function App() {
 
   return (
     <div className="app">
+      {mostrarLogin && (
+        <LoginCuidador
+          onExito={handleLoginExitoso}
+          onCancelar={() => {
+            setMostrarLogin(false);
+            setAlertaPendiente(null);
+          }}
+        />
+      )}
       {/* ============================================ */}
       {/* NOTIFICACIÓN FLOTANTE DE ALERTA EN TIEMPO REAL */}
       {/* ============================================ */}
@@ -301,6 +356,30 @@ function App() {
             <span className={`status-dot ${wsConectado ? "online" : "offline"}`}></span>
             {wsConectado ? "Tiempo real activo" : "Tiempo real inactivo"}
           </span>
+
+          {/* Sesión del cuidador (PS-01) */}
+          {authHabilitada &&
+            (sesion ? (
+              <button
+                className="btn-sesion activa"
+                onClick={handleCerrarSesion}
+                title={`Sesión iniciada: ${sesion.email}. Clic para cerrar sesión`}
+                aria-label="Cerrar sesión"
+              >
+                <LogOut size={18} />
+                <span className="btn-sesion-texto">{sesion.email}</span>
+              </button>
+            ) : (
+              <button
+                className="btn-sesion"
+                onClick={() => setMostrarLogin(true)}
+                title="Iniciar sesión como cuidador"
+                aria-label="Iniciar sesión como cuidador"
+              >
+                <LogIn size={18} />
+                <span className="btn-sesion-texto">Ingresar</span>
+              </button>
+            ))}
 
           {/* Botón de consentimiento */}
           <button

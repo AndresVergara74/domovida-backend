@@ -1563,3 +1563,107 @@ body.dark .mapa-leyenda {
     gap: 8px;
   }
 }
+
+/* ============================================================
+   SESIÓN DEL CUIDADOR (PS-01)
+   ============================================================ */
+.btn-sesion {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 44px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 999px;
+  background: var(--bg-card);
+  color: var(--primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: var(--transition);
+  flex-shrink: 0;
+  max-width: 260px;
+}
+.btn-sesion:hover { box-shadow: var(--shadow-md); background: var(--primary-light); }
+.btn-sesion:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+.btn-sesion.activa { color: var(--text-secondary); }
+.btn-sesion-texto { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 640px) {
+  .btn-sesion { padding: 0; width: 44px; justify-content: center; }
+  .btn-sesion-texto { display: none; }
+}
+
+.login-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10001;
+  padding: 16px;
+}
+.login-caja {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  background: var(--bg-card);
+  color: var(--text);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.login-caja h2 { margin: 0; font-size: 1.25rem; }
+.login-ayuda { margin: 0 0 8px; color: var(--text-secondary); font-size: 0.9rem; }
+.login-caja label { font-size: 0.85rem; font-weight: 600; margin-top: 4px; }
+.login-caja input {
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1rem;
+}
+.login-caja input:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+.login-error {
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--danger-light);
+  color: #991b1b;
+  font-size: 0.85rem;
+}
+.login-enviar {
+  margin-top: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.login-enviar:hover { background: var(--primary-dark); }
+.login-enviar:disabled { opacity: 0.7; cursor: wait; }
+.login-cerrar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 999px;
+}
+.login-cerrar:hover { background: var(--border); }

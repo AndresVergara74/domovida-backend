@@ -7,8 +7,10 @@ from database import get_db
 from models import Evento
 from schemas import EventoOut
 from datetime import datetime, timedelta
-from typing import List
+from typing import Optional, List
 from pydantic import BaseModel
+
+from auth_cuidador import verificar_cuidador
 
 router = APIRouter()
 
@@ -18,7 +20,7 @@ router = APIRouter()
 # ============================================================
 class ResolverAlertaIn(BaseModel):
     """Datos para marcar una alerta como resuelta."""
-    resuelto_por: str
+    resuelto_por: str = "Cuidador DomoVida"
 
 
 class AlertaResueltaOut(BaseModel):
@@ -100,6 +102,7 @@ def resolver_alerta(
     alerta_id: int,
     datos: ResolverAlertaIn,
     db: Session = Depends(get_db),
+    cuidador: Optional[str] = Depends(verificar_cuidador),  # PS-01: sesión del cuidador
 ):
     """
     Marca una alerta como resuelta (atendida por el cuidador).
@@ -130,7 +133,8 @@ def resolver_alerta(
         # Marcar como resuelta
         alerta.resuelto = True
         alerta.resuelto_en = datetime.utcnow()
-        alerta.resuelto_por = datos.resuelto_por
+        # Con sesión iniciada se registra el correo del cuidador (trazabilidad)
+        alerta.resuelto_por = cuidador or datos.resuelto_por
 
         db.commit()
         db.refresh(alerta)
