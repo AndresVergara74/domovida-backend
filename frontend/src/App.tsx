@@ -37,7 +37,7 @@ function App() {
   // Estados para "Marcar como atendida"
   // ============================================================
   const [resolviendoId, setResolviendoId] = useState<number | null>(null);
-  const [alertasResueltas, setAlertasResueltas] = useState<Set<number>>(new Set());
+  const [alertasResueltas, setAlertasResueltas] = useState<Map<number, Date>>(new Map());
 
   // ============================================================
   // Estados para FILTROS DEL HISTORIAL
@@ -121,7 +121,7 @@ function App() {
         throw new Error(`HTTP ${response.status}`);
       }
 
-      setAlertasResueltas((prev) => new Set(prev).add(alertaId));
+      setAlertasResueltas((prev) => new Map(prev).set(alertaId, new Date()));
 
       if (refrescar) {
         await refrescar();
@@ -289,7 +289,7 @@ function App() {
             DomoVida
           </h1>
           <p className="subtitulo">
-            Monitoreo predictivo y asistencia inteligente
+            Monitoreo y asistencia para el adulto mayor en el hogar
           </p>
         </div>
         <div className="header-status">
@@ -358,14 +358,15 @@ function App() {
               {estadoSistema.map((s) => (
                 <div
                   key={s.nombre}
-                  className={`estado-item ${s.online ? "online" : "offline"}`}
+                  className={`estado-item ${s.simulado ? "simulado" : s.online ? "online" : "offline"}`}
+                  title={s.mensaje}
                 >
                   <span className="estado-icono">{s.icono}</span>
                   <span className="estado-nombre">{s.nombre}</span>
                   <span
-                    className={`estado-badge ${s.online ? "online" : "offline"}`}
+                    className={`estado-badge ${s.simulado ? "simulado" : s.online ? "online" : "offline"}`}
                   >
-                    {s.online ? "● Online" : "○ Offline"}
+                    {s.simulado ? "◐ Simulado" : s.online ? "● Online" : "○ Offline"}
                   </span>
                 </div>
               ))}
@@ -470,11 +471,12 @@ function App() {
             ) : (
               <ul>
                 {todasLasAlertas.slice(0, 8).map((a) => {
-                  const resuelta = alertasResueltas.has(a.id);
+                  const horaAtencion = alertasResueltas.get(a.id);
+                  const resuelta = horaAtencion !== undefined;
                   const resolviendo = resolviendoId === a.id;
 
                   return (
-                    <li key={a.id} className={`alerta-item ${a.severidad || "alta"}`}>
+                    <li key={a.id} className={`alerta-item ${a.severidad || "alta"}${resuelta ? " resuelta" : ""}`}>
                       <div className="alerta-info">
                         <strong>{a.tipo}</strong>
                         {a.habitacion && ` · ${a.habitacion}`}
@@ -484,7 +486,9 @@ function App() {
                       </div>
 
                       {resuelta ? (
-                        <span className="alerta-resuelta-badge">✓ Atendida</span>
+                        <span className="alerta-resuelta-badge">
+                          ✓ Atendida {horaAtencion.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
                       ) : (
                         <button
                           className="btn-atender"

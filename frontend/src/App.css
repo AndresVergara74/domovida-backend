@@ -331,6 +331,19 @@ body {
   background: #fecaca;
 }
 
+/* Alerta ya atendida por el cuidador: deja de verse como urgente */
+.alerta-item.resuelta,
+.alerta-item.resuelta:hover {
+  border-left-color: var(--primary);
+  background: var(--bg);
+  opacity: 0.75;
+}
+
+.alerta-item.resuelta .alerta-info strong {
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
 .alerta-info {
   display: flex;
   align-items: center;
@@ -666,6 +679,17 @@ tr:hover td {
 .estado-badge.offline {
   color: #991b1b;
   background: var(--danger-light);
+}
+
+/* Componentes físicos aún simulados (Raspberry Pi, MQTT) */
+.estado-item.simulado {
+  border-left-color: #94a3b8;
+  border-left-style: dashed;
+}
+
+.estado-badge.simulado {
+  color: #475569;
+  background: #e2e8f0;
 }
 
 /* NOTIFICACIÓN TIEMPO REAL */

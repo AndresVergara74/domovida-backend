@@ -12,7 +12,7 @@ Proporciona el estado de salud de cada componente del sistema:
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from database import get_db
+from database import get_db, engine
 import requests
 import os
 from datetime import datetime
@@ -31,22 +31,32 @@ NTFY_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
 # HEALTH CHECK DE COMPONENTES
 # ============================================================
 
+def _nombre_base_datos() -> str:
+    """Nombre de la base de datos realmente en uso (según DATABASE_URL)."""
+    if engine.dialect.name == "sqlite":
+        return "SQLite (local, modo borde)"
+    return "PostgreSQL (Supabase)"
+
+
 def check_postgresql(db: Session) -> dict:
-    """Verifica la conexión a PostgreSQL (Supabase)."""
+    """Verifica la conexión a la base de datos en uso (Supabase o SQLite local)."""
+    nombre = _nombre_base_datos()
     try:
         db.execute(text("SELECT 1"))
         return {
-            "nombre": "PostgreSQL (Supabase)",
+            "nombre": nombre,
             "icono": "🗄️",
             "online": True,
+            "simulado": False,
             "mensaje": "Conexión activa",
             "latencia_ms": None,
         }
     except Exception as e:
         return {
-            "nombre": "PostgreSQL (Supabase)",
+            "nombre": nombre,
             "icono": "🗄️",
             "online": False,
+            "simulado": False,
             "mensaje": f"Error: {str(e)[:50]}",
             "latencia_ms": None,
         }
@@ -64,6 +74,7 @@ def check_ntfy() -> dict:
             "nombre": "ntfy (Notificaciones)",
             "icono": "📱",
             "online": response.status_code == 200,
+            "simulado": False,
             "mensaje": "Servicio activo",
             "latencia_ms": round(response.elapsed.total_seconds() * 1000, 2),
         }
@@ -72,6 +83,7 @@ def check_ntfy() -> dict:
             "nombre": "ntfy (Notificaciones)",
             "icono": "📱",
             "online": False,
+            "simulado": False,
             "mensaje": f"Error: {str(e)[:50]}",
             "latencia_ms": None,
         }
@@ -87,7 +99,8 @@ def check_raspberry_pi() -> dict:
     return {
         "nombre": "Raspberry Pi (Edge)",
         "icono": "🍓",
-        "online": True,  # Simulado
+        "online": False,  # Componente físico aún no conectado
+        "simulado": True,
         "mensaje": "Modo simulado",
         "latencia_ms": None,
     }
@@ -103,7 +116,8 @@ def check_mqtt() -> dict:
     return {
         "nombre": "MQTT Broker",
         "icono": "📡",
-        "online": True,  # Simulado
+        "online": False,  # Componente físico aún no conectado
+        "simulado": True,
         "mensaje": "Modo simulado",
         "latencia_ms": None,
     }
@@ -129,6 +143,7 @@ def health_check(db: Session = Depends(get_db)):
             "nombre": "API FastAPI",
             "icono": "⚙️",
             "online": True,  # Si responde, está online
+            "simulado": False,
             "mensaje": "Servicio activo",
             "latencia_ms": None,
         },
@@ -137,9 +152,11 @@ def health_check(db: Session = Depends(get_db)):
         check_ntfy(),
     ]
 
-    # Calcular estado general
-    total = len(componentes)
-    online = sum(1 for c in componentes if c["online"])
+    # Calcular estado general solo con los componentes reales
+    # (los simulados se muestran, pero no cuentan como en línea ni fuera de línea)
+    reales = [c for c in componentes if not c.get("simulado")]
+    total = len(reales)
+    online = sum(1 for c in reales if c["online"])
 
     if online == total:
         estado_general = "healthy"
@@ -152,6 +169,7 @@ def health_check(db: Session = Depends(get_db)):
         "estado_general": estado_general,
         "componentes_online": online,
         "componentes_total": total,
+        "componentes_simulados": len(componentes) - total,
         "componentes": componentes,
         "timestamp": datetime.utcnow().isoformat(),
     }
