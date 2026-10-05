@@ -4,6 +4,9 @@
 // La recepción en el celular se cuenta a mano en la app ntfy (meta: > 95 %).
 // Uso: pegar en la Consola de Chrome con el panel (domovida-backend.vercel.app) abierto.
 (async () => {
+  // PS-01: desde el 05-10-2026 el backend exige la clave de API de los sensores.
+  // Pegar aquí la clave (la misma de DOMOVIDA_API_KEY en Render). No subirla al repositorio.
+  const CLAVE = "PEGA_AQUI_LA_CLAVE";
   const API = "https://domovida-backend.onrender.com";
   const TOPICO = "domovida-seguro-2026";
   const N = 30;
@@ -14,7 +17,7 @@
   for (let i = 1; i <= N; i++) {
     const r = await fetch(API + "/api/sensor-data", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-API-Key": CLAVE },
       body: JSON.stringify({
         sensor_id: "acelerometro_dormitorio", tipo: "acelerometro", habitacion: "dormitorio",
         valor: { magnitud: 25.0, caida: true, prueba: "PR02-" + i },

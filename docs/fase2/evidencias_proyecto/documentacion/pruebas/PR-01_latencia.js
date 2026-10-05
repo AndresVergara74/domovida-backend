@@ -3,6 +3,9 @@
 // alerta en llegar de vuelta por WebSocket (sensor → backend → BD → panel).
 // Uso: pegar en la Consola de Chrome con el panel abierto.
 (async () => {
+  // PS-01: desde el 05-10-2026 el backend exige la clave de API de los sensores.
+  // Pegar aquí la clave (la misma de DOMOVIDA_API_KEY en Render). No subirla al repositorio.
+  const CLAVE = "PEGA_AQUI_LA_CLAVE";
   const API = "https://domovida-backend.onrender.com";
   const WS = "wss://domovida-backend.onrender.com/api/ws/alertas";
   const N = 30;
@@ -22,7 +25,7 @@
     });
     await fetch(API + "/api/sensor-data", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", "X-API-Key": CLAVE },
       body: JSON.stringify({
         sensor_id: "acelerometro_dormitorio", tipo: "acelerometro", habitacion: "dormitorio",
         valor: { magnitud: 25.0, caida: true, prueba: marca },

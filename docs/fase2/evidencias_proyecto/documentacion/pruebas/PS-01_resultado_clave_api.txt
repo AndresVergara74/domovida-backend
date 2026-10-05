@@ -1,0 +1,12 @@
+PS-01 · Autenticación de sensores con clave de API (backend/seguridad.py)
+Fecha: 05-10-2026 · Comando: python test_seguridad.py (carpeta backend)
+
+✅ Sin cabecera X-API-Key → HTTP 401
+✅ Clave incorrecta → HTTP 401
+✅ Clave vacía → HTTP 401
+✅ Clave correcta → HTTP 200
+✅ Clave correcta con mayúsculas cambiadas → HTTP 401
+DOMOVIDA_API_KEY no definida: /api/sensor-data acepta datos sin clave
+✅ Sin DOMOVIDA_API_KEY en el servidor (modo desarrollo) → HTTP 200
+
+Resultado PS-01: 6/6 casos aprobados

@@ -26,6 +26,10 @@ from datetime import datetime
 #   PowerShell:  $env:DOMOVIDA_API_URL="https://domovida-backend.onrender.com"
 BACKEND_URL = os.getenv("DOMOVIDA_API_URL", "http://localhost:8000").rstrip("/")
 API_URL = f"{BACKEND_URL}/api/sensor-data"
+# PS-01: clave de API que exige el backend (misma que DOMOVIDA_API_KEY del servidor)
+#   PowerShell:  $env:DOMOVIDA_API_KEY="la-clave"
+API_KEY = os.getenv("DOMOVIDA_API_KEY", "").strip()
+CABECERAS = {"X-API-Key": API_KEY} if API_KEY else {}
 INTERVALO_SEGUNDOS = 5
 
 # Estado simulado del adulto mayor
@@ -233,7 +237,7 @@ def generar_datos_boton_panico():
 def enviar_datos(datos):
     """Envía los datos al backend FastAPI."""
     try:
-        response = requests.post(API_URL, json=datos, timeout=15)
+        response = requests.post(API_URL, json=datos, headers=CABECERAS, timeout=15)
         if response.status_code in [200, 201]:
             icono = "🚨" if datos.get("alerta") else "✅"
             print(f"{icono} {datos['sensor_id']:30s} | tipo: {datos['tipo']}")

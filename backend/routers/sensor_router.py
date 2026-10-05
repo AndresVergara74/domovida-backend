@@ -19,11 +19,17 @@ from notifier import enviar_notificacion
 from websocket_manager import notificar_alerta
 
 from reglas_puerta import evaluar_puerta
+from seguridad import verificar_clave_sensor
 
 router = APIRouter()
 
 
-@router.post("/sensor-data", response_model=EventoOut, status_code=201)
+@router.post(
+    "/sensor-data",
+    response_model=EventoOut,
+    status_code=201,
+    dependencies=[Depends(verificar_clave_sensor)],  # PS-01
+)
 async def recibir_datos_sensor(datos: SensorDataIn, db: Session = Depends(get_db)):
     """
     Recibe los datos de un sensor, los guarda en la base de datos

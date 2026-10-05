@@ -5,6 +5,9 @@
 // detectada y guardada en SQLite3 sin conexión a internet.
 // Uso: pegar en la Consola de Chrome con el panel local (http://localhost:5173) abierto.
 (async () => {
+  // PS-01: desde el 05-10-2026 el backend exige la clave de API de los sensores.
+  // Pegar aquí la clave (la misma de DOMOVIDA_API_KEY en Render). No subirla al repositorio.
+  const CLAVE = "PEGA_AQUI_LA_CLAVE";
   const API = "http://localhost:8000";
   const WS = "ws://localhost:8000/api/ws/alertas";
   const N = 10;
@@ -26,7 +29,7 @@
       setTimeout(() => { ws.removeEventListener("message", h); ok(null); }, 10000);
     });
     const r = await fetch(API + "/api/sensor-data", {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json", "X-API-Key": CLAVE },
       body: JSON.stringify({ sensor_id: "acelerometro_dormitorio", tipo: "acelerometro", habitacion: "dormitorio",
         valor: { magnitud: 25.0, caida: true, prueba: marca }, alerta: true, timestamp: new Date().toISOString() }),
     });
