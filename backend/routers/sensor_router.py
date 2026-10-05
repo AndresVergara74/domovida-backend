@@ -18,6 +18,8 @@ from notifier import enviar_notificacion
 # Importar la función de notificación desde el manager compartido
 from websocket_manager import notificar_alerta
 
+from reglas_puerta import evaluar_puerta
+
 router = APIRouter()
 
 
@@ -32,6 +34,20 @@ async def recibir_datos_sensor(datos: SensorDataIn, db: Session = Depends(get_db
     2. Si alerta=True → notificar a ntfy.sh (push)
     3. Si alerta=True → notificar a WebSocket (tiempo real)
     """
+    # 0. Regla de la puerta principal (la decide el backend, no el sensor):
+    #    alerta si se abre de noche o si queda abierta 10 minutos o más.
+    if datos.tipo == "apertura" and datos.habitacion == "entrada":
+        valor = dict(datos.valor or {})
+        alerta, motivo, minutos = evaluar_puerta(
+            datos.sensor_id, bool(valor.get("abierto")), datos.timestamp
+        )
+        if motivo:
+            valor["motivo"] = motivo
+        if minutos:
+            valor["minutos_abierta"] = minutos
+        datos.valor = valor
+        datos.alerta = alerta
+
     # 1. Guardar el evento en la base de datos
     evento = Evento(
         sensor_id=datos.sensor_id,

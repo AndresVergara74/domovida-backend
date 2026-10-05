@@ -103,9 +103,16 @@ def formatear_alerta(evento: dict) -> tuple:
     # --- APERTURA ---
     if tipo == "apertura" and valor.get("abierto"):
         if habitacion == "entrada":
+            if valor.get("motivo") == "abierta_mucho_tiempo":
+                return (
+                    "🚪 PUERTA ABIERTA HACE MUCHO RATO",
+                    f"La puerta de entrada lleva {valor.get('minutos_abierta', '10')} minutos abierta.\n"
+                    f"Hora: {hora}",
+                    "high",
+                )
             return (
-                "🚪 PUERTA PRINCIPAL ABIERTA",
-                f"La puerta de entrada se encuentra abierta.\n"
+                "🚪 PUERTA ABIERTA DE NOCHE",
+                f"Se abrió la puerta de entrada en horario nocturno.\n"
                 f"Hora: {hora}",
                 "high",
             )

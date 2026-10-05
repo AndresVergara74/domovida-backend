@@ -146,7 +146,9 @@ def generar_datos_humo():
 def generar_datos_apertura(sensor_id, habitacion):
     """Simula sensor de apertura."""
     abierto = random.random() < 0.3
-    alerta = abierto and habitacion == "entrada"
+    # La alerta de la puerta principal la decide el backend (reglas_puerta.py):
+    # apertura nocturna o puerta abierta 10 minutos o más.
+    alerta = False
 
     return {
         "sensor_id": sensor_id,

@@ -1,0 +1,12 @@
+✅ Apertura a las 15:00 (día) → (False, None)
+✅ Sigue abierta 5 min → (False, None)
+✅ Abierta 10 min → (True, 'abierta_mucho_tiempo')
+✅ Abierta 15 min (no repite) → (False, None)
+✅ Se cierra → (False, None)
+✅ Apertura a las 23:30 (noche) → (True, 'apertura_nocturna')
+✅ Sigue abierta de noche (no repite) → (False, None)
+✅ Apertura a las 06:59 (noche) → (True, 'apertura_nocturna')
+✅ Apertura a las 07:00 (día) → (False, None)
+✅ 02:30 UTC = 23:30 Chile (noche) → (True, 'apertura_nocturna')
+
+Resultado: 10/10 casos aprobados
