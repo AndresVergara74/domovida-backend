@@ -73,6 +73,7 @@ def root():
             "resolver_alerta": "PATCH /api/alertas/{id}/resolver",
             "health": "/api/health",
             "fhir": "/api/fhir/Observation",
+            "fhir_patient": "/api/fhir/Patient/domovida-p001",
             "websocket": "wss://domovida-backend.onrender.com/api/ws/alertas",
             "docs": "/docs",
         },

@@ -1,13 +1,15 @@
 """
 Router de interoperabilidad HL7 FHIR R4 para DomoVida.
 
-Expone los eventos de los sensores como recursos FHIR R4 `Observation`,
-para que un sistema clínico (por ejemplo, la ficha de un CESFAM) pueda
-consultarlos con un estándar internacional.
+Expone los eventos de los sensores como recursos FHIR R4 `Observation`
+y al adulto mayor monitoreado como recurso `Patient` seudonimizado, para que
+un sistema clínico (por ejemplo, la ficha de un CESFAM) pueda consultarlos
+con un estándar internacional.
 
 Privacidad (Ley N° 21.719):
 - El paciente se identifica solo con un seudónimo (Patient/domovida-p001).
-- No se incluyen nombre, RUT ni dirección.
+- No se incluyen nombre, RUT ni dirección (minimización de datos):
+  el recurso Patient solo contiene el seudónimo y datos no identificatorios.
 
 Terminologías usadas:
 - SNOMED CT 1912002 "Fall (event)" para caídas.
@@ -18,6 +20,7 @@ from datetime import timezone
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -27,7 +30,9 @@ router = APIRouter()
 
 FHIR_JSON = "application/fhir+json"
 SISTEMA_LOCAL = "https://github.com/AndresVergara74/domovida-backend/fhir/CodeSystem/evento-sensor"
-PACIENTE_SEUDONIMO = {"reference": "Patient/domovida-p001", "display": "Adulto mayor (seudonimizado)"}
+PACIENTE_ID = "domovida-p001"
+PACIENTE_SEUDONIMO = {"reference": f"Patient/{PACIENTE_ID}", "display": "Adulto mayor (seudonimizado)"}
+SISTEMA_SEUDONIMOS = "https://github.com/AndresVergara74/domovida-backend/fhir/NamingSystem/seudonimo-paciente"
 
 # Código principal de cada tipo de sensor
 CODIGOS = {
@@ -113,17 +118,21 @@ def obtener_observation(evento_id: int, db: Session = Depends(get_db)):
     ev = db.query(Evento).filter(Evento.id == evento_id).first()
     if not ev:
         raise HTTPException(status_code=404, detail="Observation no encontrada")
-    from fastapi.responses import JSONResponse
     return JSONResponse(content=evento_a_observation(ev), media_type=FHIR_JSON)
 
 
 @router.get("/fhir/Observation")
 def buscar_observations(
     alerta: Optional[bool] = Query(None, description="true = solo eventos con alerta"),
+    patient: Optional[str] = Query(None, description="Paciente: domovida-p001 o Patient/domovida-p001"),
     _count: int = Query(20, ge=1, le=100, alias="_count"),
     db: Session = Depends(get_db),
 ):
     """Devuelve las últimas observaciones como un Bundle FHIR de tipo searchset."""
+    if patient is not None and patient.split("/")[-1] != PACIENTE_ID:
+        # El prototipo monitorea un solo hogar: otro paciente no tiene observaciones
+        return JSONResponse(content={"resourceType": "Bundle", "type": "searchset", "total": 0, "entry": []},
+                            media_type=FHIR_JSON)
     q = db.query(Evento)
     if alerta is not None:
         q = q.filter(Evento.alerta == alerta)
@@ -137,5 +146,59 @@ def buscar_observations(
             for ev in eventos
         ],
     }
-    from fastapi.responses import JSONResponse
+    return JSONResponse(content=bundle, media_type=FHIR_JSON)
+
+
+# ============================================================
+# RECURSO PATIENT (seudonimizado)
+# ============================================================
+
+def paciente_seudonimizado() -> dict:
+    """Recurso FHIR R4 Patient del adulto mayor monitoreado.
+
+    Solo contiene el seudónimo: sin nombre, RUT, fecha de nacimiento ni dirección.
+    La correspondencia entre el seudónimo y la persona real queda fuera del
+    sistema (en el consentimiento firmado que custodia el cuidador).
+    """
+    return {
+        "resourceType": "Patient",
+        "id": PACIENTE_ID,
+        "meta": {"security": [{
+            "system": "http://terminology.hl7.org/CodeSystem/v3-ObservationValue",
+            "code": "PSEUDED",
+            "display": "pseudonymized",
+        }]},
+        "text": {
+            "status": "generated",
+            "div": '<div xmlns="http://www.w3.org/1999/xhtml">Adulto mayor monitoreado por DomoVida '
+                   '(identidad seudonimizada según la Ley N° 21.719).</div>',
+        },
+        "identifier": [{
+            "use": "secondary",
+            "type": {"text": "Seudónimo DomoVida"},
+            "system": SISTEMA_SEUDONIMOS,
+            "value": PACIENTE_ID,
+        }],
+        "active": True,
+        "managingOrganization": {"display": "DomoVida (prototipo académico, Duoc UC)"},
+    }
+
+
+@router.get("/fhir/Patient/{paciente_id}")
+def obtener_patient(paciente_id: str):
+    """Devuelve el recurso FHIR R4 Patient seudonimizado."""
+    if paciente_id != PACIENTE_ID:
+        raise HTTPException(status_code=404, detail="Patient no encontrado")
+    return JSONResponse(content=paciente_seudonimizado(), media_type=FHIR_JSON)
+
+
+@router.get("/fhir/Patient")
+def buscar_patients():
+    """Bundle searchset con los pacientes (el prototipo monitorea un solo hogar)."""
+    bundle = {
+        "resourceType": "Bundle",
+        "type": "searchset",
+        "total": 1,
+        "entry": [{"fullUrl": f"Patient/{PACIENTE_ID}", "resource": paciente_seudonimizado()}],
+    }
     return JSONResponse(content=bundle, media_type=FHIR_JSON)

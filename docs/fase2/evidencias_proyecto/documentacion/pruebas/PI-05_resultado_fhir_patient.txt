@@ -1,0 +1,13 @@
+PI-05 · Validación FHIR R4 del recurso Patient seudonimizado · 05-10-2026
+Comando (carpeta backend): python ../docs/fase2/evidencias_proyecto/documentacion/pruebas/PI-05_validacion_fhir_patient.py
+
+✅ Patient válido según FHIR R4 → HTTP 200, id domovida-p001, seguridad PSEUDED
+✅ Sin nombre, nacimiento, dirección, teléfono ni foto → campos presentes: ninguno
+✅ Sin RUT en el recurso → solo el seudónimo domovida-p001
+✅ Bundle de Patient válido → 1 paciente
+✅ Paciente inexistente responde 404 
+✅ Observation.subject apunta al Patient → Patient/domovida-p001
+✅ Búsqueda Observation?patient=domovida-p001 → 1 observación(es)
+✅ Búsqueda con otro paciente devuelve 0 → 0 observaciones
+
+Resultado PI-05: 8/8 casos aprobados
