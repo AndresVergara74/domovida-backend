@@ -1,7 +1,7 @@
 # Ficha 19 · Propuesta de mejora de la base de datos (modelo v2)
 
 **Proyecto:** DomoVida · **Autor:** Andrés Rodrigo Vergara Acevedo · **Fecha:** 6 de octubre de 2026
-**Estado:** propuesta planificada (no implementada). Se ejecuta por etapas a partir del Sprint 4.
+**Estado:** en ejecución por etapas desde el Sprint 4. Etapa 1 completada el 06-10-2026 (ver sección 4.1); etapas 2 a 6 planificadas.
 **Diagramas:** modelo actual en [`diagramas/05_modelo_datos.png`](../../../diagramas/05_modelo_datos.png) · modelo propuesto en [`diagramas/08_modelo_datos_v2_propuesto.png`](../../../diagramas/08_modelo_datos_v2_propuesto.png)
 
 ---
@@ -49,12 +49,21 @@ Ver el diagrama [`08_modelo_datos_v2_propuesto`](../../../diagramas/08_modelo_da
 
 | Etapa | Cambios | Sprint | Historias o hallazgos relacionados | Prueba que la valida |
 |---|---|---|---|---|
-| 1 | Migraciones versionadas en el repositorio con Alembic o Supabase CLI (D12) y fechas `timestamptz` (D4) | Sprint 4 | Ajuste 1 | PI-06: la base se reconstruye desde cero con las migraciones |
+| 1 ✅ | Migraciones versionadas en el repositorio (D12) y fechas `timestamptz` (D4) | Sprint 4 (completada 06-10-2026) | Ajustes 1 y 12 | PU-05 (9/9) y PI-06 (aprobada) |
 | 2 | UUID en el borde, `origen`, `medido_en` y `recibido_en`, y reenvío idempotente (D2, D3) | Sprint 4 | HU-03 | PR-03 repetida: 100 % de los eventos del borde llegan a Supabase, sin duplicados |
 | 3 | `alertas` como única fuente de verdad de la atención (D1) | Sprint 4 | Ajuste 17, HU-06 | PS-01b repetida: la atención queda registrada en `alertas` |
 | 4 | Hogares, pacientes, cuidadores y RLS por cuidador (D5) | Sprint 5 | HU-17 | PS-03: un cuidador no ve los datos de un hogar que no es suyo |
 | 5 | Claves foráneas, `CHECK` y `jsonb` (D6, D7, D8) | Sprint 5 | — | PU de restricciones: un tipo inválido se rechaza |
 | 6 | Consentimiento en el servidor, auditoría y retención (D9, D10, D11) | Post-prototipo | Ley N° 21.719 | Auditoría SQL |
+
+### 4.1 Etapa 1 completada (06-10-2026, commit a0aadd7)
+
+- **Decisión:** en lugar de Alembic o Supabase CLI se usaron archivos SQL numerados en `backend/migrations/` y una tabla `schema_migrations` que registra cuáles se aplicaron. Es más simple para un equipo de una persona, no agrega dependencias y se ejecuta desde el SQL Editor de Supabase. Alembic queda como opción si el equipo crece.
+- **Migración 000:** describe el esquema que ya existía (tablas, índices, triggers con `search_path` fijo y RLS). Usa `IF NOT EXISTS` y `CREATE OR REPLACE`, así que no cambia nada en producción y sirve para crear la base desde cero.
+- **Migración 001:** cambia `eventos.timestamp` y `sensores.creado_en` a `timestamptz`. Cada fila existente se convirtió según su origen: el simulador enviaba hora de Chile sin zona y los scripts de prueba enviaban UTC.
+- **Código:** `backend/tiempo.py` centraliza las fechas. Todo se guarda y se entrega en UTC con zona, y una lectura de sensor sin zona se interpreta como hora de Chile.
+- **Respaldo previo:** `backend/scripts/respaldo_supabase.py` exporta las tablas a JSON fuera del repositorio.
+- **Pendiente menor:** comprobar la reconstrucción completa desde cero (migraciones 000 y 001 sobre un PostgreSQL vacío, por ejemplo con Docker) y repetir la prueba en cada etapa siguiente.
 
 ## 5. Riesgos y cuidados de la migración
 

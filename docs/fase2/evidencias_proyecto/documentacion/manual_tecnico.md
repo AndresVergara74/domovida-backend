@@ -134,7 +134,8 @@ El cuidador se crea en Supabase → **Authentication → Users → Add user → 
 | Revisar la seguridad | Supabase → Advisors → Security Advisor | Al cierre de cada sprint |
 | Cambiar la clave de los sensores | Generar una nueva (sección 3), reemplazarla en Render y en el simulador, y comparar la huella en `/api/health` (largo 43 y los mismos 8 caracteres que la clave local) | Si se expone o cada 6 meses |
 | Revisar errores | Render → Logs; Vercel → Deployments; consola del navegador (F12) | Ante cualquier falla |
-| Respaldar la base | Supabase → Database → Backups, o `pg_dump` con la cadena de conexión | Antes de cualquier cambio de estructura |
+| Respaldar la base | `python scripts/respaldo_supabase.py` (carpeta backend; guarda JSON en `Documentos\respaldos_domovida`, fuera del repositorio), o Supabase → Database → Backups | Antes de cualquier cambio de estructura |
+| Cambiar la estructura de la base | Solo con una migración nueva en `backend/migrations/` (número siguiente). Pasos: respaldo, detener el simulador, ejecutar el archivo en el SQL Editor de Supabase y verificar con `SELECT * FROM public.schema_migrations`. Detalle en `backend/migrations/README.md` | Cada cambio |
 
 ## 7. Pruebas
 
@@ -143,6 +144,7 @@ El plan, los resultados y las evidencias están en [`pruebas/registro_pruebas.md
 ```bash
 # Pruebas automatizadas (carpeta backend) · requieren: pip install httpx "fhir.resources>=8"
 python test_reglas_puerta.py        # PU-04
+python test_tiempo.py               # PU-05
 python test_seguridad.py            # PS-01
 python test_auth_cuidador.py        # PS-01b
 python ../docs/fase2/evidencias_proyecto/documentacion/pruebas/PI-04_validacion_fhir.py
@@ -165,6 +167,7 @@ Las pruebas en producción (PR-01, PR-02, PR-03, PS-01 y PS-01b) se ejecutan peg
 | El panel no muestra «Ingresar» | Faltan las variables `VITE_SUPABASE_*` o no se hizo Redeploy | Agregarlas en Vercel y redesplegar |
 | No llegan avisos al celular | La app ntfy no está suscrita o Android limita la batería | Suscribirse al tópico y permitir uso en segundo plano |
 | El panel muestra «API desconectada» | El despliegue de Vercel falló | Revisar Vercel → Deployments y corregir el error de compilación |
+| El panel muestra horas corridas en 3 o 4 horas | Un cliente envía la fecha sin zona horaria y no es hora de Chile | Enviar la fecha en ISO 8601 con zona (`...Z` o `-03:00`); el backend interpreta como hora de Chile solo las fechas sin zona |
 | `git push` falla con «Connection was reset» | Corte momentáneo de la red | Repetir `git push` |
 
 ## 9. Estructura del repositorio

@@ -1,0 +1,14 @@
+PU-05 · Fechas en UTC con zona horaria (backend/tiempo.py)
+Fecha: 06-10-2026 · Comando: python test_tiempo.py (carpeta backend)
+
+✅ ahora_utc tiene zona UTC → 0:00:00
+✅ Fecha sin zona de la base se lee como UTC → 2026-10-06T15:00:00+00:00
+✅ Fecha con zona de Chile se convierte a UTC → 2026-10-06T15:00:00+00:00
+✅ Sensor sin zona (simulador antiguo) = hora de Chile → 2026-10-06T15:00:00+00:00
+✅ Sensor con zona UTC se mantiene → 2026-10-06T15:00:00+00:00
+✅ Entrada del navegador (toISOString con Z) → 2026-10-06T15:00:00+00:00
+✅ Entrada sin zona del simulador antiguo → 2026-10-06T15:00:00+00:00
+✅ Salida de la API siempre con +00:00 → 2026-10-06T15:00:00Z
+✅ Invierno en Chile (UTC−4) → 2026-07-01T16:00:00+00:00
+
+Resultado PU-05: 9/9 casos aprobados

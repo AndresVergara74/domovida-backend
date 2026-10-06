@@ -146,6 +146,7 @@ Pruebas automatizadas (desde `backend`, con `pip install httpx "fhir.resources>=
 
 ```bash
 python test_reglas_puerta.py      # PU-04 · regla de la puerta principal
+python test_tiempo.py             # PU-05 · fechas en UTC con zona horaria
 python test_seguridad.py          # PS-01 · clave de API de los sensores
 python test_auth_cuidador.py      # PS-01b · sesión del cuidador
 python ../docs/fase2/evidencias_proyecto/documentacion/pruebas/PI-04_validacion_fhir.py          # FHIR Observation
@@ -162,6 +163,9 @@ Resultados principales del prototipo:
 | PI-03 / PI-03b · RLS con rol anónimo | 0 filas visibles |
 | PI-04 / PI-05 · HL7 FHIR R4 | Observation, Bundle y Patient válidos |
 | PS-01 / PS-01b · Autenticación | 3/3 y 3/3 en producción |
+| PU-05 / PI-06 · Fechas en UTC y migraciones | 9/9; base migrada a `timestamptz` sin pérdida de datos |
+
+Los cambios en la estructura de la base de datos se hacen con migraciones numeradas en [`backend/migrations/`](backend/migrations/README.md).
 
 ## 8. Solución de problemas
 
