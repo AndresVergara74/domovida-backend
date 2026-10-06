@@ -180,6 +180,9 @@ Resultados principales del prototipo:
 |---|---|
 | Definición del proyecto (Fase 1, Guía 1.5) | [`docs/fase1/evidencias_grupales`](docs/fase1/evidencias_grupales) |
 | Avance e informe final (Fase 2, Guías 2.4 y 2.6) | [`docs/fase2/evidencias_grupales`](docs/fase2/evidencias_grupales) |
+| **Manual técnico** (instalación, despliegue, operación y solución de problemas) | [`manual_tecnico.md`](docs/fase2/evidencias_proyecto/documentacion/manual_tecnico.md) |
+| Diagramas de diseño (arquitectura, despliegue, secuencia, casos de uso, datos y seguridad) | [`docs/fase2/diagramas`](docs/fase2/diagramas) |
+| Matriz de trazabilidad y Product Backlog | [`trazabilidad.xlsx`](docs/fase2/evidencias_proyecto/documentacion/trazabilidad.xlsx) · [`product_backlog.xlsx`](docs/fase2/evidencias_proyecto/documentacion/agil/product_backlog.xlsx) |
 | Fichas técnicas (arquitectura, datos, decisiones) | [`docs/fase2/evidencias_proyecto/documentacion/fichas_tecnicas`](docs/fase2/evidencias_proyecto/documentacion/fichas_tecnicas) |
 | Fichas de sprint, retrospectivas y Definition of Done | [`docs/fase2/evidencias_proyecto/documentacion/agil`](docs/fase2/evidencias_proyecto/documentacion/agil) |
 | Registro de pruebas y evidencias | [`docs/fase2/evidencias_proyecto/documentacion/pruebas`](docs/fase2/evidencias_proyecto/documentacion/pruebas) |
