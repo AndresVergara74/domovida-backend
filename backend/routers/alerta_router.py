@@ -144,7 +144,7 @@ def resolver_alerta(
             "resuelto": True,
             "resuelto_en": alerta.resuelto_en.isoformat(),
             "resuelto_por": alerta.resuelto_por,
-            "mensaje": f"Alerta {alerta_id} marcada como resuelta por {datos.resuelto_por}",
+            "mensaje": f"Alerta {alerta_id} marcada como resuelta por {alerta.resuelto_por}",
         }
 
     except HTTPException:

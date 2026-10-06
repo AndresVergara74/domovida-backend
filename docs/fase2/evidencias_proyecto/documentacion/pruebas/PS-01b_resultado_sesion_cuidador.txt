@@ -1,0 +1,12 @@
+PS-01 (parte 2) · Sesión del cuidador para atender alertas (backend/auth_cuidador.py) · 05-10-2026
+Comando (carpeta backend): python test_auth_cuidador.py  (Supabase Auth simulado, sin internet)
+
+✅ Auth desactivada: atender sin sesión → 200
+✅ Auth activa: sin sesión → 401
+✅ Auth activa: token inválido → 401
+✅ Auth activa: token válido → 200
+✅ Se registra el correo del cuidador en resuelto_por → cuidador.prueba@domovida.cl
+✅ La misma alerta no se puede atender dos veces → 404
+✅ Supabase no responde → 503
+
+Resultado PS-01 (sesión del cuidador): 7/7 casos aprobados
