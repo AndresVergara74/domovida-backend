@@ -1,7 +1,7 @@
 """
 Modelos de base de datos para DomoVida.
 """
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, JSON
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, JSON, Text, ForeignKey
 from tiempo import ahora_utc
 from database import Base
 
@@ -31,11 +31,32 @@ class Evento(Base):
     timestamp = Column(DateTime(timezone=True), default=ahora_utc, index=True)
 
     # ============================================================
-    # CAMPOS PARA GESTIÓN DE ALERTAS
+    # CAMPOS DE ATENCIÓN (OBSOLETOS · ajuste 17, ficha 19 etapa 3)
     # ============================================================
-    # Estos campos permiten saber si una alerta fue atendida
-    # por el cuidador y quién la resolvió.
+    # La fuente de verdad de la atención es la tabla `alertas`.
+    # Estas columnas se siguen copiando por compatibilidad con el panel
+    # y se eliminarán en una migración posterior.
     # ============================================================
     resuelto = Column(Boolean, default=False, index=True)
     resuelto_en = Column(DateTime(timezone=True), nullable=True)
     resuelto_por = Column(String(100), nullable=True)
+
+
+class Alerta(Base):
+    """Alerta generada por un evento: fuente única de verdad de su atención (ajuste 17).
+
+    En Supabase existía el trigger `crear_alerta_automatica`; desde la migración 002
+    la alerta la crea el backend, así que también existe en SQLite (modo borde).
+    """
+    __tablename__ = "alertas"
+
+    id = Column(Integer, primary_key=True)
+    evento_id = Column(Integer, ForeignKey("eventos.id"))
+    tipo_alerta = Column(String, nullable=False)
+    nivel_severidad = Column(String, nullable=False)  # critica | alta
+    payload_fhir = Column(JSON)
+    resuelto = Column(Boolean, default=False)
+    resuelto_en = Column(DateTime(timezone=True), nullable=True)
+    resuelto_por = Column(String, nullable=True)
+    notas_resolucion = Column(Text, nullable=True)
+    creado_en = Column(DateTime(timezone=True), default=ahora_utc)

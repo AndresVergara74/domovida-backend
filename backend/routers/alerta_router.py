@@ -4,7 +4,9 @@ Router para consultar y gestionar alertas.
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from database import get_db
-from models import Evento
+from sqlalchemy import or_, and_
+from models import Evento, Alerta
+from alertas_servicio import alerta_de_evento, registrar_alerta, resolver as resolver_en_bd
 from schemas import EventoOut
 from datetime import datetime, timedelta
 from typing import Optional, List
@@ -44,15 +46,21 @@ def alertas_activas(db: Session = Depends(get_db)):
     
     Filtros aplicados:
     - alerta = TRUE (es una alerta)
-    - resuelto = FALSE (no ha sido atendida)
+    - no atendida según la tabla `alertas` (fuente de verdad, ajuste 17).
+      Si un evento antiguo no tiene fila en `alertas` (base local previa),
+      se usa la columna obsoleta de `eventos`.
     - timestamp >= ahora - 24h (últimas 24 horas)
     """
     hace_24h = ahora_utc() - timedelta(hours=24)
     return (
         db.query(Evento)
+        .outerjoin(Alerta, Alerta.evento_id == Evento.id)
         .filter(
             Evento.alerta == True,
-            Evento.resuelto == False,  # NUEVO: solo alertas no resueltas
+            or_(
+                Alerta.resuelto == False,
+                and_(Alerta.id == None, Evento.resuelto == False),
+            ),
             Evento.timestamp >= hace_24h,
         )
         .order_by(Evento.timestamp.desc())
@@ -107,41 +115,39 @@ def resolver_alerta(
 ):
     """
     Marca una alerta como resuelta (atendida por el cuidador).
-    
-    Actualiza:
-    - resuelto = TRUE
-    - resuelto_en = ahora
-    - resuelto_por = nombre del cuidador
+
+    `alerta_id` es el id del evento que generó la alerta (el que muestra el panel).
+    La atención se registra en la tabla `alertas` (fuente única de verdad,
+    ajuste 17) y se copia a las columnas obsoletas de `eventos` en la misma
+    transacción.
     """
     try:
-        # Buscar la alerta activa
-        alerta = (
+        evento = (
             db.query(Evento)
-            .filter(
-                Evento.id == alerta_id,
-                Evento.alerta == True,
-                Evento.resuelto == False,
-            )
+            .filter(Evento.id == alerta_id, Evento.alerta == True)
             .first()
         )
-
-        if not alerta:
+        if not evento:
             raise HTTPException(
                 status_code=404,
                 detail=f"Alerta {alerta_id} no encontrada o ya fue resuelta",
             )
 
-        # Marcar como resuelta
-        alerta.resuelto = True
-        alerta.resuelto_en = ahora_utc()
-        # Con sesión iniciada se registra el correo del cuidador (trazabilidad)
-        alerta.resuelto_por = cuidador or datos.resuelto_por
+        alerta = alerta_de_evento(db, evento.id) or registrar_alerta(db, evento)
+        if alerta.resuelto:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Alerta {alerta_id} no encontrada o ya fue resuelta",
+            )
 
+        # Con sesión iniciada se registra el correo del cuidador (trazabilidad)
+        resolver_en_bd(db, evento, alerta, cuidador or datos.resuelto_por)
         db.commit()
         db.refresh(alerta)
 
         return {
-            "id": alerta.id,
+            "id": evento.id,
+            "alerta_id": alerta.id,
             "resuelto": True,
             "resuelto_en": a_utc(alerta.resuelto_en).isoformat(),
             "resuelto_por": alerta.resuelto_por,

@@ -16,6 +16,7 @@ from schemas import SensorDataIn, EventoOut
 from notifier import enviar_notificacion
 
 # Importar la función de notificación desde el manager compartido
+from alertas_servicio import registrar_alerta
 from websocket_manager import notificar_alerta
 
 from reglas_puerta import evaluar_puerta
@@ -64,6 +65,11 @@ async def recibir_datos_sensor(datos: SensorDataIn, db: Session = Depends(get_db
         timestamp=datos.timestamp,
     )
     db.add(evento)
+    db.flush()  # asigna el id del evento dentro de la transacción
+    # 1b. Si es una alerta, se registra en la tabla alertas en la MISMA transacción
+    #     (ajuste 17: alertas es la fuente única de verdad de la atención).
+    if datos.alerta:
+        registrar_alerta(db, evento)
     db.commit()
     db.refresh(evento)
 
