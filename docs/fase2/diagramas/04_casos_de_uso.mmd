@@ -1,0 +1,38 @@
+flowchart LR
+  CUI(("Cuidador"))
+  ADU(("Adulto mayor"))
+  SEN(("Sensor IoT"))
+  SAL(("Equipo de salud"))
+  TEC(("Personal técnico"))
+  subgraph SIS["Sistema DomoVida"]
+    UC1(["Recibir alerta de caída en el panel · HU-01"])
+    UC2(["Recibir aviso push en el celular · HU-02"])
+    UC3(["Registrar eventos sin internet · HU-03"])
+    UC4(["Alertar gas, humo y puerta · HU-04, HU-16"])
+    UC5(["Consultar inactividad · HU-05"])
+    UC6(["Atender una alerta · HU-06"])
+    UC14(["Iniciar sesión · HU-14"])
+    UC7(["Aceptar consentimiento informado · HU-07"])
+    UC9(["Ver sensores en el mapa del hogar · HU-09"])
+    UC10(["Filtrar el historial · HU-10"])
+    UC13(["Enviar lecturas con clave de API · HU-13"])
+    UC15(["Consultar datos en HL7 FHIR · HU-15"])
+    UC8(["Seudonimizar datos y aplicar RLS · HU-08"])
+    UC11(["Desplegar con Docker · HU-11"])
+  end
+  SEN --- UC13
+  UC13 -. "incluye" .-> UC3
+  UC13 -. "desencadena" .-> UC1
+  UC13 -. "desencadena" .-> UC4
+  CUI --- UC1
+  CUI --- UC2
+  CUI --- UC5
+  CUI --- UC6
+  UC6 -. "incluye" .-> UC14
+  CUI --- UC9
+  CUI --- UC10
+  ADU --- UC7
+  UC7 -. "incluye" .-> UC8
+  SAL --- UC15
+  TEC --- UC8
+  TEC --- UC11

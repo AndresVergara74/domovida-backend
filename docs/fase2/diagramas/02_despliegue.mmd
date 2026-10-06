@@ -1,0 +1,31 @@
+flowchart TB
+  subgraph CL["Chile"]
+    NAV["Navegador del cuidador"]
+    CEL["Celular del cuidador<br/>app ntfy"]
+    subgraph CASA["Hogar del adulto mayor"]
+      SIM["Simulador de sensores<br/>(prototipo)"]
+      BORDE["Modo borde: backend + SQLite<br/>+ panel local (sin internet)"]
+    end
+    ORA["Oracle Cloud Santiago<br/>(planificado: sin capacidad gratuita)"]:::futuro
+  end
+  subgraph US["EE. UU."]
+    VER["Vercel CDN<br/>panel React"]
+    REN["Render · Oregón<br/>API FastAPI (plan gratuito)<br/><b>PR-01: alerta en 1.577 ms</b><br/>(API en EE. UU., base en Brasil)"]:::medido
+    subgraph AWS["AWS EC2 · us-east-1 (entorno de prueba)"]
+      DC["Docker Compose<br/>backend + frontend + SQLite<br/><b>PR-01b: alerta en 216 ms</b><br/>(API y base en la misma máquina)"]:::medido
+    end
+  end
+  subgraph BR["Brasil"]
+    SUP[("Supabase · São Paulo<br/>PostgreSQL + Auth")]
+  end
+  NTFY["ntfy.sh<br/>servicio de avisos"]
+
+  NAV -- "HTTPS" --> VER
+  NAV -- "REST + WebSocket" --> REN
+  SIM -- "HTTPS + X-API-Key" --> REN
+  REN -- "Session Pooler, puerto 6543" --> SUP
+  NAV -- "inicio de sesión" --> SUP
+  REN --> NTFY --> CEL
+  NAV -. "comparación" .-> DC
+  classDef futuro stroke-dasharray: 5 5,fill:#f2f2f2,color:#52514e
+  classDef medido fill:#fff8e1,stroke:#eda100,color:#0b0b0b

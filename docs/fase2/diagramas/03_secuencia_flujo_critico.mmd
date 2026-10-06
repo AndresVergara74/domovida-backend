@@ -1,0 +1,34 @@
+sequenceDiagram
+  autonumber
+  participant S as Sensor (acelerómetro)
+  participant A as API FastAPI
+  participant B as Supabase PostgreSQL
+  participant W as WebSocket
+  participant P as Panel del cuidador
+  participant N as ntfy.sh
+  participant C as Celular del cuidador
+  participant U as Supabase Auth
+  S->>A: POST /api/sensor-data + X-API-Key (Z > 17 m/s²)
+  alt clave ausente o incorrecta
+    A-->>S: 401 No autorizado
+  else clave válida
+    A->>A: Reglas de umbral: caída detectada
+    A->>B: INSERT evento (alerta = true)
+    B->>B: Trigger crear_alerta_automatica (severidad crítica)
+    A-->>S: 201 Creado
+    A->>W: Notificar alerta (primero)
+    W->>P: Alerta en tiempo real (216 ms en EC2 · 1.577 ms en Render)
+    A-)N: Aviso push en segundo plano
+    N-)C: «CAÍDA DETECTADA» (30/30 en PR-02)
+  end
+  Note over P: El cuidador presiona «Atender»
+  opt sin sesión vigente
+    P->>U: Correo y contraseña
+    U-->>P: Token de acceso (1 hora)
+  end
+  P->>A: PATCH /api/alertas/{id}/resolver + Bearer token
+  A->>U: GET /auth/v1/user (valida el token)
+  U-->>A: Correo del cuidador
+  A->>B: UPDATE resuelto = true, resuelto_por = correo
+  A-->>P: 200 OK
+  P->>P: Muestra «Atendida HH:MM»

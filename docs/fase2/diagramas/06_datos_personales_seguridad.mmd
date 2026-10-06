@@ -1,0 +1,33 @@
+flowchart TB
+  subgraph NAVEG["1 · Navegador del usuario (los datos personales no salen de aquí)"]
+    direction LR
+    ADU(("Adulto mayor")) -- "nombre y RUT" --> CONS["Consentimiento informado<br/>2 casillas obligatorias"]
+    CONS --> HASH["Seudonimización<br/>SHA-256 con sal (PU-03)"]
+    HASH --> LS[("Se guardan solo iniciales<br/>y hash del RUT")]
+    CUI(("Cuidador")) --> PANEL["Panel del cuidador"]
+  end
+  subgraph HOGAR["2 · Hogar"]
+    SEN["Sensores<br/>lecturas sin datos personales"]
+  end
+  subgraph NUBE["3 · Nube (servicios de terceros)"]
+    direction LR
+    AUTHS["Supabase Auth<br/>contraseña cifrada"]
+    API["API FastAPI"]
+    DB[("Supabase PostgreSQL<br/>eventos sin nombre ni RUT<br/>RLS activo (PI-03, PI-03b)")]
+    NT["ntfy.sh<br/>tópico seudonimizado,<br/>aviso sin datos sensibles"]
+    FH["FHIR Patient/domovida-p001<br/>etiqueta PSEUDED (PI-05)"]
+    ENV["Secretos en variables de entorno<br/>(Render y Vercel), nunca en GitHub"]:::secreto
+  end
+  X["Rol anónimo o cliente no autorizado"]:::bloqueo
+
+  PANEL -- "correo y contraseña" --> AUTHS
+  AUTHS -- "token de 1 hora" --> PANEL
+  PANEL -- "HTTPS + Bearer token (PS-01b)" --> API
+  SEN -- "HTTPS + X-API-Key (PS-01)" --> API
+  ENV -.-> API
+  API -- "rol dueño de la base" --> DB
+  API --> NT
+  API --> FH
+  X -. "0 filas (RLS) · 401 sin clave o sesión" .-x DB
+  classDef secreto fill:#fff8e1,stroke:#eda100,color:#0b0b0b
+  classDef bloqueo fill:#fde8e8,stroke:#d03b3b,color:#0b0b0b

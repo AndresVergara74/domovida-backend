@@ -1,0 +1,43 @@
+flowchart TB
+  subgraph HOGAR["Hogar (borde)"]
+    direction LR
+    SIM["Simulador de 8 sensores<br/>simulate_sensors.py"]
+    RPI["Raspberry Pi + MQTT<br/>(futuro)"]:::futuro
+  end
+  subgraph PANEL["Panel del cuidador · React + Vite (Vercel)"]
+    direction LR
+    APP["Vista general, historial,<br/>sensores y mapa"]
+    LOGIN["Inicio de sesión<br/>LoginCuidador.tsx"]
+    CONS["Consentimiento<br/>Consentimiento.tsx"]
+  end
+  subgraph API["API FastAPI (Render) · backend/"]
+    direction LR
+    SEG["Seguridad<br/>seguridad.py · auth_cuidador.py"]
+    REG["Reglas y alertas<br/>sensor_router · reglas_puerta · alerta_router"]
+    WS["Tiempo real<br/>websocket_manager"]
+    NOT["Notificaciones<br/>notifier"]
+    FHIR["Interoperabilidad<br/>fhir_router"]
+  end
+  subgraph DATOS["Datos y servicios externos"]
+    direction LR
+    SUPA[("Supabase PostgreSQL<br/>RLS + triggers")]
+    SQL[("SQLite<br/>modo borde")]
+    AUTH["Supabase Auth"]
+    NTFY["ntfy.sh → celular"]
+    CLIN["Sistema clínico<br/>(futuro)"]:::futuro
+  end
+  SIM -- "HTTPS + X-API-Key" --> SEG
+  RPI -.-> SEG
+  APP -- "REST + Bearer token" --> SEG
+  SEG --> REG
+  REG --> WS
+  REG --> NOT
+  WS -- "WebSocket" --> APP
+  LOGIN -- "correo y contraseña" --> AUTH
+  SEG -- "valida el token" --> AUTH
+  REG -- "SQLAlchemy" --> SUPA
+  REG -. "sin internet" .-> SQL
+  FHIR --> SUPA
+  NOT --> NTFY
+  CLIN -. "HL7 FHIR R4" .-> FHIR
+  classDef futuro stroke-dasharray: 5 5,fill:#f2f2f2,color:#52514e
