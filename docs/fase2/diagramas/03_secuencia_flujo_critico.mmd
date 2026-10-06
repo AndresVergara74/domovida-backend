@@ -13,8 +13,7 @@ sequenceDiagram
     A-->>S: 401 No autorizado
   else clave válida
     A->>A: Reglas de umbral: caída detectada
-    A->>B: INSERT evento (alerta = true)
-    B->>B: Trigger crear_alerta_automatica (severidad crítica)
+    A->>B: INSERT evento + INSERT alerta (severidad crítica), una transacción
     A-->>S: 201 Creado
     A->>W: Notificar alerta (primero)
     W->>P: Alerta en tiempo real (216 ms en EC2 · 1.577 ms en Render)
@@ -29,6 +28,6 @@ sequenceDiagram
   P->>A: PATCH /api/alertas/{id}/resolver + Bearer token
   A->>U: GET /auth/v1/user (valida el token)
   U-->>A: Correo del cuidador
-  A->>B: UPDATE resuelto = true, resuelto_por = correo
+  A->>B: UPDATE alertas: resuelto = true, resuelto_por = correo
   A-->>P: 200 OK
   P->>P: Muestra «Atendida HH:MM»

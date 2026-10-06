@@ -70,7 +70,7 @@ Ver el diagrama [`08_modelo_datos_v2_propuesto`](../../../diagramas/08_modelo_da
 - **Código:** `backend/alertas_servicio.py` crea la alerta en la misma transacción que el evento y registra la atención en `alertas`. Si la alerta ya existe, la reutiliza. Eso permitió desplegar el código antes de eliminar el trigger sin crear duplicados.
 - **Migración 002:** copió a `alertas` la atención de 1.463 alertas que solo estaba en `eventos`, eliminó el trigger `crear_alerta_automatica` y agregó un índice único por evento y un índice parcial para las alertas activas.
 - **Modo borde:** como la alerta la crea el backend, la tabla `alertas` existe también en SQLite (ajuste 15).
-- **Pendiente:** eliminar las columnas obsoletas `eventos.resuelto*` cuando el panel lea la atención desde `alertas` (etapa 5), y actualizar los diagramas 05 y 08 y las fichas 05 y 11, que todavía describen el trigger.
+- **Pendiente:** eliminar las columnas obsoletas `eventos.resuelto*` cuando el panel lea la atención desde `alertas` (etapa 5), y actualizar las fichas 05 y 11, que todavía describen el trigger. Los diagramas 03 y 05 ya se actualizaron el 06-10-2026.
 
 ## 5. Riesgos y cuidados de la migración
 

@@ -111,9 +111,9 @@ flowchart TB
 
 ## 3. Secuencia del flujo crítico
 
-**Qué representa:** el recorrido completo de una caída, en orden: la lectura del sensor (con su clave), la detección, el registro en la base, el trigger que crea la alerta, el aviso por WebSocket y por ntfy, y la atención del cuidador con su sesión.
+**Qué representa:** el recorrido completo de una caída, en orden: la lectura del sensor (con su clave), la detección, el registro del evento y de su alerta en una sola transacción, el aviso por WebSocket y por ntfy, y la atención del cuidador con su sesión.
 
-**Decisiones de diseño que muestra:** el WebSocket se envía **antes** que ntfy y ntfy en segundo plano, lo que redujo la latencia en 17 % (commit 1c8c203); la alerta se crea con un trigger en la base de datos, no con un segundo INSERT desde Python; el token del cuidador se valida contra Supabase Auth en cada atención y su correo queda registrado.
+**Decisiones de diseño que muestra:** el WebSocket se envía **antes** que ntfy y ntfy en segundo plano, lo que redujo la latencia en 17 % (commit 1c8c203); la alerta la crea el backend en la misma transacción que el evento y la atención se guarda en `alertas`, la fuente única de verdad (ajuste 17, migración 002, 06-10-2026; antes la creaba un trigger); el token del cuidador se valida contra Supabase Auth en cada atención y su correo queda registrado.
 
 ```mermaid
 sequenceDiagram
@@ -131,8 +131,7 @@ sequenceDiagram
     A-->>S: 401 No autorizado
   else clave válida
     A->>A: Reglas de umbral: caída detectada
-    A->>B: INSERT evento (alerta = true)
-    B->>B: Trigger crear_alerta_automatica (severidad crítica)
+    A->>B: INSERT evento + INSERT alerta (severidad crítica), una transacción
     A-->>S: 201 Creado
     A->>W: Notificar alerta (primero)
     W->>P: Alerta en tiempo real (216 ms en EC2 · 1.577 ms en Render)
@@ -147,7 +146,7 @@ sequenceDiagram
   P->>A: PATCH /api/alertas/{id}/resolver + Bearer token
   A->>U: GET /auth/v1/user (valida el token)
   U-->>A: Correo del cuidador
-  A->>B: UPDATE resuelto = true, resuelto_por = correo
+  A->>B: UPDATE alertas: resuelto = true, resuelto_por = correo
   A-->>P: 200 OK
   P->>P: Muestra «Atendida HH:MM»
 ```
@@ -201,23 +200,23 @@ flowchart LR
 
 ## 5. Modelo de datos (entidad-relación)
 
-**Qué representa:** las tres tablas de Supabase/PostgreSQL con sus columnas reales (consultadas en `information_schema` el 06-10-2026) y sus relaciones.
+**Qué representa:** las tablas de Supabase/PostgreSQL con sus columnas reales y sus relaciones, actualizado después de las migraciones 001 y 002 (06-10-2026). La tabla `schema_migrations` registra qué migraciones están aplicadas.
 
-**Decisiones de diseño que muestra:** `alertas.evento_id` es clave foránea de `eventos.id`, y cada alerta la crea el trigger `crear_alerta_automatica` con su severidad; `eventos.sync_status` lo marca el trigger `marcar_como_sincronizado`; la relación entre `sensores` y `eventos` es lógica (por `sensor_id`), sin clave foránea, para que un sensor nuevo pueda enviar datos antes de registrarse. Ninguna tabla guarda nombre ni RUT.
+**Decisiones de diseño que muestra:** `alertas.evento_id` es clave foránea de `eventos.id` con índice único (una alerta por evento), y cada alerta la crea el backend con su severidad en la misma transacción que el evento; las fechas son `timestamptz` en UTC; `eventos.sync_status` lo marca el trigger `marcar_como_sincronizado`; la relación entre `sensores` y `eventos` es lógica (por `sensor_id`), sin clave foránea, para que un sensor nuevo pueda enviar datos antes de registrarse. Ninguna tabla guarda nombre ni RUT.
 
-**Observación de diseño:** las columnas de atención (`resuelto`, `resuelto_en`, `resuelto_por`) existen en `eventos` y en `alertas`, pero la API actualiza solo las de `eventos`. Es una redundancia que conviene resolver (registro de pruebas, ajuste 17). La propuesta de mejora completa está en el diagrama 8 y en la [ficha técnica 19](../evidencias_proyecto/documentacion/fichas_tecnicas/19_propuesta_base_datos_v2.md).
+**Observación de diseño:** las columnas de atención (`resuelto`, `resuelto_en`, `resuelto_por`) existían en `eventos` y en `alertas`, y la API actualizaba solo las de `eventos` (ajuste 17: 1.463 diferencias). **Corregido** el 06-10-2026: `alertas` es la fuente de verdad y las columnas de `eventos` quedan como copia obsoleta, que se eliminará en una migración posterior. La propuesta de mejora completa está en el diagrama 8 y en la [ficha técnica 19](../evidencias_proyecto/documentacion/fichas_tecnicas/19_propuesta_base_datos_v2.md).
 
 ```mermaid
 erDiagram
   SENSORES ||--o{ EVENTOS : "registra (vínculo lógico por sensor_id)"
-  EVENTOS ||--o| ALERTAS : "genera (trigger crear_alerta_automatica)"
+  EVENTOS ||--o| ALERTAS : "genera (backend, misma transacción)"
   SENSORES {
     integer id PK
     varchar sensor_id UK "ej. acelerometro_dormitorio"
     varchar tipo
     varchar habitacion
     boolean activo
-    timestamp creado_en
+    timestamptz creado_en
   }
   EVENTOS {
     integer id PK
@@ -226,23 +225,28 @@ erDiagram
     varchar habitacion
     json valor "lectura del sensor"
     boolean alerta
-    timestamp timestamp
+    timestamptz timestamp "UTC (migración 001)"
     varchar sync_status "trigger marcar_como_sincronizado"
-    boolean resuelto
-    timestamptz resuelto_en
-    varchar resuelto_por "correo del cuidador (PS-01b)"
+    boolean resuelto "obsoleto: copia de alertas"
+    timestamptz resuelto_en "obsoleto"
+    varchar resuelto_por "obsoleto"
   }
   ALERTAS {
     integer id PK
-    integer evento_id FK
+    integer evento_id FK, UK "una alerta por evento"
     varchar tipo_alerta
     varchar nivel_severidad "critica o alta"
     jsonb payload_fhir
-    boolean resuelto
+    boolean resuelto "fuente de verdad (ajuste 17)"
     timestamptz resuelto_en
-    varchar resuelto_por
+    varchar resuelto_por "correo del cuidador (PS-01b)"
     text notas_resolucion
     timestamptz creado_en
+  }
+  SCHEMA_MIGRATIONS {
+    varchar version PK "000, 001, 002"
+    text descripcion
+    timestamptz aplicada_en
   }
 ```
 
@@ -298,7 +302,7 @@ flowchart TB
 
 ## 8. Modelo de datos v2 (propuesto)
 
-**Qué representa:** la estructura de base de datos propuesta para las siguientes etapas, con hogares, pacientes seudonimizados, cuidadores, consentimientos, lecturas, alertas y auditoría. **No está implementado**: es trabajo planificado a partir del Sprint 4.
+**Qué representa:** la estructura de base de datos propuesta para las siguientes etapas, con hogares, pacientes seudonimizados, cuidadores, consentimientos, lecturas, alertas y auditoría. Se implementa por etapas: el 06-10-2026 se completaron la etapa 1 (migraciones versionadas y fechas `timestamptz`) y la etapa 3 (`alertas` como fuente única de verdad); el resto es trabajo planificado.
 
 **Decisiones de diseño que muestra:** identificadores UUID generados en el borde para sincronizar sin duplicados (HU-03); `alertas` como única fuente de verdad de la atención (ajuste 17); relación cuidador–hogar para aplicar RLS por usuario (HU-17); fechas siempre con zona horaria; consentimiento y auditoría en el servidor (Ley N° 21.719). El diagnóstico completo y el plan por etapas están en la [ficha técnica 19](../evidencias_proyecto/documentacion/fichas_tecnicas/19_propuesta_base_datos_v2.md).
 

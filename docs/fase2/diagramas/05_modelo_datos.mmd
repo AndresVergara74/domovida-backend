@@ -1,13 +1,13 @@
 erDiagram
   SENSORES ||--o{ EVENTOS : "registra (vínculo lógico por sensor_id)"
-  EVENTOS ||--o| ALERTAS : "genera (trigger crear_alerta_automatica)"
+  EVENTOS ||--o| ALERTAS : "genera (backend, misma transacción)"
   SENSORES {
     integer id PK
     varchar sensor_id UK "ej. acelerometro_dormitorio"
     varchar tipo
     varchar habitacion
     boolean activo
-    timestamp creado_en
+    timestamptz creado_en
   }
   EVENTOS {
     integer id PK
@@ -16,21 +16,26 @@ erDiagram
     varchar habitacion
     json valor "lectura del sensor"
     boolean alerta
-    timestamp timestamp
+    timestamptz timestamp "UTC (migración 001)"
     varchar sync_status "trigger marcar_como_sincronizado"
-    boolean resuelto
-    timestamptz resuelto_en
-    varchar resuelto_por "correo del cuidador (PS-01b)"
+    boolean resuelto "obsoleto: copia de alertas"
+    timestamptz resuelto_en "obsoleto"
+    varchar resuelto_por "obsoleto"
   }
   ALERTAS {
     integer id PK
-    integer evento_id FK
+    integer evento_id FK, UK "una alerta por evento"
     varchar tipo_alerta
     varchar nivel_severidad "critica o alta"
     jsonb payload_fhir
-    boolean resuelto
+    boolean resuelto "fuente de verdad (ajuste 17)"
     timestamptz resuelto_en
-    varchar resuelto_por
+    varchar resuelto_por "correo del cuidador (PS-01b)"
     text notas_resolucion
     timestamptz creado_en
+  }
+  SCHEMA_MIGRATIONS {
+    varchar version PK "000, 001, 002"
+    text descripcion
+    timestamptz aplicada_en
   }
