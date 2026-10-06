@@ -19,10 +19,14 @@ services:
     environment:
       # Base de datos: SQLite en el volumen (local) o Supabase si se define en .env
       - DATABASE_URL=${DOCKER_DATABASE_URL:-sqlite:////app/data/domovida.db}
-      # Supabase (se cargan desde .env, no hardcodeadas)
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_KEY=${SUPABASE_KEY}
-      - SUPABASE_DB_URL=${SUPABASE_DB_URL}
+      # Seguridad (PS-01 y PS-01b): se cargan desde .env, nunca escritas aquí
+      - DOMOVIDA_API_KEY=${DOMOVIDA_API_KEY:-}
+      - SUPABASE_URL=${SUPABASE_URL:-}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-}
+      # Regla de la puerta principal (PU-04)
+      - PUERTA_HORA_NOCHE_INICIO=${PUERTA_HORA_NOCHE_INICIO:-22}
+      - PUERTA_HORA_NOCHE_FIN=${PUERTA_HORA_NOCHE_FIN:-7}
+      - PUERTA_MINUTOS_MAX_ABIERTA=${PUERTA_MINUTOS_MAX_ABIERTA:-10}
       # Notificaciones ntfy
       - NTFY_TOPIC=${NTFY_TOPIC:-domovida-seguro-2026}
       # Orígenes CORS extra (por ejemplo, la IP pública de AWS EC2)
@@ -50,6 +54,9 @@ services:
         # URL del backend y del WebSocket para el build de Vite
         VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
         VITE_WS_URL: ${VITE_WS_URL:-ws://localhost:8000/api/ws/alertas}
+        # Sesión del cuidador (opcional; vacío = sin botón "Ingresar")
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL:-}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY:-}
     container_name: domovida-frontend
     restart: unless-stopped
     ports:
