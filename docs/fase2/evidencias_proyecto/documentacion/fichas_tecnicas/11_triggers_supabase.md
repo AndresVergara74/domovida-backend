@@ -1,5 +1,8 @@
 \# Ficha 11: Triggers y Automatización en Supabase
 
+> **Actualización 06-10-2026.** El **trigger #2 (`trigger_crear_alerta` / `crear_alerta_automatica`) fue eliminado** con la migración `backend/migrations/002_alertas_fuente_unica.sql`. Ahora la alerta la crea el backend (`backend/alertas_servicio.py`) en la misma transacción que el evento, con la misma regla de severidad, y la tabla `alertas` es la fuente única de verdad de la atención (ajuste 17, pruebas PU-06 y PI-07). Así la alerta existe también en SQLite (modo borde), donde no hay triggers de Supabase. El **trigger #1 (`trigger_sync_eventos`) sigue activo**, con `search_path = public`. Las secciones 11.3 y 11.4 se conservan como registro histórico de la versión anterior. El esquema vigente está en `backend/migrations/` y en el diagrama `docs/fase2/diagramas/05_modelo_datos.png`.
+
+
 
 
 \*\*Proyecto:\*\* DomoVida — Plataforma IoT de Monitoreo Predictivo

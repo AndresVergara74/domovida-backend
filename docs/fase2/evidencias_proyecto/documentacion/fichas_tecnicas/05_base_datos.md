@@ -1,5 +1,8 @@
 \# Ficha 5: Base de Datos
 
+> **Actualización 06-10-2026.** Esta ficha describe la versión inicial (Sprint 1 y 2). Cambios vigentes: (1) las fechas son `timestamptz` en UTC (`DateTime(timezone=True)`, `backend/tiempo.py`, migración 001, pruebas PU-05 y PI-06); (2) la tabla `alertas` tiene modelo en SQLAlchemy y es la fuente única de verdad de la atención; las columnas `resuelto*` de `eventos` quedan obsoletas (migración 002, pruebas PU-06 y PI-07); (3) los cambios de estructura se hacen solo con migraciones numeradas en `backend/migrations/`, registradas en la tabla `schema_migrations`. Modelo vigente: `docs/fase2/diagramas/05_modelo_datos.png`; propuesta v2: ficha 19.
+
+
 
 
 \*\*Proyecto:\*\* DomoVida — Plataforma IoT de Monitoreo Predictivo
