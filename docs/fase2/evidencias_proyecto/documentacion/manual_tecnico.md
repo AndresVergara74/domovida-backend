@@ -145,6 +145,7 @@ El plan, los resultados y las evidencias están en [`pruebas/registro_pruebas.md
 # Pruebas automatizadas (carpeta backend) · requieren: pip install httpx "fhir.resources>=8"
 python test_reglas_puerta.py        # PU-04
 python test_tiempo.py               # PU-05
+python test_alertas.py              # PU-06
 python test_seguridad.py            # PS-01
 python test_auth_cuidador.py        # PS-01b
 python ../docs/fase2/evidencias_proyecto/documentacion/pruebas/PI-04_validacion_fhir.py

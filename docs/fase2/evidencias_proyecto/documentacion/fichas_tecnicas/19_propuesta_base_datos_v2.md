@@ -1,7 +1,7 @@
 # Ficha 19 · Propuesta de mejora de la base de datos (modelo v2)
 
 **Proyecto:** DomoVida · **Autor:** Andrés Rodrigo Vergara Acevedo · **Fecha:** 6 de octubre de 2026
-**Estado:** en ejecución por etapas desde el Sprint 4. Etapa 1 completada el 06-10-2026 (ver sección 4.1); etapas 2 a 6 planificadas.
+**Estado:** en ejecución por etapas desde el Sprint 4. Etapas 1 y 3 completadas el 06-10-2026 (ver secciones 4.1 y 4.2); etapas 2, 4, 5 y 6 planificadas.
 **Diagramas:** modelo actual en [`diagramas/05_modelo_datos.png`](../../../diagramas/05_modelo_datos.png) · modelo propuesto en [`diagramas/08_modelo_datos_v2_propuesto.png`](../../../diagramas/08_modelo_datos_v2_propuesto.png)
 
 ---
@@ -51,7 +51,7 @@ Ver el diagrama [`08_modelo_datos_v2_propuesto`](../../../diagramas/08_modelo_da
 |---|---|---|---|---|
 | 1 ✅ | Migraciones versionadas en el repositorio (D12) y fechas `timestamptz` (D4) | Sprint 4 (completada 06-10-2026) | Ajustes 1 y 12 | PU-05 (9/9) y PI-06 (aprobada) |
 | 2 | UUID en el borde, `origen`, `medido_en` y `recibido_en`, y reenvío idempotente (D2, D3) | Sprint 4 | HU-03 | PR-03 repetida: 100 % de los eventos del borde llegan a Supabase, sin duplicados |
-| 3 | `alertas` como única fuente de verdad de la atención (D1) | Sprint 4 | Ajuste 17, HU-06 | PS-01b repetida: la atención queda registrada en `alertas` |
+| 3 ✅ | `alertas` como única fuente de verdad de la atención (D1) | Sprint 4 (completada 06-10-2026) | Ajustes 15 y 17, HU-06 | PU-06 (13/13) y PI-07 (PS-01b repetida, 3/3) |
 | 4 | Hogares, pacientes, cuidadores y RLS por cuidador (D5) | Sprint 5 | HU-17 | PS-03: un cuidador no ve los datos de un hogar que no es suyo |
 | 5 | Claves foráneas, `CHECK` y `jsonb` (D6, D7, D8) | Sprint 5 | — | PU de restricciones: un tipo inválido se rechaza |
 | 6 | Consentimiento en el servidor, auditoría y retención (D9, D10, D11) | Post-prototipo | Ley N° 21.719 | Auditoría SQL |
@@ -64,6 +64,13 @@ Ver el diagrama [`08_modelo_datos_v2_propuesto`](../../../diagramas/08_modelo_da
 - **Código:** `backend/tiempo.py` centraliza las fechas. Todo se guarda y se entrega en UTC con zona, y una lectura de sensor sin zona se interpreta como hora de Chile.
 - **Respaldo previo:** `backend/scripts/respaldo_supabase.py` exporta las tablas a JSON fuera del repositorio.
 - **Pendiente menor:** comprobar la reconstrucción completa desde cero (migraciones 000 y 001 sobre un PostgreSQL vacío, por ejemplo con Docker) y repetir la prueba en cada etapa siguiente.
+
+### 4.2 Etapa 3 completada (06-10-2026, commit f1de2d5 y migración 002)
+
+- **Código:** `backend/alertas_servicio.py` crea la alerta en la misma transacción que el evento y registra la atención en `alertas`. Si la alerta ya existe, la reutiliza. Eso permitió desplegar el código antes de eliminar el trigger sin crear duplicados.
+- **Migración 002:** copió a `alertas` la atención de 1.463 alertas que solo estaba en `eventos`, eliminó el trigger `crear_alerta_automatica` y agregó un índice único por evento y un índice parcial para las alertas activas.
+- **Modo borde:** como la alerta la crea el backend, la tabla `alertas` existe también en SQLite (ajuste 15).
+- **Pendiente:** eliminar las columnas obsoletas `eventos.resuelto*` cuando el panel lea la atención desde `alertas` (etapa 5), y actualizar los diagramas 05 y 08 y las fichas 05 y 11, que todavía describen el trigger.
 
 ## 5. Riesgos y cuidados de la migración
 
