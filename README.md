@@ -196,3 +196,9 @@ Los cambios en la estructura de la base de datos se hacen con migraciones numera
 ## 10. Protección de datos
 
 DomoVida es un prototipo académico y **no usa datos reales de personas**. El paciente se identifica solo con un seudónimo; el RUT se guarda como hash SHA-256 con sal; las tablas de Supabase tienen RLS; las claves y contraseñas viven en variables de entorno y nunca en el repositorio. El sistema no reemplaza la atención médica.
+
+## 11. Declaración de uso de inteligencia artificial
+
+En el desarrollo de este proyecto utilicé Claude (Anthropic) como asistente para proponer y revisar código, explicar conceptos técnicos, redactar borradores de documentación y diseñar diagramas. Todas las decisiones de diseño, alcance y prioridad, la ejecución de los cambios, las pruebas en producción y la validación de los resultados fueron realizadas por mí. Revisé y comprendí cada propuesta antes de incorporarla al proyecto, y soy responsable de su contenido.
+
+Referencia: Anthropic. (2026). *Claude* [Modelo de lenguaje de gran tamaño]. https://claude.ai
