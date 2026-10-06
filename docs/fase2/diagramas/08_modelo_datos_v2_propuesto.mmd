@@ -1,0 +1,75 @@
+erDiagram
+  CUIDADORES ||--o{ CUIDADOR_HOGAR : "accede a"
+  HOGARES ||--o{ CUIDADOR_HOGAR : "tiene"
+  HOGARES ||--|| PACIENTES : "monitorea a"
+  HOGARES ||--o{ SENSORES : "tiene instalados"
+  PACIENTES ||--o{ CONSENTIMIENTOS : "otorga"
+  SENSORES ||--o{ LECTURAS : "envía"
+  LECTURAS ||--o| ALERTAS : "puede generar"
+  CUIDADORES ||--o{ ALERTAS : "atiende"
+  CUIDADORES ||--o{ AUDITORIA : "genera"
+  CUIDADORES {
+    uuid id PK "= auth.users.id (Supabase Auth)"
+    varchar nombre_visible
+    timestamptz creado_en
+  }
+  HOGARES {
+    uuid id PK
+    varchar seudonimo UK "ej. domovida-h001"
+    varchar comuna "sin dirección exacta"
+    timestamptz creado_en
+  }
+  CUIDADOR_HOGAR {
+    uuid cuidador_id PK, FK
+    uuid hogar_id PK, FK
+    varchar rol "principal o secundario"
+  }
+  PACIENTES {
+    uuid id PK
+    uuid hogar_id FK
+    varchar seudonimo UK "Patient/domovida-p001"
+    varchar iniciales
+    char rut_hash "SHA-256 con sal"
+  }
+  CONSENTIMIENTOS {
+    uuid id PK
+    uuid paciente_id FK
+    varchar version_texto
+    timestamptz aceptado_en
+    timestamptz revocado_en
+  }
+  SENSORES {
+    uuid id PK
+    uuid hogar_id FK
+    varchar codigo UK "acelerometro_dormitorio"
+    varchar tipo "CHECK: 7 tipos"
+    varchar habitacion
+    boolean activo
+  }
+  LECTURAS {
+    uuid id PK "generado en el borde"
+    uuid sensor_id FK
+    jsonb valor
+    boolean es_alerta
+    varchar origen "borde o nube"
+    timestamptz medido_en "hora del sensor"
+    timestamptz recibido_en "hora de llegada a la nube"
+  }
+  ALERTAS {
+    uuid id PK
+    uuid lectura_id FK, UK
+    varchar tipo
+    varchar severidad "CHECK: critica, alta"
+    varchar estado "activa, atendida, falsa_alarma"
+    uuid atendida_por FK
+    timestamptz atendida_en
+    text notas
+    timestamptz creado_en
+  }
+  AUDITORIA {
+    bigint id PK
+    uuid cuidador_id FK
+    varchar accion "consulta, atención, exportación"
+    varchar recurso
+    timestamptz ocurrido_en
+  }

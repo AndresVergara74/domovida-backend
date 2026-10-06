@@ -13,6 +13,7 @@ Cada diagrama está en dos formatos: el código **Mermaid** (`.mmd`), que GitHub
 | 5 | Modelo de datos (entidad-relación) | 6.2 | `05_modelo_datos.mmd` · `.png` |
 | 6 | Flujo de datos personales y seguridad | 6.5 | `06_datos_personales_seguridad.mmd` · `.png` |
 | 7 | Gráfico de latencia PR-01 / PR-01b | 7.5 | `07_latencia_pr01.png` · `07_latencia.py` |
+| 8 | Modelo de datos v2 **propuesto** (no implementado) | 6.2 | `08_modelo_datos_v2_propuesto.mmd` · `.png` |
 
 ---
 
@@ -204,7 +205,7 @@ flowchart LR
 
 **Decisiones de diseño que muestra:** `alertas.evento_id` es clave foránea de `eventos.id`, y cada alerta la crea el trigger `crear_alerta_automatica` con su severidad; `eventos.sync_status` lo marca el trigger `marcar_como_sincronizado`; la relación entre `sensores` y `eventos` es lógica (por `sensor_id`), sin clave foránea, para que un sensor nuevo pueda enviar datos antes de registrarse. Ninguna tabla guarda nombre ni RUT.
 
-**Observación de diseño:** las columnas de atención (`resuelto`, `resuelto_en`, `resuelto_por`) existen en `eventos` y en `alertas`, pero la API actualiza solo las de `eventos`. Es una redundancia que conviene resolver (registro de pruebas, ajuste 17).
+**Observación de diseño:** las columnas de atención (`resuelto`, `resuelto_en`, `resuelto_por`) existen en `eventos` y en `alertas`, pero la API actualiza solo las de `eventos`. Es una redundancia que conviene resolver (registro de pruebas, ajuste 17). La propuesta de mejora completa está en el diagrama 8 y en la [ficha técnica 19](../evidencias_proyecto/documentacion/fichas_tecnicas/19_propuesta_base_datos_v2.md).
 
 ```mermaid
 erDiagram
@@ -294,3 +295,87 @@ flowchart TB
 **Conclusión:** el ajuste del orden de las notificaciones bajó el promedio de 1.903 a 1.577 ms, pero solo la infraestructura con API y base de datos juntas (AWS EC2, 216 ms) cumple la meta. El gráfico se genera con `07_latencia.py` a partir de los datos de `registro_pruebas.md`.
 
 ![Latencia PR-01 y PR-01b](07_latencia_pr01.png)
+
+## 8. Modelo de datos v2 (propuesto)
+
+**Qué representa:** la estructura de base de datos propuesta para las siguientes etapas, con hogares, pacientes seudonimizados, cuidadores, consentimientos, lecturas, alertas y auditoría. **No está implementado**: es trabajo planificado a partir del Sprint 4.
+
+**Decisiones de diseño que muestra:** identificadores UUID generados en el borde para sincronizar sin duplicados (HU-03); `alertas` como única fuente de verdad de la atención (ajuste 17); relación cuidador–hogar para aplicar RLS por usuario (HU-17); fechas siempre con zona horaria; consentimiento y auditoría en el servidor (Ley N° 21.719). El diagnóstico completo y el plan por etapas están en la [ficha técnica 19](../evidencias_proyecto/documentacion/fichas_tecnicas/19_propuesta_base_datos_v2.md).
+
+```mermaid
+erDiagram
+  CUIDADORES ||--o{ CUIDADOR_HOGAR : "accede a"
+  HOGARES ||--o{ CUIDADOR_HOGAR : "tiene"
+  HOGARES ||--|| PACIENTES : "monitorea a"
+  HOGARES ||--o{ SENSORES : "tiene instalados"
+  PACIENTES ||--o{ CONSENTIMIENTOS : "otorga"
+  SENSORES ||--o{ LECTURAS : "envía"
+  LECTURAS ||--o| ALERTAS : "puede generar"
+  CUIDADORES ||--o{ ALERTAS : "atiende"
+  CUIDADORES ||--o{ AUDITORIA : "genera"
+  CUIDADORES {
+    uuid id PK "= auth.users.id (Supabase Auth)"
+    varchar nombre_visible
+    timestamptz creado_en
+  }
+  HOGARES {
+    uuid id PK
+    varchar seudonimo UK "ej. domovida-h001"
+    varchar comuna "sin dirección exacta"
+    timestamptz creado_en
+  }
+  CUIDADOR_HOGAR {
+    uuid cuidador_id PK, FK
+    uuid hogar_id PK, FK
+    varchar rol "principal o secundario"
+  }
+  PACIENTES {
+    uuid id PK
+    uuid hogar_id FK
+    varchar seudonimo UK "Patient/domovida-p001"
+    varchar iniciales
+    char rut_hash "SHA-256 con sal"
+  }
+  CONSENTIMIENTOS {
+    uuid id PK
+    uuid paciente_id FK
+    varchar version_texto
+    timestamptz aceptado_en
+    timestamptz revocado_en
+  }
+  SENSORES {
+    uuid id PK
+    uuid hogar_id FK
+    varchar codigo UK "acelerometro_dormitorio"
+    varchar tipo "CHECK: 7 tipos"
+    varchar habitacion
+    boolean activo
+  }
+  LECTURAS {
+    uuid id PK "generado en el borde"
+    uuid sensor_id FK
+    jsonb valor
+    boolean es_alerta
+    varchar origen "borde o nube"
+    timestamptz medido_en "hora del sensor"
+    timestamptz recibido_en "hora de llegada a la nube"
+  }
+  ALERTAS {
+    uuid id PK
+    uuid lectura_id FK, UK
+    varchar tipo
+    varchar severidad "CHECK: critica, alta"
+    varchar estado "activa, atendida, falsa_alarma"
+    uuid atendida_por FK
+    timestamptz atendida_en
+    text notas
+    timestamptz creado_en
+  }
+  AUDITORIA {
+    bigint id PK
+    uuid cuidador_id FK
+    varchar accion "consulta, atención, exportación"
+    varchar recurso
+    timestamptz ocurrido_en
+  }
+```
