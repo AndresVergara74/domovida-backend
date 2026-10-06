@@ -26,6 +26,8 @@ from sqlalchemy.orm import Session
 from database import get_db
 from models import Evento
 
+from auth_cuidador import verificar_lectura
+
 router = APIRouter()
 
 FHIR_JSON = "application/fhir+json"
@@ -112,7 +114,7 @@ def evento_a_observation(ev: Evento) -> dict:
     return obs
 
 
-@router.get("/fhir/Observation/{evento_id}")
+@router.get("/fhir/Observation/{evento_id}", dependencies=[Depends(verificar_lectura)])  # HU-17
 def obtener_observation(evento_id: int, db: Session = Depends(get_db)):
     """Devuelve un evento como recurso FHIR R4 Observation."""
     ev = db.query(Evento).filter(Evento.id == evento_id).first()
@@ -121,7 +123,7 @@ def obtener_observation(evento_id: int, db: Session = Depends(get_db)):
     return JSONResponse(content=evento_a_observation(ev), media_type=FHIR_JSON)
 
 
-@router.get("/fhir/Observation")
+@router.get("/fhir/Observation", dependencies=[Depends(verificar_lectura)])  # HU-17
 def buscar_observations(
     alerta: Optional[bool] = Query(None, description="true = solo eventos con alerta"),
     patient: Optional[str] = Query(None, description="Paciente: domovida-p001 o Patient/domovida-p001"),
@@ -184,7 +186,7 @@ def paciente_seudonimizado() -> dict:
     }
 
 
-@router.get("/fhir/Patient/{paciente_id}")
+@router.get("/fhir/Patient/{paciente_id}", dependencies=[Depends(verificar_lectura)])  # HU-17
 def obtener_patient(paciente_id: str):
     """Devuelve el recurso FHIR R4 Patient seudonimizado."""
     if paciente_id != PACIENTE_ID:
@@ -192,7 +194,7 @@ def obtener_patient(paciente_id: str):
     return JSONResponse(content=paciente_seudonimizado(), media_type=FHIR_JSON)
 
 
-@router.get("/fhir/Patient")
+@router.get("/fhir/Patient", dependencies=[Depends(verificar_lectura)])  # HU-17
 def buscar_patients():
     """Bundle searchset con los pacientes (el prototipo monitorea un solo hogar)."""
     bundle = {

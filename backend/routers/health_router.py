@@ -18,7 +18,7 @@ import os
 from datetime import datetime
 from tiempo import ahora_utc
 from seguridad import info_clave
-from auth_cuidador import auth_activa
+from auth_cuidador import auth_activa, lecturas_protegidas
 
 router = APIRouter()
 
@@ -175,6 +175,6 @@ def health_check(db: Session = Depends(get_db)):
         "componentes_simulados": len(componentes) - total,
         "componentes": componentes,
         "clave_api_sensores": info_clave(),  # PS-01 (sin exponer la clave)
-        "auth_cuidador": {"activa": auth_activa()},  # PS-01: sesión requerida para atender alertas
+        "auth_cuidador": {"activa": auth_activa(), "lecturas_protegidas": lecturas_protegidas()},  # HU-17  # PS-01: sesión requerida para atender alertas
         "timestamp": ahora_utc().isoformat(),
     }

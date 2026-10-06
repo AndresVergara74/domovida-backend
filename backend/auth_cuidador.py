@@ -76,3 +76,42 @@ def verificar_cuidador(authorization: Optional[str] = Header(default=None)) -> O
     if r.status_code != 200:
         _no_autorizado("Sesión inválida o expirada; vuelve a iniciar sesión")
     return (r.json() or {}).get("email") or "cuidador"
+
+
+# ============================================================
+# HU-17 · Protección de las consultas de lectura
+# ============================================================
+# Interruptor PROTEGER_LECTURAS (Render): si vale 1/true/si, las consultas GET
+# de datos (eventos, alertas y FHIR) exigen la sesión del cuidador.
+# Apagado por defecto, para activarlo de forma controlada.
+# Para no consultar Supabase en cada actualización del panel (cada 10 s),
+# un token válido se recuerda por 60 segundos (solo su huella SHA-256).
+import hashlib
+import time
+
+CACHE_SEGUNDOS = 60
+_cache_tokens = {}  # huella del token -> (correo, válido_hasta)
+
+
+def lecturas_protegidas() -> bool:
+    valor = os.getenv("PROTEGER_LECTURAS", "").strip().lower()
+    return valor in ("1", "true", "si", "sí", "yes") and auth_activa()
+
+
+def verificar_lectura(authorization: Optional[str] = Header(default=None)) -> Optional[str]:
+    """Dependencia de FastAPI para las consultas de lectura (HU-17)."""
+    if not lecturas_protegidas():
+        return None
+    if not authorization or not authorization.lower().startswith("bearer "):
+        _no_autorizado("Inicia sesión como cuidador para ver los datos")
+    token = authorization[7:].strip()
+    huella = hashlib.sha256(token.encode()).hexdigest()
+    ahora = time.time()
+    guardado = _cache_tokens.get(huella)
+    if guardado and guardado[1] > ahora:
+        return guardado[0]
+    correo = verificar_cuidador(authorization)
+    if len(_cache_tokens) > 500:  # evita que crezca sin límite
+        _cache_tokens.clear()
+    _cache_tokens[huella] = (correo, ahora + CACHE_SEGUNDOS)
+    return correo

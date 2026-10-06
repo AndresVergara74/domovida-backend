@@ -51,6 +51,7 @@ Todas las variables están explicadas en [`.env.example`](../../../../.env.examp
 | `NTFY_TOPIC` | API | Tópico ntfy del cuidador (usar un nombre difícil de adivinar) | Valor por defecto |
 | `DOMOVIDA_API_KEY` | API y simulador | Clave que exigen los sensores (cabecera `X-API-Key`) | Se aceptan datos sin clave |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | API | Validar la sesión del cuidador | Atender alertas no exige sesión |
+| `PROTEGER_LECTURAS` | API | Con `1`, las consultas de eventos, alertas y FHIR exigen la sesión del cuidador (HU-17) | Consultas abiertas (protegidas solo por CORS) |
 | `CORS_ORIGINS` | API | Orígenes web extra permitidos | Solo localhost y Vercel |
 | `PUERTA_HORA_NOCHE_INICIO`, `PUERTA_HORA_NOCHE_FIN`, `PUERTA_MINUTOS_MAX_ABIERTA` | API | Regla de la puerta principal | 22, 7 y 10 |
 | `VITE_API_URL`, `VITE_WS_URL` | Panel | Dirección de la API y del WebSocket | `localhost:8000` |
@@ -120,7 +121,7 @@ El cuidador se crea en Supabase → **Authentication → Users → Add user → 
 | Servicio | Configuración |
 |---|---|
 | **Supabase** | Proyecto PostgreSQL con las tablas `sensores`, `eventos` y `alertas`; triggers `crear_alerta_automatica` y `marcar_como_sincronizado` (ficha técnica 11), ambos con `search_path=public`; RLS activo en las tres tablas (pruebas PI-03 y PI-03b); usuario cuidador en Supabase Auth. |
-| **Render** (API) | Servicio web Python conectado al repositorio de GitHub, rama `main`, con despliegue automático. Comando de inicio: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT` (`backend/Procfile`). Variables: `DATABASE_URL`, `NTFY_TOPIC`, `DOMOVIDA_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `PYTHON_VERSION`. |
+| **Render** (API) | Servicio web Python conectado al repositorio de GitHub, rama `main`, con despliegue automático. Comando de inicio: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT` (`backend/Procfile`). Variables: `DATABASE_URL`, `NTFY_TOPIC`, `DOMOVIDA_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `PROTEGER_LECTURAS` y `PYTHON_VERSION`. |
 | **Vercel** (panel) | Proyecto conectado al repositorio, carpeta `frontend`, compilación `npm run build`, despliegue automático. Variables: `VITE_API_URL`, `VITE_WS_URL`, `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (marcadas como no sensibles, porque son públicas). Después de cambiar una variable se necesita **Redeploy**. |
 | **AWS EC2** (entorno de prueba) | Instancia con Docker; `git clone` y `docker compose up --build`; agregar la IP pública en `CORS_ORIGINS`. Sin https: el consentimiento no puede calcular el hash SHA-256 (ajuste 11). |
 
@@ -146,6 +147,7 @@ El plan, los resultados y las evidencias están en [`pruebas/registro_pruebas.md
 python test_reglas_puerta.py        # PU-04
 python test_tiempo.py               # PU-05
 python test_alertas.py              # PU-06
+python test_lecturas.py             # PS-01c
 python test_seguridad.py            # PS-01
 python test_auth_cuidador.py        # PS-01b
 python ../docs/fase2/evidencias_proyecto/documentacion/pruebas/PI-04_validacion_fhir.py
@@ -163,6 +165,7 @@ Las pruebas en producción (PR-01, PR-02, PR-03, PS-01 y PS-01b) se ejecutan peg
 | La API no arranca: error de conexión a la base | Supabase pausado por inactividad | Reactivar el proyecto en el panel de Supabase |
 | No se conecta a PostgreSQL desde el computador | El proveedor de internet bloquea el puerto 5432 | Usar el Session Pooler (puerto 6543) |
 | `401 Clave de API ausente o inválida` | El simulador no tiene la misma clave que Render | Comparar la huella en `/api/health` con la de la clave local |
+| El panel muestra «Los datos del hogar están protegidos» | `PROTEGER_LECTURAS=1` y no hay sesión | Presionar «Ingresar» |
 | `401` al presionar «Atender» | La sesión del cuidador expiró (1 hora) | Presionar «Ingresar» otra vez |
 | «blocked by CORS policy» en la consola | El script se ejecutó desde otra página | Ejecutarlo en la pestaña del panel (`domovida-backend.vercel.app`) |
 | El panel no muestra «Ingresar» | Faltan las variables `VITE_SUPABASE_*` o no se hizo Redeploy | Agregarlas en Vercel y redesplegar |

@@ -24,6 +24,7 @@ function App() {
   const { conectado: wsConectado, alertasTiempoReal } = useWebSocket();
   const [pestana, setPestana] = useState<"general" | "historial" | "sensores" | "ubicacion">("general");
   const [estadoSistema, setEstadoSistema] = useState<any[]>([]);
+  const [lecturasProtegidas, setLecturasProtegidas] = useState(false); // HU-17
   const [notificacionVisible, setNotificacionVisible] = useState(false);
   const [ultimaAlertaRT, setUltimaAlertaRT] = useState<any>(null);
 
@@ -87,6 +88,7 @@ function App() {
         const response = await fetch(`${API_URL}/api/health`);
         const data = await response.json();
         setEstadoSistema(data.componentes || []);
+        setLecturasProtegidas(Boolean(data.auth_cuidador?.lecturas_protegidas));
       } catch (error) {
         console.error("Error al cargar health:", error);
       }
@@ -170,6 +172,7 @@ function App() {
   function handleLoginExitoso(nueva: Sesion) {
     setSesion(nueva);
     setMostrarLogin(false);
+    refrescar?.(); // HU-17: con la sesión iniciada se cargan los datos protegidos
     if (alertaPendiente !== null) {
       const id = alertaPendiente;
       setAlertaPendiente(null);
@@ -401,6 +404,17 @@ function App() {
           </button>
         </div>
       </header>
+
+      {/* HU-17: aviso cuando los datos exigen la sesión del cuidador */}
+      {lecturasProtegidas && !sesion && (
+        <div className="aviso-sesion" role="status">
+          <span>Los datos del hogar están protegidos. Inicia sesión como cuidador para verlos.</span>
+          <button className="btn-sesion" onClick={() => setMostrarLogin(true)}>
+            <LogIn size={18} />
+            <span className="btn-sesion-texto">Ingresar</span>
+          </button>
+        </div>
+      )}
 
       <nav className="tabs">
         <button

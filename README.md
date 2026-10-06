@@ -133,6 +133,7 @@ Todas están documentadas en [`.env.example`](.env.example), sin valores reales.
 | `NTFY_TOPIC` | backend | Tópico ntfy de las notificaciones del cuidador |
 | `DOMOVIDA_API_KEY` | backend y simulador | Clave de los sensores (cabecera `X-API-Key`) |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | backend | Validación de la sesión del cuidador |
+| `PROTEGER_LECTURAS` | backend | Con `1`, las consultas de datos exigen la sesión del cuidador (HU-17); vacío = abiertas |
 | `VITE_API_URL`, `VITE_WS_URL` | panel | Dirección de la API y del WebSocket |
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | panel | Inicio de sesión del cuidador (valores públicos) |
 
@@ -148,6 +149,7 @@ Pruebas automatizadas (desde `backend`, con `pip install httpx "fhir.resources>=
 python test_reglas_puerta.py      # PU-04 · regla de la puerta principal
 python test_tiempo.py             # PU-05 · fechas en UTC con zona horaria
 python test_alertas.py            # PU-06 · alertas como fuente única de verdad
+python test_lecturas.py           # PS-01c · consultas de lectura con sesión (HU-17)
 python test_seguridad.py          # PS-01 · clave de API de los sensores
 python test_auth_cuidador.py      # PS-01b · sesión del cuidador
 python ../docs/fase2/evidencias_proyecto/documentacion/pruebas/PI-04_validacion_fhir.py          # FHIR Observation

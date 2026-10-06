@@ -7,11 +7,12 @@ from database import get_db
 from models import Evento
 from schemas import EventoOut
 from typing import List, Optional
+from auth_cuidador import verificar_lectura
 
 router = APIRouter()
 
 
-@router.get("/eventos", response_model=List[EventoOut])
+@router.get("/eventos", response_model=List[EventoOut], dependencies=[Depends(verificar_lectura)])  # HU-17
 def listar_eventos(
     sensor_id: Optional[str] = Query(None),
     limit: int = Query(50, le=500),

@@ -1,7 +1,16 @@
 // src/api.ts
 // Configuración de la API para DomoVida
 
+import { leerSesion } from "./auth";
+
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
+// HU-17: si hay sesión del cuidador, las consultas envían su token.
+// El backend lo exige solo cuando PROTEGER_LECTURAS está activado en Render.
+function cabecerasSesion(): Record<string, string> {
+  const s = leerSesion();
+  return s ? { Authorization: `Bearer ${s.token}` } : {};
+}
 
 export interface Evento {
   id: number;
@@ -39,7 +48,7 @@ export interface SensorEstado {
  */
 export async function obtenerEventos(limite: number = 50): Promise<Evento[]> {
   try {
-    const response = await fetch(`${API_URL}/api/eventos?limite=${limite}`);
+    const response = await fetch(`${API_URL}/api/eventos?limit=${limite}`, { headers: cabecerasSesion() });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.json();
   } catch (error) {
@@ -53,7 +62,7 @@ export async function obtenerEventos(limite: number = 50): Promise<Evento[]> {
  */
 export async function obtenerAlertasActivas(): Promise<Alerta[]> {
   try {
-    const response = await fetch(`${API_URL}/api/alertas/activas`);
+    const response = await fetch(`${API_URL}/api/alertas/activas`, { headers: cabecerasSesion() });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.json();
   } catch (error) {

@@ -1667,3 +1667,24 @@ body.dark .mapa-leyenda {
   border-radius: 999px;
 }
 .login-cerrar:hover { background: var(--border); }
+
+/* HU-17: aviso de datos protegidos */
+.aviso-sesion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #f0c36d;
+  background: #fff8e1;
+  color: #5c4500;
+  font-weight: 500;
+}
+body.dark .aviso-sesion {
+  background: #3a2f12;
+  border-color: #8a6d1f;
+  color: #f5dfa0;
+}

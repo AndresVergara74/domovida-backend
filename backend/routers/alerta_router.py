@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from typing import Optional, List
 from pydantic import BaseModel
 
-from auth_cuidador import verificar_cuidador
+from auth_cuidador import verificar_cuidador, verificar_lectura
 from tiempo import ahora_utc, a_utc
 
 router = APIRouter()
@@ -39,7 +39,7 @@ class AlertaResueltaOut(BaseModel):
 # ENDPOINTS DE ALERTAS
 # ============================================================
 
-@router.get("/alertas/activas", response_model=List[EventoOut])
+@router.get("/alertas/activas", response_model=List[EventoOut], dependencies=[Depends(verificar_lectura)])  # HU-17
 def alertas_activas(db: Session = Depends(get_db)):
     """
     Devuelve las alertas ACTIVAS (no resueltas).
@@ -68,7 +68,7 @@ def alertas_activas(db: Session = Depends(get_db)):
     )
 
 
-@router.get("/alertas/inactividad")
+@router.get("/alertas/inactividad", dependencies=[Depends(verificar_lectura)])  # HU-17
 def alertas_inactividad(db: Session = Depends(get_db)):
     """Devuelve el estado de los sensores PIR con su nivel de inactividad."""
     sensores = (

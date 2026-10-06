@@ -1,0 +1,13 @@
+PS-01c · HU-17: consultas de lectura con la sesión del cuidador (auth_cuidador.verificar_lectura)
+Fecha: 06-10-2026 · Comando: python test_lecturas.py (carpeta backend) · Supabase Auth simulado, base SQLite temporal
+
+✅ Interruptor apagado: lecturas sin sesión → [200, 200, 200, 200, 200]
+✅ Encendido sin Supabase (modo borde): lecturas abiertas → 200
+✅ Sin sesión: 401 en las 5 consultas → [401, 401, 401, 401, 401]
+✅ Token falso: 401 → 401
+✅ Sesión válida: 200 en las 5 consultas → [200, 200, 200, 200, 200]
+✅ Token recordado 60 s: 1 sola consulta a Supabase → 1
+✅ /api/health sigue público e informa la protección → (200, True)
+✅ Los sensores siguen enviando con su clave (POST no cambia) → 201
+
+Resultado PS-01c (HU-17): 8/8 casos aprobados
