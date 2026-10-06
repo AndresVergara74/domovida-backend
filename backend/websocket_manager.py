@@ -9,6 +9,7 @@ router sin causar importaciones circulares.
 from typing import List
 import json
 from datetime import datetime
+from tiempo import ahora_utc
 from fastapi import WebSocket
 
 
@@ -94,5 +95,5 @@ async def notificar_alerta(alerta: dict):
     await manager.broadcast({
         "tipo": "alerta",
         "data": alerta,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": ahora_utc().isoformat(),
     })

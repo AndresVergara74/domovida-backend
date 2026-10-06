@@ -9,6 +9,7 @@ conectados (cuidadores) sin necesidad de polling.
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import json
 from datetime import datetime
+from tiempo import ahora_utc
 
 # Importar el manager compartido (evita importaciones circulares)
 from websocket_manager import manager
@@ -39,7 +40,7 @@ async def websocket_alertas(websocket: WebSocket):
         await websocket.send_text(json.dumps({
             "tipo": "bienvenida",
             "mensaje": "Conectado al sistema de alertas en tiempo real",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": ahora_utc().isoformat(),
         }))
 
         # Mantener la conexión abierta
@@ -51,7 +52,7 @@ async def websocket_alertas(websocket: WebSocket):
             if data == "ping":
                 await websocket.send_text(json.dumps({
                     "tipo": "pong",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": ahora_utc().isoformat(),
                 }))
 
     except WebSocketDisconnect:

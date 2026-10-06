@@ -11,6 +11,7 @@ from typing import Optional, List
 from pydantic import BaseModel
 
 from auth_cuidador import verificar_cuidador
+from tiempo import ahora_utc, a_utc
 
 router = APIRouter()
 
@@ -46,7 +47,7 @@ def alertas_activas(db: Session = Depends(get_db)):
     - resuelto = FALSE (no ha sido atendida)
     - timestamp >= ahora - 24h (últimas 24 horas)
     """
-    hace_24h = datetime.utcnow() - timedelta(hours=24)
+    hace_24h = ahora_utc() - timedelta(hours=24)
     return (
         db.query(Evento)
         .filter(
@@ -79,14 +80,14 @@ def alertas_inactividad(db: Session = Depends(get_db)):
         )
 
         if ultima:
-            segundos_inactivo = (datetime.utcnow() - ultima.timestamp).total_seconds()
+            segundos_inactivo = (ahora_utc() - a_utc(ultima.timestamp)).total_seconds()
             horas_inactivo = segundos_inactivo / 3600
 
             resultado.append({
                 "sensor_id": sensor_id,
                 "tipo": "pir",
                 "habitacion": habitacion or "sin_habitacion",
-                "ultima_lectura": ultima.timestamp.isoformat(),
+                "ultima_lectura": a_utc(ultima.timestamp).isoformat(),
                 "online": horas_inactivo < 12,
             })
 
@@ -132,7 +133,7 @@ def resolver_alerta(
 
         # Marcar como resuelta
         alerta.resuelto = True
-        alerta.resuelto_en = datetime.utcnow()
+        alerta.resuelto_en = ahora_utc()
         # Con sesión iniciada se registra el correo del cuidador (trazabilidad)
         alerta.resuelto_por = cuidador or datos.resuelto_por
 
@@ -142,7 +143,7 @@ def resolver_alerta(
         return {
             "id": alerta.id,
             "resuelto": True,
-            "resuelto_en": alerta.resuelto_en.isoformat(),
+            "resuelto_en": a_utc(alerta.resuelto_en).isoformat(),
             "resuelto_por": alerta.resuelto_por,
             "mensaje": f"Alerta {alerta_id} marcada como resuelta por {alerta.resuelto_por}",
         }

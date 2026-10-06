@@ -16,6 +16,7 @@ from database import get_db, engine
 import requests
 import os
 from datetime import datetime
+from tiempo import ahora_utc
 from seguridad import info_clave
 from auth_cuidador import auth_activa
 
@@ -175,5 +176,5 @@ def health_check(db: Session = Depends(get_db)):
         "componentes": componentes,
         "clave_api_sensores": info_clave(),  # PS-01 (sin exponer la clave)
         "auth_cuidador": {"activa": auth_activa()},  # PS-01: sesión requerida para atender alertas
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": ahora_utc().isoformat(),
     }

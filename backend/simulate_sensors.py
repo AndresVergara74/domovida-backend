@@ -17,7 +17,7 @@ import requests
 import random
 import time
 import math
-from datetime import datetime
+from datetime import datetime, timezone
 
 # ============================================================
 # CONFIGURACIÓN
@@ -81,7 +81,7 @@ def generar_datos_acelerometro():
             "magnitud": round(magnitud, 2),
         },
         "alerta": caida,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -107,7 +107,7 @@ def generar_datos_pir():
             "minutos_inactivo": round(minutos_inactivo, 2),
         },
         "alerta": alerta,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -125,7 +125,7 @@ def generar_datos_gas():
         "habitacion": "cocina",
         "valor": {"nivel_ppm": round(nivel_ppm, 2)},
         "alerta": fuga,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -143,7 +143,7 @@ def generar_datos_humo():
         "habitacion": "cocina",
         "valor": {"nivel": round(nivel, 2)},
         "alerta": humo,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -160,7 +160,7 @@ def generar_datos_apertura(sensor_id, habitacion):
         "habitacion": habitacion,
         "valor": {"abierto": abierto},
         "alerta": alerta,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -203,7 +203,7 @@ def generar_datos_cardiaco():
             "evento": tipo_evento,
         },
         "alerta": alerta,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
@@ -226,7 +226,7 @@ def generar_datos_boton_panico():
             "activado": activado,
         },
         "alerta": activado,
-        "timestamp": datetime.now().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
     }
 
 
