@@ -128,6 +128,13 @@ export function hora(fecha: string | Date): string {
   return new Date(fecha).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 }
 
+/** Hora si es de hoy; fecha corta y hora si es de otro día (ej. "6/10 13:34"). */
+export function cuando(fecha: string | Date): string {
+  if (esHoy(fecha)) return hora(fecha);
+  const f = new Date(fecha);
+  return `${f.getDate()}/${f.getMonth() + 1} ${hora(f)}`;
+}
+
 export function esHoy(fecha: string | Date, ahora = new Date()): boolean {
   const f = new Date(fecha);
   return f.getDate() === ahora.getDate() && f.getMonth() === ahora.getMonth() && f.getFullYear() === ahora.getFullYear();

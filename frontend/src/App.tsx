@@ -10,7 +10,7 @@ import Consentimiento from "./Consentimiento";
 import MapaHogar from "./MapaHogar";
 import LoginCuidador from "./LoginCuidador";
 import { authHabilitada, leerSesion, cerrarSesion, type Sesion } from "./auth";
-import { nombreTipo, nombreAlerta, describirEvento, iconoTipo, nombreHabitacion, componenteSistema, haceCuanto, hora, esHoy, inventarioSensores, MINUTOS_SENSOR_ACTIVO } from "./etiquetas";
+import { nombreTipo, nombreAlerta, describirEvento, iconoTipo, nombreHabitacion, componenteSistema, haceCuanto, hora, cuando, esHoy, inventarioSensores, MINUTOS_SENSOR_ACTIVO } from "./etiquetas";
 import "./App.css";
 
 // URL base de la API (usa variable de entorno o fallback)
@@ -522,7 +522,7 @@ function App() {
                       const Icono = iconoTipo(a.tipo);
                       return (
                         <li key={a.id} className={atendida ? "atendida" : "pendiente"}>
-                          <time className="alerta-hora">{hora(a.timestamp)}</time>
+                          <time className="alerta-hora">{cuando(a.timestamp)}</time>
                           <Icono className="alerta-icono" size={20} aria-hidden="true" />
                           <div className="alerta-texto">
                             <strong>
@@ -560,7 +560,7 @@ function App() {
                       const Icono = iconoTipo(e.tipo);
                       return (
                         <li key={e.id} className={esAlerta(e) ? "es-alerta" : ""}>
-                          <time>{hora(e.timestamp)}</time>
+                          <time>{cuando(e.timestamp)}</time>
                           <Icono size={18} aria-hidden="true" />
                           <span className="actividad-tipo">
                             {describirEvento(e)}

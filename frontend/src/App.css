@@ -288,7 +288,7 @@ body.dark .btn-alerta { color: #1a0d0c; }
 .lista-alertas, .lista-sistema, .lista-sensores { list-style: none; margin: 0; padding: 0; }
 .lista-alertas li {
   display: grid;
-  grid-template-columns: 52px 22px 1fr auto;
+  grid-template-columns: 92px 22px 1fr auto;
   align-items: center;
   gap: 12px;
   padding: 12px 0;
@@ -306,7 +306,7 @@ body.dark .btn-alerta { color: #1a0d0c; }
 .lista-actividad { list-style: none; margin: 0; padding: 0; }
 .lista-actividad li {
   display: grid;
-  grid-template-columns: 52px 22px 1fr auto;
+  grid-template-columns: 92px 22px 1fr auto;
   align-items: center;
   gap: 12px;
   padding: 9px 0;
@@ -560,8 +560,24 @@ body.dark .login-enviar { color: var(--fondo); }
   .estado-hogar { grid-template-columns: auto 1fr; padding: 20px; }
   .estado-hogar h1 { font-size: 1.5rem; }
   .estado-hogar .btn-alerta, .estado-hogar .btn-primario { grid-column: 1 / -1; width: 100%; }
-  .lista-alertas li { grid-template-columns: 46px 20px 1fr; }
-  .lista-alertas li > :last-child { grid-column: 3; justify-self: start; }
+  .lista-alertas li {
+    grid-template-columns: 20px 1fr auto;
+    grid-template-areas: "icono texto hora" "icono accion accion";
+    row-gap: 8px;
+  }
+  .lista-alertas li > .alerta-hora { grid-area: hora; align-self: start; }
+  .lista-alertas li > .alerta-icono { grid-area: icono; align-self: start; margin-top: 2px; }
+  .lista-alertas li > .alerta-texto { grid-area: texto; }
+  .lista-alertas li > :last-child { grid-area: accion; justify-self: start; }
+  .lista-actividad li {
+    grid-template-columns: 20px 1fr auto;
+    grid-template-areas: "icono tipo hora" "icono lugar hora";
+    row-gap: 0;
+  }
+  .lista-actividad li > svg { grid-area: icono; }
+  .lista-actividad li > time { grid-area: hora; }
+  .lista-actividad li > .actividad-tipo { grid-area: tipo; }
+  .lista-actividad li > .actividad-lugar { grid-area: lugar; text-align: left; }
   .lista-sensores li { grid-template-columns: 22px 1fr; }
   .lista-sensores li > .tenue, .lista-sensores li > .sistema-estado { grid-column: 2; justify-self: start; }
   .filtros label, .filtros select { width: 100%; }
