@@ -566,3 +566,17 @@ body.dark .login-enviar { color: var(--fondo); }
   .lista-sensores li > .tenue, .lista-sensores li > .sistema-estado { grid-column: 2; justify-self: start; }
   .filtros label, .filtros select { width: 100%; }
 }
+
+/* Avisos repetidos agrupados */
+.alerta-texto .repeticiones {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--rojo-tenue);
+  color: var(--rojo);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  vertical-align: 2px;
+}
+.lista-alertas li.atendida .alerta-texto .repeticiones { background: var(--fondo); color: var(--tinta-suave); }

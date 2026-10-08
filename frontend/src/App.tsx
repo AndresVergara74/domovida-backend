@@ -52,7 +52,7 @@ function App() {
   // ============================================================
   const [sesion, setSesion] = useState<Sesion | null>(() => leerSesion());
   const [mostrarLogin, setMostrarLogin] = useState(false);
-  const [alertaPendiente, setAlertaPendiente] = useState<number | null>(null);
+  const [alertaPendiente, setAlertaPendiente] = useState<number[] | null>(null);
 
   // ============================================================
   // Estados para FILTROS DEL HISTORIAL
@@ -121,50 +121,54 @@ function App() {
   // ============================================================
   // FUNCIÓN: Marcar una alerta como atendida
   // ============================================================
-  async function resolverAlerta(alertaId: number, sesionActual: Sesion | null = sesion) {
+  async function resolverAlerta(alertaId: number | number[], sesionActual: Sesion | null = sesion) {
+    // Acepta una alerta o un grupo de avisos repetidos (mismo sensor, mismos minutos)
+    const ids = Array.isArray(alertaId) ? alertaId : [alertaId];
+    const principal = ids[0];
     // Si el inicio de sesión está configurado y no hay sesión vigente, pedirla primero
     const vigente = sesionActual && sesionActual.expira > Date.now() ? sesionActual : null;
     if (authHabilitada && !vigente) {
-      setAlertaPendiente(alertaId);
+      setAlertaPendiente(ids);
       setMostrarLogin(true);
       return;
     }
 
-    setResolviendoId(alertaId);
+    setResolviendoId(principal);
 
     try {
       const cabeceras: Record<string, string> = { "Content-Type": "application/json" };
       if (vigente) cabeceras["Authorization"] = `Bearer ${vigente.token}`;
-      const response = await fetch(`${API_URL}/api/alertas/${alertaId}/resolver`, {
-        method: "PATCH",
-        headers: cabeceras,
-        body: JSON.stringify({
-          resuelto_por: "Cuidador DomoVida",
-        }),
-      });
+      for (const id of ids) {
+        const response = await fetch(`${API_URL}/api/alertas/${id}/resolver`, {
+          method: "PATCH",
+          headers: cabeceras,
+          body: JSON.stringify({
+            resuelto_por: "Cuidador DomoVida",
+          }),
+        });
 
-      if (response.status === 401) {
-        // Sesión vencida o rechazada por el backend: volver a pedirla
-        cerrarSesion();
-        setSesion(null);
-        setAlertaPendiente(alertaId);
-        setMostrarLogin(true);
-        return;
+        if (response.status === 401) {
+          // Sesión vencida o rechazada por el backend: volver a pedirla
+          cerrarSesion();
+          setSesion(null);
+          setAlertaPendiente(ids);
+          setMostrarLogin(true);
+          return;
+        }
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        setAlertasResueltas((prev) => new Map(prev).set(id, new Date()));
+        console.log(`✅ Alerta ${id} marcada como atendida`);
       }
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
-      }
-
-      setAlertasResueltas((prev) => new Map(prev).set(alertaId, new Date()));
 
       if (refrescar) {
         await refrescar();
       }
-
-      console.log(`✅ Alerta ${alertaId} marcada como atendida`);
     } catch (error) {
-      console.error(`❌ Error al resolver alerta ${alertaId}:`, error);
+      console.error(`❌ Error al resolver alerta ${principal}:`, error);
       alert("No se pudo marcar la alerta como atendida. Intenta de nuevo.");
     } finally {
       setResolviendoId(null);
@@ -231,6 +235,28 @@ function App() {
     ...alertas.filter((a) => !alertasTiempoReal.some((rt) => rt.id === a.id)),
   ];
   const pendientes = todasLasAlertas.filter((a) => !alertasResueltas.has(a.id));
+
+  // Avisos repetidos del mismo sensor en pocos minutos se muestran como una sola alerta
+  const VENTANA_GRUPO_MS = 10 * 60 * 1000;
+  type GrupoAlertas = { principal: (typeof todasLasAlertas)[number]; ids: number[] };
+  function agrupar(lista: typeof todasLasAlertas): GrupoAlertas[] {
+    const ordenadas = [...lista].sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp));
+    const grupos: GrupoAlertas[] = [];
+    for (const a of ordenadas) {
+      const g = grupos.find(
+        (x) =>
+          x.principal.tipo === a.tipo &&
+          x.principal.habitacion === a.habitacion &&
+          alertasResueltas.has(x.principal.id) === alertasResueltas.has(a.id) &&
+          +new Date(x.principal.timestamp) - +new Date(a.timestamp) <= VENTANA_GRUPO_MS
+      );
+      if (g) g.ids.push(a.id);
+      else grupos.push({ principal: a, ids: [a.id] });
+    }
+    return grupos;
+  }
+  const gruposPendientes = agrupar(pendientes);
+  const gruposAlertas = agrupar(todasLasAlertas);
   const eventosHoy = eventos.filter((e) => esHoy(e.timestamp));
   const alertasHoy = eventosHoy.filter((e) => e.alerta || e.caida_detectada).length;
   const ultimoMovimiento = eventos.find((e) => e.tipo === "pir" && e.valor?.movimiento);
@@ -281,7 +307,8 @@ function App() {
   // ------------------------------------------------------------
   // Estado del hogar (lo primero que ve el cuidador)
   // ------------------------------------------------------------
-  const primera = pendientes[0];
+  const grupoPrimero = gruposPendientes[0];
+  const primera = grupoPrimero?.principal;
   let estado: "ok" | "alerta" | "sin-acceso" | "sin-conexion" = "ok";
   if (sinAcceso) estado = "sin-acceso";
   else if (pendientes.length > 0) estado = "alerta";
@@ -371,7 +398,7 @@ function App() {
             onClick={() => setPestana(id)}
           >
             {texto}
-            {id === "general" && pendientes.length > 0 && <span className="pestana-cuenta">{pendientes.length}</span>}
+            {id === "general" && gruposPendientes.length > 0 && <span className="pestana-cuenta">{gruposPendientes.length}</span>}
           </button>
         ))}
       </nav>
@@ -398,12 +425,14 @@ function App() {
                       {nombreTipo(primera.tipo)} en {nombreHabitacion(primera.habitacion).toLowerCase()} a las {hora(primera.timestamp)}
                     </h1>
                     <p>
-                      {pendientes.length === 1
-                        ? "Hay una alerta sin atender. Comuníquese con su familiar o acuda al hogar."
-                        : `Hay ${pendientes.length} alertas sin atender. Comience por la más reciente.`}
+                      {gruposPendientes.length === 1
+                        ? grupoPrimero.ids.length > 1
+                          ? `El sensor avisó ${grupoPrimero.ids.length} veces seguidas. Comuníquese con su familiar o acuda al hogar.`
+                          : "Hay una alerta sin atender. Comuníquese con su familiar o acuda al hogar."
+                        : `Hay ${gruposPendientes.length} alertas sin atender. Comience por la más reciente.`}
                     </p>
                   </div>
-                  <button className="btn-alerta" onClick={() => resolverAlerta(primera.id)} disabled={resolviendoId === primera.id}>
+                  <button className="btn-alerta" onClick={() => resolverAlerta(grupoPrimero.ids)} disabled={resolviendoId === primera.id}>
                     {resolviendoId === primera.id ? "Registrando…" : "Marcar como atendida"}
                   </button>
                 </>
@@ -442,7 +471,7 @@ function App() {
                   <p className="vacio">No hay alertas en las últimas 24 horas.</p>
                 ) : (
                   <ul className="lista-alertas">
-                    {todasLasAlertas.slice(0, 8).map((a) => {
+                    {gruposAlertas.slice(0, 6).map(({ principal: a, ids }) => {
                       const atendida = alertasResueltas.get(a.id);
                       const Icono = iconoTipo(a.tipo);
                       return (
@@ -450,7 +479,10 @@ function App() {
                           <time className="alerta-hora">{hora(a.timestamp)}</time>
                           <Icono className="alerta-icono" size={20} aria-hidden="true" />
                           <div className="alerta-texto">
-                            <strong>{nombreTipo(a.tipo)}</strong>
+                            <strong>
+                              {nombreTipo(a.tipo)}
+                              {ids.length > 1 && <span className="repeticiones">{ids.length} avisos</span>}
+                            </strong>
                             <span>{nombreHabitacion(a.habitacion)}</span>
                           </div>
                           {atendida ? (
@@ -458,7 +490,7 @@ function App() {
                               <CircleCheck size={16} aria-hidden="true" /> Atendida {hora(atendida)}
                             </span>
                           ) : (
-                            <button className="btn-secundario" onClick={() => resolverAlerta(a.id)} disabled={resolviendoId === a.id}>
+                            <button className="btn-secundario" onClick={() => resolverAlerta(ids)} disabled={resolviendoId === a.id}>
                               {resolviendoId === a.id ? "Registrando…" : "Atender"}
                             </button>
                           )}
