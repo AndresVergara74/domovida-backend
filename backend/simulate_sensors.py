@@ -31,6 +31,10 @@ API_URL = f"{BACKEND_URL}/api/sensor-data"
 API_KEY = os.getenv("DOMOVIDA_API_KEY", "").strip()
 CABECERAS = {"X-API-Key": API_KEY} if API_KEY else {}
 INTERVALO_SEGUNDOS = 5
+# Modo demostración tranquila: sin emergencias al azar (para mostrar el estado normal
+# del panel sin llenar el celular de avisos). Las emergencias se provocan aparte.
+#   PowerShell:  $env:DOMOVIDA_SIM_EMERGENCIAS="0"
+EMERGENCIAS = 0.0 if os.getenv("DOMOVIDA_SIM_EMERGENCIAS", "1").strip() == "0" else 1.0
 
 # Estado simulado del adulto mayor
 estado_usuario = {
@@ -45,7 +49,7 @@ estado_usuario = {
 
 def generar_datos_acelerometro():
     """Simula datos de acelerómetro y giroscopio. Detecta caída si la magnitud supera un umbral."""
-    probabilidad_caida = 0.05  # 5% de probabilidad
+    probabilidad_caida = 0.05 * EMERGENCIAS  # 5% de probabilidad
 
     if random.random() < probabilidad_caida:
         ax = random.uniform(-15, 15)
@@ -113,7 +117,7 @@ def generar_datos_pir():
 
 def generar_datos_gas():
     """Simula sensor de gas."""
-    fuga = random.random() < 0.02
+    fuga = random.random() < 0.02 * EMERGENCIAS
     nivel_ppm = random.uniform(200, 800) if fuga else random.uniform(0, 50)
 
     if fuga:
@@ -131,7 +135,7 @@ def generar_datos_gas():
 
 def generar_datos_humo():
     """Simula sensor de humo."""
-    humo = random.random() < 0.01
+    humo = random.random() < 0.01 * EMERGENCIAS
     nivel = random.uniform(500, 1000) if humo else random.uniform(0, 30)
 
     if humo:
@@ -171,7 +175,7 @@ def generar_datos_cardiaco():
     Taquicardia (>150 bpm) o bradicardia severa (<40 bpm) = alerta crítica.
     """
     # 3% de probabilidad de evento cardíaco
-    evento = random.random() < 0.03
+    evento = random.random() < 0.03 * EMERGENCIAS
 
     if evento:
         # 50% taquicardia, 50% bradicardia
@@ -213,7 +217,7 @@ def generar_datos_boton_panico():
     2% de probabilidad de que el usuario presione el botón.
     Cuando se activa, es una alerta crítica inmediata.
     """
-    activado = random.random() < 0.02
+    activado = random.random() < 0.02 * EMERGENCIAS
 
     if activado:
         print("🚨 ¡BOTÓN DE PÁNICO ACTIVADO!")
@@ -259,6 +263,7 @@ def main():
     print("=" * 65)
     print(f"📡 Backend: {API_URL}")
     print(f"⏱️  Intervalo: {INTERVALO_SEGUNDOS} segundos")
+    print("🎭 Emergencias al azar: " + ("activadas" if EMERGENCIAS else "desactivadas (demostración tranquila)"))
     print("🛑 Presiona Ctrl+C para detener")
     print("=" * 65)
 

@@ -506,7 +506,7 @@ function App() {
               )}
             </section>
 
-            <div className="resumen-grid">
+            {!sinAcceso && (<div className="resumen-grid">
               <div className="columna">
               <section className="panel">
                 <div className="panel-cabecera">
@@ -640,12 +640,21 @@ function App() {
                   )}
                 </section>
               </div>
-            </div>
+            </div>)}
           </>
         )}
 
+        {sinAcceso && pestana !== "general" && (
+          <section className="panel aviso-acceso">
+            <Shield size={22} aria-hidden="true" />
+            <p>Esta sección muestra datos del hogar. Inicie sesión como cuidador para verla.</p>
+            <button className="btn-primario" onClick={() => setMostrarLogin(true)}>
+              <LogIn size={18} aria-hidden="true" /> Ingresar
+            </button>
+          </section>
+        )}
         {/* ===================== HISTORIAL ===================== */}
-        {pestana === "historial" && (
+        {!sinAcceso && pestana === "historial" && (
           <section className="panel">
             <div className="panel-cabecera">
               <h2>Historial de lecturas</h2>
@@ -724,7 +733,7 @@ function App() {
         )}
 
         {/* ===================== SENSORES ===================== */}
-        {pestana === "sensores" && (
+        {!sinAcceso && pestana === "sensores" && (
           <section className="panel">
             <div className="panel-cabecera">
               <h2>Sensores del hogar</h2>
@@ -754,7 +763,7 @@ function App() {
         )}
 
         {/* ===================== MAPA ===================== */}
-        {pestana === "ubicacion" && (
+        {!sinAcceso && pestana === "ubicacion" && (
           <section className="panel">
             <MapaHogar sensores={inventario} />
           </section>

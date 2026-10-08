@@ -610,3 +610,7 @@ body.dark .login-enviar { color: var(--fondo); }
 .vacio.sin-pendientes { display: flex; align-items: center; gap: 8px; color: var(--verde); font-weight: 700; }
 .estado-hogar.sin-datos { border-left-color: var(--ambar); background: var(--ambar-tenue); }
 .estado-hogar.sin-datos .estado-icono { color: var(--ambar); }
+
+/* Sin sesión: no se muestran datos vacíos que parezcan reales */
+.aviso-acceso { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; color: var(--petroleo); }
+.aviso-acceso p { flex: 1; min-width: 220px; color: var(--tinta); margin: 0; }
