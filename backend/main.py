@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database import engine, Base
+from database import engine, Base, asegurar_columnas_borde
 from routers import (
     sensor_router,
     evento_router,
@@ -12,6 +12,7 @@ from routers import (
 
 # Crear tablas
 Base.metadata.create_all(bind=engine)
+asegurar_columnas_borde()  # HU-03: columnas nuevas en una base SQLite existente
 
 app = FastAPI(
     title="DomoVida API",
@@ -55,6 +56,15 @@ app.include_router(evento_router.router, prefix="/api", tags=["Eventos"])
 app.include_router(alerta_router.router, prefix="/api", tags=["Alertas"])
 app.include_router(health_router.router, prefix="/api", tags=["Health"])
 app.include_router(fhir_router.router, prefix="/api", tags=["HL7 FHIR"])
+
+# HU-03: sincronizador del modo borde (solo si NUBE_API_URL está definida)
+import sincronizador
+
+
+@app.on_event("startup")
+def _iniciar_sincronizador():
+    sincronizador.iniciar_en_segundo_plano()
+
 
 # Incluir router WebSocket
 app.include_router(websocket_router.router, prefix="/api", tags=["WebSocket"])

@@ -7,6 +7,7 @@ Cada cambio de estructura de la base se escribe como un archivo SQL numerado y s
 | `000_esquema_base.sql` | Esquema existente al 06-10-2026: tablas `sensores`, `eventos` y `alertas`, triggers, RLS, índices y la tabla de control `schema_migrations` | 06-10-2026 (solo la tabla de control; el resto ya existía) |
 | `001_fechas_con_zona_horaria.sql` | Fechas `timestamptz` en UTC (problema D4) | 06-10-2026 |
 | `002_alertas_fuente_unica.sql` | `alertas` como fuente única de verdad de la atención; el backend crea la alerta y se elimina el trigger `crear_alerta_automatica` (D1, ajuste 17) | 06-10-2026 |
+| `003_sincronizacion_borde.sql` | Columnas `uuid`, `origen` y `notificado` en `eventos` para sincronizar el modo borde sin duplicados (HU-03, D2 y D3). Se aplica **antes** de desplegar el código | 08-10-2026 |
 
 ## Cómo aplicar una migración
 

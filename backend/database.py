@@ -45,3 +45,27 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def asegurar_columnas_borde():
+    """HU-03: agrega a una base SQLite existente las columnas nuevas de `eventos`.
+    En PostgreSQL (Supabase) esto lo hace la migración 003."""
+    if not DATABASE_URL.startswith("sqlite"):
+        return
+    from sqlalchemy import inspect, text
+    insp = inspect(engine)
+    if "eventos" not in insp.get_table_names():
+        return
+    existentes = {c["name"] for c in insp.get_columns("eventos")}
+    nuevas = {
+        "uuid": "VARCHAR(36)",
+        "origen": "VARCHAR(10) DEFAULT 'nube'",
+        "sync_status": "VARCHAR",
+        "notificado": "BOOLEAN DEFAULT 0",
+    }
+    with engine.begin() as con:
+        for nombre, tipo in nuevas.items():
+            if nombre not in existentes:
+                con.execute(text(f"ALTER TABLE eventos ADD COLUMN {nombre} {tipo}"))
+        con.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS uq_eventos_uuid ON eventos (uuid)"))
+

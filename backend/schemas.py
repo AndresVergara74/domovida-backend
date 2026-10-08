@@ -16,6 +16,10 @@ class SensorDataIn(BaseModel):
     valor: Dict[str, Any]
     alerta: bool = False
     timestamp: Optional[datetime] = None
+    # HU-03: datos que agrega el sincronizador del modo borde
+    uuid: Optional[str] = None
+    origen: Optional[str] = None
+    notificado: bool = False
 
     @field_validator("timestamp")
     @classmethod

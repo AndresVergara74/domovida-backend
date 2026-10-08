@@ -30,6 +30,12 @@ class Evento(Base):
     alerta = Column(Boolean, default=False)
     timestamp = Column(DateTime(timezone=True), default=ahora_utc, index=True)
 
+    # HU-03 · Sincronización del modo borde (migración 003)
+    uuid = Column(String(36), unique=True, nullable=True, index=True)  # id generado en el origen
+    origen = Column(String(10), default="nube")      # borde | nube
+    sync_status = Column(String, nullable=True)       # pendiente | synced
+    notificado = Column(Boolean, default=False)       # ntfy ya enviado (evita avisos repetidos)
+
     # ============================================================
     # CAMPOS DE ATENCIÓN (OBSOLETOS · ajuste 17, ficha 19 etapa 3)
     # ============================================================
