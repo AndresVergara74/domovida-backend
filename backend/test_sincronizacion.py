@@ -102,4 +102,13 @@ cols = {x["name"] for x in inspect(database.engine).get_columns("eventos")}
 database.engine, database.DATABASE_URL = orig
 caso("Base SQLite antigua: se agregan uuid, origen, sync_status y notificado", {"uuid", "origen", "sync_status", "notificado"} <= cols, True)
 
+# 12. El aviso de un evento sincronizado tarde muestra la hora real y la nota de retraso
+import notifier, datetime as _dt
+hace_7min = (_dt.datetime.now(_dt.timezone.utc) - _dt.timedelta(minutes=7)).isoformat()
+_, msg_tarde, _ = notifier.formatear_alerta({"tipo": "gas", "habitacion": "cocina", "valor": {}, "timestamp": hace_7min})
+hora_real = notifier.hora_del_evento({"timestamp": hace_7min}).strftime("%H:%M:%S")
+caso("Aviso tardío: hora real del evento y nota 'sin conexión'",
+     (hora_real in msg_tarde, "sin conexión" in notifier.nota_de_retraso({"timestamp": hace_7min}),
+      notifier.nota_de_retraso({"timestamp": _dt.datetime.now(_dt.timezone.utc).isoformat()})), (True, True, ""))
+
 print(f"\nResultado PU-07 (HU-03): {sum(casos)}/{len(casos)} casos aprobados")

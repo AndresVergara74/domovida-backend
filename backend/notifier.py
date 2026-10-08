@@ -28,6 +28,29 @@ NTFY_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
 # PLANTILLAS DE MENSAJES SEUDONIMIZADOS
 # ============================================================
 
+def hora_del_evento(evento: dict) -> datetime:
+    """Hora en que ocurrió el evento (hora de Chile). Si no viene, la hora actual."""
+    ts = evento.get("timestamp")
+    try:
+        dt = datetime.fromisoformat(str(ts).replace("Z", "+00:00")) if ts else None
+    except ValueError:
+        dt = None
+    if dt is None:
+        return datetime.now(ZONA_CHILE)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=ZONA_CHILE)
+    return dt.astimezone(ZONA_CHILE)
+
+
+def nota_de_retraso(evento: dict) -> str:
+    """HU-03: si el aviso sale más de 2 minutos después del evento (registrado sin
+    conexión y sincronizado después), se indica en el mensaje."""
+    ahora = datetime.now(ZONA_CHILE)
+    if (ahora - hora_del_evento(evento)).total_seconds() > 120:
+        return f"\nRegistrado sin conexión; aviso enviado a las {ahora.strftime('%H:%M')}."
+    return ""
+
+
 def formatear_alerta(evento: dict) -> tuple:
     """
     Recibe un evento del backend y devuelve (titulo, mensaje, prioridad).
@@ -36,7 +59,7 @@ def formatear_alerta(evento: dict) -> tuple:
     tipo = evento.get("tipo", "desconocido")
     habitacion = evento.get("habitacion", "sin_ubicacion")
     valor = evento.get("valor", {})
-    hora = datetime.now(ZONA_CHILE).strftime("%H:%M:%S")
+    hora = hora_del_evento(evento).strftime("%H:%M:%S")  # hora real del evento, en hora de Chile
 
     # --- CAÍDA ---
     if tipo == "acelerometro" and valor.get("magnitud", 0) > 20:
@@ -155,6 +178,7 @@ def enviar_notificacion(evento: dict) -> bool:
         return False
 
     titulo, mensaje, prioridad = formatear_alerta(evento)
+    mensaje += nota_de_retraso(evento)  # HU-03
 
     try:
         response = requests.post(

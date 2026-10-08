@@ -1,0 +1,18 @@
+PU-07 · HU-03: sincronización del modo borde con la nube (backend/sincronizador.py)
+Fecha: 08-10-2026 · Comando: python test_sincronizacion.py (carpeta backend) · nube y red simuladas, base SQLite temporal
+
+✅ Modo nube: evento con UUID, origen 'nube' y sin pendiente → (36, 'nube', None)
+✅ Modo borde: 3 eventos pendientes con origen 'borde' → [('pendiente', 'borde'), ('pendiente', 'borde'), ('pendiente', 'borde')]
+✅ /api/health informa la sincronización y los pendientes → (True, 3)
+✅ Sin internet: 0 enviados y siguen 3 pendientes → (0, 3, 'sin conexión')
+✅ Vuelve internet: 3 enviados, 0 pendientes → (3, 0)
+✅ Se envían en orden, con UUID, origen 'borde' y la clave → (True, {'borde'})
+✅ Un segundo ciclo no reenvía nada → 0
+✅ Falla a medias: 1 enviado, 1 pendiente; el ciclo siguiente envía el resto → (1, 1, 1, 0)
+✅ Nube: el mismo UUID dos veces = 1 evento (mismo id) → (True, 1)
+✅ Nube: la alerta del evento sincronizado se crea una sola vez → 1
+✅ ntfy solo si el borde no había avisado → [9]
+✅ Base SQLite antigua: se agregan uuid, origen, sync_status y notificado → True
+✅ Aviso tardío: hora real del evento y nota 'sin conexión' → (True, True, '')
+
+Resultado PU-07 (HU-03): 13/13 casos aprobados

@@ -121,7 +121,7 @@ $env:DOMOVIDA_API_URL = "http://localhost:8000"
 python simulate_sensors.py
 ```
 
-**Modo borde (sin internet):** ejecutar el backend con `DATABASE_URL=sqlite:///./domovida_offline.db` y el panel local. Sin `SUPABASE_URL`, atender alertas no exige sesión, porque Supabase no es alcanzable sin conexión.
+**Modo borde (sin internet):** ejecutar el backend con `DATABASE_URL=sqlite:///./domovida_offline.db` y el panel local. Con `NUBE_API_URL` y `NUBE_API_KEY`, los eventos guardados sin conexión se suben solos a la nube al volver internet (HU-03; ver manual técnico, sección 4.3). Sin `SUPABASE_URL`, atender alertas no exige sesión, porque Supabase no es alcanzable sin conexión.
 
 ## 6. Variables de entorno
 
@@ -150,6 +150,7 @@ python test_reglas_puerta.py      # PU-04 · regla de la puerta principal
 python test_tiempo.py             # PU-05 · fechas en UTC con zona horaria
 python test_alertas.py            # PU-06 · alertas como fuente única de verdad
 python test_lecturas.py           # PS-01c · consultas de lectura con sesión (HU-17)
+python test_sincronizacion.py     # PU-07 · sincronización del modo borde (HU-03)
 python test_seguridad.py          # PS-01 · clave de API de los sensores
 python test_auth_cuidador.py      # PS-01b · sesión del cuidador
 python ../docs/fase2/evidencias_proyecto/documentacion/pruebas/PI-04_validacion_fhir.py          # FHIR Observation
@@ -163,6 +164,7 @@ Resultados principales del prototipo:
 | PR-01 · Latencia de la alerta (30 caídas) | 100 % recibidas; 1.577 ms en Render + Supabase, 216 ms en AWS EC2 |
 | PR-02 · Notificaciones ntfy en el celular | 30/30 (100 %) |
 | PR-03 · Continuidad sin internet (modo borde) | 10/10 caídas guardadas y mostradas |
+| PU-07 / PR-03b · Sincronización del modo borde con la nube | 13/13; 5/5 caídas subidas a Supabase al volver internet, sin duplicados |
 | PI-03 / PI-03b · RLS con rol anónimo | 0 filas visibles |
 | PI-04 / PI-05 · HL7 FHIR R4 | Observation, Bundle y Patient válidos |
 | PS-01 / PS-01b · Autenticación | 3/3 y 3/3 en producción |

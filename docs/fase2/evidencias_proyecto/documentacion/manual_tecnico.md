@@ -110,7 +110,14 @@ python simulate_sensors.py
 1. Ejecutar la API con `DATABASE_URL=sqlite:///./domovida_offline.db` y **sin** `SUPABASE_URL` (sin internet, Supabase no es alcanzable).
 2. Ejecutar el panel local con `VITE_API_URL=http://localhost:8000`.
 3. Las caídas se guardan en SQLite y llegan al panel local por WebSocket; ntfy falla sin internet y la API sigue funcionando (prueba PR-03).
-4. **Limitación conocida:** al volver internet, los eventos de SQLite no se suben solos a Supabase (HU-03 reabierta, ficha técnica 19).
+4. **Sincronización con la nube (HU-03):** si además se define `NUBE_API_URL` (URL de la API en Render) y `NUBE_API_KEY` (clave de los sensores), el backend local guarda cada evento como pendiente y lo sube a la nube cuando hay conexión, cada `SYNC_INTERVALO_SEG` segundos (30 por defecto). Ejemplo en PowerShell:
+   ```powershell
+   $env:DATABASE_URL="sqlite:///./domovida_borde.db"
+   $env:NUBE_API_URL="https://domovida-backend.onrender.com"
+   $env:NUBE_API_KEY=(Get-Content <ruta segura>\domovida_api_key.txt -Raw).Trim()
+   uvicorn main:app --port 8000
+   ```
+   El estado se ve en `/api/health` → `sincronizacion_borde` (pendientes y último error). Estas variables van **solo en el equipo del hogar**, nunca en Render (prueba PR-03b).
 
 ### 4.4 Usuarios de prueba
 
@@ -148,6 +155,7 @@ python test_reglas_puerta.py        # PU-04
 python test_tiempo.py               # PU-05
 python test_alertas.py              # PU-06
 python test_lecturas.py             # PS-01c
+python test_sincronizacion.py       # PU-07
 python test_seguridad.py            # PS-01
 python test_auth_cuidador.py        # PS-01b
 python ../docs/fase2/evidencias_proyecto/documentacion/pruebas/PI-04_validacion_fhir.py
