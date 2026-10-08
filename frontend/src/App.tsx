@@ -112,11 +112,20 @@ function App() {
       if (!ultimaAlertaRT || ultima.id !== ultimaAlertaRT.id) {
         setUltimaAlertaRT(ultima);
         setNotificacionVisible(true);
-        const timeout = setTimeout(() => setNotificacionVisible(false), 5000);
-        return () => clearTimeout(timeout);
       }
     }
   }, [alertasTiempoReal, ultimaAlertaRT]);
+
+  // El aviso flotante se cierra solo a los 8 s, o apenas se atiende la alerta.
+  // (Antes el temporizador se cancelaba al actualizar el estado y el aviso quedaba fijo.)
+  useEffect(() => {
+    if (!notificacionVisible) return;
+    const timeout = setTimeout(() => setNotificacionVisible(false), 8000);
+    return () => clearTimeout(timeout);
+  }, [notificacionVisible, ultimaAlertaRT]);
+  useEffect(() => {
+    if (ultimaAlertaRT && alertasResueltas.has(ultimaAlertaRT.id)) setNotificacionVisible(false);
+  }, [alertasResueltas, ultimaAlertaRT]);
 
   // ============================================================
   // FUNCIÓN: Marcar una alerta como atendida
