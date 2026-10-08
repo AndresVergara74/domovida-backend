@@ -2,6 +2,9 @@
 import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
 import { divIcon } from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { iconoTipo, nombreTipo, nombreHabitacion, haceCuanto } from "./etiquetas";
 
 interface Sensor {
   sensor_id: string;
@@ -30,56 +33,25 @@ const COORDENADAS_HABITACIONES: Record<string, [number, number]> = {
   wearable: [-33.4489, -70.6693],
 };
 
-// Icono personalizado según estado del sensor
+// Marcador: círculo con el ícono del tipo de sensor (petróleo = funcionando, rojo = sin señal)
 function crearIcono(sensor: Sensor) {
-  const color = sensor.online ? "#10b981" : "#ef4444";
-  const icono = obtenerEmojiPorTipo(sensor.tipo);
-
+  const color = sensor.online ? "#0E5566" : "#B42318";
+  const svg = renderToStaticMarkup(createElement(iconoTipo(sensor.tipo), { size: 18, color: "#ffffff", strokeWidth: 2.2 }));
   return divIcon({
-    html: `
-      <div style="
-        background: ${color};
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-        border: 3px solid white;
-      ">
-        ${icono}
-      </div>
-    `,
+    html: `<div style="background:${color};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(16,38,45,.35)">${svg}</div>`,
     className: "sensor-marker",
-    iconSize: [36, 36],
-    iconAnchor: [18, 18],
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
   });
-}
-
-function obtenerEmojiPorTipo(tipo: string): string {
-  const emojis: Record<string, string> = {
-    pir: "🚶",
-    acelerometro: "📳",
-    gas: "💨",
-    humo: "🔥",
-    apertura: "🚪",
-    cardiovascular: "❤️",
-    boton_panico: "🚨",
-  };
-  return emojis[tipo] || "📡";
 }
 
 export default function MapaHogar({ sensores }: MapaHogarProps) {
   return (
     <div className="mapa-hogar-container">
       <div className="mapa-header">
-        <h3>📍 Ubicación de sensores en el hogar</h3>
+        <h2>Mapa del hogar</h2>
         <p className="mapa-descripcion">
-          Vista satelital del hogar con la ubicación de cada sensor IoT.
-          Los sensores <span className="punto-verde">● verdes</span> están online
-          y los <span className="punto-rojo">● rojos</span> offline.
+          Ubicación aproximada de cada sensor. Toque un sensor para ver su última lectura.
         </p>
       </div>
 
@@ -88,7 +60,7 @@ export default function MapaHogar({ sensores }: MapaHogarProps) {
           center={HOGAR_CENTRO}
           zoom={19}
           scrollWheelZoom={true}
-          style={{ height: "500px", width: "100%", borderRadius: "16px" }}
+          style={{ height: "480px", width: "100%" }}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -100,8 +72,8 @@ export default function MapaHogar({ sensores }: MapaHogarProps) {
             center={HOGAR_CENTRO}
             radius={30}
             pathOptions={{
-              color: "#10b981",
-              fillColor: "#10b981",
+              color: "#0E5566",
+              fillColor: "#0E5566",
               fillOpacity: 0.1,
               weight: 2,
               dashArray: "5, 5",
@@ -121,21 +93,10 @@ export default function MapaHogar({ sensores }: MapaHogarProps) {
               >
                 <Popup>
                   <div className="popup-sensor">
-                    <h4>{sensor.sensor_id}</h4>
-                    <p>
-                      <strong>Tipo:</strong> {sensor.tipo}
-                    </p>
-                    <p>
-                      <strong>Habitación:</strong> {sensor.habitacion}
-                    </p>
-                    <p>
-                      <strong>Estado:</strong>{" "}
-                      {sensor.online ? "✅ Online" : "⚠️ Inactivo"}
-                    </p>
-                    <p>
-                      <strong>Última lectura:</strong>{" "}
-                      {new Date(sensor.ultima_lectura).toLocaleTimeString("es-CL")}
-                    </p>
+                    <strong>{nombreTipo(sensor.tipo)}</strong>
+                    <p>{nombreHabitacion(sensor.habitacion)}</p>
+                    <p>{sensor.online ? "Funcionando" : "Sin señal"}, última lectura {haceCuanto(sensor.ultima_lectura)}</p>
+                    <p className="tenue">{sensor.sensor_id}</p>
                   </div>
                 </Popup>
               </Marker>
@@ -148,11 +109,11 @@ export default function MapaHogar({ sensores }: MapaHogarProps) {
       <div className="mapa-leyenda">
         <div className="leyenda-item">
           <span className="leyenda-punto online"></span>
-          <span>Sensor online</span>
+          <span>Funcionando</span>
         </div>
         <div className="leyenda-item">
           <span className="leyenda-punto offline"></span>
-          <span>Sensor offline</span>
+          <span>Sin señal</span>
         </div>
         <div className="leyenda-item">
           <span className="leyenda-circulo"></span>

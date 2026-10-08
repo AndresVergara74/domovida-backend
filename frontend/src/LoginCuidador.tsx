@@ -37,7 +37,7 @@ export default function LoginCuidador({ onExito, onCancelar }: Props) {
           <X size={18} />
         </button>
         <h2 id="login-titulo">Acceso del cuidador</h2>
-        <p className="login-ayuda">Inicia sesión para marcar alertas como atendidas.</p>
+        <p className="login-ayuda">Inicie sesión para ver el estado del hogar y atender alertas.</p>
 
         <label htmlFor="login-email">Correo</label>
         <input

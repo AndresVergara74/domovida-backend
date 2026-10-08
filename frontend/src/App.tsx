@@ -1,28 +1,33 @@
-// src/App.tsx
+// src/App.tsx — Panel del cuidador DomoVida (diseño "clínico sereno", 08-10-2026)
 import { useState, useEffect } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import {
-  LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-} from "recharts";
-// Iconos Lucide (reemplazan emojis)
-import { Home, Moon, Sun, AlertTriangle, Bell, Filter, X, Shield, MapPin, LogIn, LogOut } from "lucide-react";
+  House, Moon, Sun, Shield, LogIn, LogOut, Bell, X, CircleCheck, TriangleAlert, Clock, WifiOff,
+} from "lucide-react";
 import { useDomovida } from "./useDomovida";
 import { useWebSocket } from "./useWebSocket";
 import Consentimiento from "./Consentimiento";
 import MapaHogar from "./MapaHogar";
 import LoginCuidador from "./LoginCuidador";
 import { authHabilitada, leerSesion, cerrarSesion, type Sesion } from "./auth";
+import { nombreTipo, iconoTipo, nombreHabitacion, componenteSistema, haceCuanto, hora, esHoy } from "./etiquetas";
 import "./App.css";
-
-const COLORES = ["#10b981", "#3b82f6", "#f59e0b", "#ef4444", "#8b5cf6"];
 
 // URL base de la API (usa variable de entorno o fallback)
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
+type Pestana = "general" | "historial" | "sensores" | "ubicacion";
+const PESTANAS: Array<[Pestana, string]> = [
+  ["general", "Resumen"],
+  ["historial", "Historial"],
+  ["sensores", "Sensores"],
+  ["ubicacion", "Mapa del hogar"],
+];
+
 function App() {
   const { eventos, alertas, sensores, minutosInactivo, cargando, conectado, refrescar } = useDomovida();
   const { conectado: wsConectado, alertasTiempoReal } = useWebSocket();
-  const [pestana, setPestana] = useState<"general" | "historial" | "sensores" | "ubicacion">("general");
+  const [pestana, setPestana] = useState<Pestana>("general");
   const [estadoSistema, setEstadoSistema] = useState<any[]>([]);
   const [lecturasProtegidas, setLecturasProtegidas] = useState(false); // HU-17
   const [notificacionVisible, setNotificacionVisible] = useState(false);
@@ -201,12 +206,14 @@ function App() {
   }
 
   if (cargando) {
-    return <div className="cargando">Cargando DomoVida...</div>;
+    return (
+      <div className="cargando" role="status">
+        <House size={28} aria-hidden="true" />
+        <span>Cargando DomoVida…</span>
+      </div>
+    );
   }
 
-  // ============================================================
-  // Si no ha aceptado el consentimiento, mostrar el modal
-  // ============================================================
   if (!consentimientoAceptado || mostrarConsentimiento) {
     return (
       <Consentimiento
@@ -216,63 +223,44 @@ function App() {
     );
   }
 
-  // ============================================================
-  // Combinar alertas del backend + alertas del WebSocket
-  // ============================================================
+  // ------------------------------------------------------------
+  // Datos derivados
+  // ------------------------------------------------------------
   const todasLasAlertas = [
     ...alertasTiempoReal,
     ...alertas.filter((a) => !alertasTiempoReal.some((rt) => rt.id === a.id)),
   ];
+  const pendientes = todasLasAlertas.filter((a) => !alertasResueltas.has(a.id));
+  const eventosHoy = eventos.filter((e) => esHoy(e.timestamp));
+  const alertasHoy = eventosHoy.filter((e) => e.alerta || e.caida_detectada).length;
+  const ultimoMovimiento = eventos.find((e) => e.tipo === "pir" && e.valor?.movimiento);
+  const ultimaActividad = eventos.slice(0, 6);
+  const sensoresOnline =sensores.filter((s) => s.online).length;
+  const totalSensores = sensores.length;
+  const sinAcceso = lecturasProtegidas && !sesion;
 
-  // ============================================================
-  // Eventos de HOY
-  // ============================================================
-  const hoy = new Date();
-  const eventosHoy = eventos.filter((e) => {
-    const fecha = new Date(e.timestamp);
-    return (
-      fecha.getDate() === hoy.getDate() &&
-      fecha.getMonth() === hoy.getMonth() &&
-      fecha.getFullYear() === hoy.getFullYear()
-    );
+  // Actividad por hora (últimas 12 horas), a partir de los eventos cargados
+  const ahora = new Date();
+  const datosActividad = Array.from({ length: 12 }, (_, k) => {
+    const inicio = new Date(ahora);
+    inicio.setMinutes(0, 0, 0);
+    inicio.setHours(inicio.getHours() - (11 - k));
+    const fin = inicio.getTime() + 3600000;
+    const enHora = eventos.filter((e) => {
+      const t = new Date(e.timestamp).getTime();
+      return t >= inicio.getTime() && t < fin;
+    });
+    return {
+      hora: `${String(inicio.getHours()).padStart(2, "0")}:00`,
+      eventos: enHora.filter((e) => !(e.alerta || e.caida_detectada)).length,
+      alertas: enHora.filter((e) => e.alerta || e.caida_detectada).length,
+    };
   });
 
-  // ============================================================
-  // Gráfico: Actividad del hogar
-  // ============================================================
-  const datosActividad = eventos
-    .filter((e) => e.tipo === "pir")
-    .slice(-12)
-    .map((e) => ({
-      hora: new Date(e.timestamp).toLocaleTimeString("es-CL", {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-      movimiento: e.valor?.movimiento ? 1 : 0,
-    }));
-
-  // ============================================================
-  // Gráfico: Alertas por tipo
-  // ============================================================
-  const datosAlertasTipo = Object.entries(
-    todasLasAlertas.reduce((acc: Record<string, number>, a) => {
-      acc[a.tipo] = (acc[a.tipo] || 0) + 1;
-      return acc;
-    }, {})
-  ).map(([name, value]) => ({ name, value }));
-
-  // ============================================================
-  // FILTROS: Opciones únicas para los selectores
-  // ============================================================
+  // Filtros del historial
   const sensoresUnicos = Array.from(new Set(eventos.map((e) => e.sensor_id))).sort();
   const tiposUnicos = Array.from(new Set(eventos.map((e) => e.tipo))).sort();
-  const habitacionesUnicas = Array.from(
-    new Set(eventos.map((e) => e.habitacion).filter(Boolean))
-  ).sort();
-
-  // ============================================================
-  // FILTROS: Aplicar filtros a los eventos
-  // ============================================================
+  const habitacionesUnicas = Array.from(new Set(eventos.map((e) => e.habitacion).filter(Boolean))).sort() as string[];
   const eventosFiltrados = eventos.filter((e) => {
     if (filtroSensor !== "todos" && e.sensor_id !== filtroSensor) return false;
     if (filtroTipo !== "todos" && e.tipo !== filtroTipo) return false;
@@ -281,10 +269,8 @@ function App() {
     if (filtroAlerta === "sin_alertas" && (e.alerta || e.caida_detectada)) return false;
     return true;
   });
-
-  // ============================================================
-  // FUNCIÓN: Limpiar todos los filtros
-  // ============================================================
+  const hayFiltrosActivos =
+    filtroSensor !== "todos" || filtroTipo !== "todos" || filtroHabitacion !== "todas" || filtroAlerta !== "todos";
   function limpiarFiltros() {
     setFiltroSensor("todos");
     setFiltroTipo("todos");
@@ -292,19 +278,21 @@ function App() {
     setFiltroAlerta("todos");
   }
 
-  // ============================================================
-  // KPIs
-  // ============================================================
-  const totalEventosHoy = eventosHoy.length;
-  const totalAlertas = todasLasAlertas.length;
-  const sensoresOnline = sensores.filter((s) => s.online).length;
-  const totalSensores = sensores.length;
+  // ------------------------------------------------------------
+  // Estado del hogar (lo primero que ve el cuidador)
+  // ------------------------------------------------------------
+  const primera = pendientes[0];
+  let estado: "ok" | "alerta" | "sin-acceso" | "sin-conexion" = "ok";
+  if (sinAcceso) estado = "sin-acceso";
+  else if (pendientes.length > 0) estado = "alerta";
+  else if (!conectado) estado = "sin-conexion";
 
-  const hayFiltrosActivos =
-    filtroSensor !== "todos" ||
-    filtroTipo !== "todos" ||
-    filtroHabitacion !== "todas" ||
-    filtroAlerta !== "todos";
+  const lineaDetalle = [
+    ultimoMovimiento
+      ? `Último movimiento: ${nombreHabitacion(ultimoMovimiento.habitacion)}, ${haceCuanto(ultimoMovimiento.timestamp)}`
+      : "Sin movimiento registrado todavía",
+    totalSensores > 0 ? `${sensoresOnline} de ${totalSensores} sensores funcionando` : null,
+  ].filter(Boolean);
 
   return (
     <div className="app">
@@ -317,435 +305,367 @@ function App() {
           }}
         />
       )}
-      {/* ============================================ */}
-      {/* NOTIFICACIÓN FLOTANTE DE ALERTA EN TIEMPO REAL */}
-      {/* ============================================ */}
+
       {notificacionVisible && ultimaAlertaRT && (
-        <div className="notificacion-tiempo-real">
-          <div className="notificacion-icono">
-            <Bell size={28} />
+        <div className="aviso-vivo" role="alert">
+          <Bell size={22} aria-hidden="true" />
+          <div>
+            <strong>{nombreTipo(ultimaAlertaRT.tipo)} en {nombreHabitacion(ultimaAlertaRT.habitacion).toLowerCase()}</strong>
+            <span>Alerta recibida a las {hora(ultimaAlertaRT.timestamp || new Date())}</span>
           </div>
-          <div className="notificacion-contenido">
-            <strong>Alerta en tiempo real</strong>
-            <p>
-              {ultimaAlertaRT.sensor_id} · {ultimaAlertaRT.habitacion}
-            </p>
-          </div>
-          <button
-            className="notificacion-cerrar"
-            onClick={() => setNotificacionVisible(false)}
-          >
-            ✕
+          <button className="icono-btn" onClick={() => setNotificacionVisible(false)} aria-label="Cerrar aviso">
+            <X size={18} />
           </button>
         </div>
       )}
 
-      <header className="header">
-        <div className="header-content">
-          <h1 className="titulo-app">
-            <Home size={32} strokeWidth={2.5} />
-            DomoVida
-          </h1>
-          <p className="subtitulo">
-            Monitoreo y asistencia para el adulto mayor en el hogar
-          </p>
+      {/* ===================== Barra superior ===================== */}
+      <header className="barra">
+        <div className="barra-marca">
+          <span className="marca-icono" aria-hidden="true"><House size={20} /></span>
+          <div>
+            <span className="marca-nombre">DomoVida</span>
+            <span className="marca-hogar">Hogar p001</span>
+          </div>
         </div>
-        <div className="header-status">
-          <span className={`status-badge ${conectado ? "online" : "offline"}`}>
-            <span className={`status-dot ${conectado ? "online" : "offline"}`}></span>
-            {conectado ? "API conectada" : "API desconectada"}
-          </span>
-          <span className={`status-badge ${wsConectado ? "online" : "offline"}`}>
-            <span className={`status-dot ${wsConectado ? "online" : "offline"}`}></span>
-            {wsConectado ? "Tiempo real activo" : "Tiempo real inactivo"}
+
+        <div className="barra-acciones">
+          <span className={`conexion ${conectado ? (wsConectado ? "ok" : "parcial") : "caida"}`}>
+            <span className="conexion-punto" aria-hidden="true" />
+            {conectado ? (wsConectado ? "En línea" : "En línea, sin tiempo real") : "Sin conexión"}
           </span>
 
-          {/* Sesión del cuidador (PS-01) */}
           {authHabilitada &&
             (sesion ? (
-              <button
-                className="btn-sesion activa"
-                onClick={handleCerrarSesion}
-                title={`Sesión iniciada: ${sesion.email}. Clic para cerrar sesión`}
-                aria-label="Cerrar sesión"
-              >
-                <LogOut size={18} />
-                <span className="btn-sesion-texto">{sesion.email}</span>
+              <button className="btn-quiet" onClick={handleCerrarSesion} title="Cerrar sesión">
+                <LogOut size={17} aria-hidden="true" />
+                <span className="btn-texto">{sesion.email}</span>
               </button>
             ) : (
-              <button
-                className="btn-sesion"
-                onClick={() => setMostrarLogin(true)}
-                title="Iniciar sesión como cuidador"
-                aria-label="Iniciar sesión como cuidador"
-              >
-                <LogIn size={18} />
-                <span className="btn-sesion-texto">Ingresar</span>
+              <button className="btn-primario btn-chico" onClick={() => setMostrarLogin(true)}>
+                <LogIn size={17} aria-hidden="true" />
+                Ingresar
               </button>
             ))}
 
-          {/* Botón de consentimiento */}
-          <button
-            className="btn-consentimiento"
-            onClick={() => setMostrarConsentimiento(true)}
-            title="Ver consentimiento informado"
-            aria-label="Ver consentimiento informado"
-          >
-            <Shield size={20} />
+          <button className="icono-btn" onClick={() => setMostrarConsentimiento(true)} title="Ver consentimiento informado" aria-label="Ver consentimiento informado">
+            <Shield size={19} />
           </button>
-
           <button
-            className="btn-tema"
+            className="icono-btn"
             onClick={() => setTemaOscuro(!temaOscuro)}
             title={temaOscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-            aria-label={temaOscuro ? "Modo claro" : "Modo oscuro"}
+            aria-label={temaOscuro ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
           >
-            {temaOscuro ? <Sun size={20} /> : <Moon size={20} />}
+            {temaOscuro ? <Sun size={19} /> : <Moon size={19} />}
           </button>
         </div>
       </header>
 
-      {/* HU-17: aviso cuando los datos exigen la sesión del cuidador */}
-      {lecturasProtegidas && !sesion && (
-        <div className="aviso-sesion" role="status">
-          <span>Los datos del hogar están protegidos. Inicia sesión como cuidador para verlos.</span>
-          <button className="btn-sesion" onClick={() => setMostrarLogin(true)}>
-            <LogIn size={18} />
-            <span className="btn-sesion-texto">Ingresar</span>
+      <nav className="pestanas" aria-label="Secciones del panel">
+        {PESTANAS.map(([id, texto]) => (
+          <button
+            key={id}
+            className={pestana === id ? "activa" : ""}
+            aria-current={pestana === id ? "page" : undefined}
+            onClick={() => setPestana(id)}
+          >
+            {texto}
+            {id === "general" && pendientes.length > 0 && <span className="pestana-cuenta">{pendientes.length}</span>}
           </button>
-        </div>
-      )}
-
-      <nav className="tabs">
-        <button
-          className={pestana === "general" ? "activo" : ""}
-          onClick={() => setPestana("general")}
-        >
-          Vista general
-        </button>
-        <button
-          className={pestana === "historial" ? "activo" : ""}
-          onClick={() => setPestana("historial")}
-        >
-          Historial
-        </button>
-        <button
-          className={pestana === "sensores" ? "activo" : ""}
-          onClick={() => setPestana("sensores")}
-        >
-          Sensores
-        </button>
-        <button
-          className={pestana === "ubicacion" ? "activo" : ""}
-          onClick={() => setPestana("ubicacion")}
-        >
-          Ubicación
-        </button>
+        ))}
       </nav>
 
-      {pestana === "general" && (
-        <>
-          <section className="estado-sistema">
-            <h3>Estado del sistema</h3>
-            <div className="estado-grid">
-              {estadoSistema.map((s) => (
-                <div
-                  key={s.nombre}
-                  className={`estado-item ${s.simulado ? "simulado" : s.online ? "online" : "offline"}`}
-                  title={s.mensaje}
-                >
-                  <span className="estado-icono">{s.icono}</span>
-                  <span className="estado-nombre">{s.nombre}</span>
-                  <span
-                    className={`estado-badge ${s.simulado ? "simulado" : s.online ? "online" : "offline"}`}
-                  >
-                    {s.simulado ? "◐ Simulado" : s.online ? "● Online" : "○ Offline"}
-                  </span>
+      <main className="contenido">
+        {/* ===================== RESUMEN ===================== */}
+        {pestana === "general" && (
+          <>
+            <section className={`estado-hogar ${estado}`} aria-live="polite">
+              {estado === "ok" && (
+                <>
+                  <CircleCheck className="estado-icono" size={30} aria-hidden="true" />
+                  <div className="estado-texto">
+                    <h1>Todo en orden en casa.</h1>
+                    <p>{lineaDetalle.join(". ")}.</p>
+                  </div>
+                </>
+              )}
+              {estado === "alerta" && primera && (
+                <>
+                  <TriangleAlert className="estado-icono" size={30} aria-hidden="true" />
+                  <div className="estado-texto">
+                    <h1>
+                      {nombreTipo(primera.tipo)} en {nombreHabitacion(primera.habitacion).toLowerCase()} a las {hora(primera.timestamp)}
+                    </h1>
+                    <p>
+                      {pendientes.length === 1
+                        ? "Hay una alerta sin atender. Comuníquese con su familiar o acuda al hogar."
+                        : `Hay ${pendientes.length} alertas sin atender. Comience por la más reciente.`}
+                    </p>
+                  </div>
+                  <button className="btn-alerta" onClick={() => resolverAlerta(primera.id)} disabled={resolviendoId === primera.id}>
+                    {resolviendoId === primera.id ? "Registrando…" : "Marcar como atendida"}
+                  </button>
+                </>
+              )}
+              {estado === "sin-acceso" && (
+                <>
+                  <Shield className="estado-icono" size={30} aria-hidden="true" />
+                  <div className="estado-texto">
+                    <h1>Inicie sesión para ver el estado del hogar.</h1>
+                    <p>Los datos están protegidos y solo los ve el cuidador autorizado.</p>
+                  </div>
+                  <button className="btn-primario" onClick={() => setMostrarLogin(true)}>
+                    <LogIn size={18} aria-hidden="true" /> Ingresar
+                  </button>
+                </>
+              )}
+              {estado === "sin-conexion" && (
+                <>
+                  <WifiOff className="estado-icono" size={30} aria-hidden="true" />
+                  <div className="estado-texto">
+                    <h1>No hay conexión con el servidor.</h1>
+                    <p>El panel se actualizará solo cuando vuelva la conexión. Las alertas siguen llegando al celular.</p>
+                  </div>
+                </>
+              )}
+            </section>
+
+            <div className="resumen-grid">
+              <div className="columna">
+              <section className="panel">
+                <div className="panel-cabecera">
+                  <h2>Alertas recientes</h2>
+                  {wsConectado && <span className="en-vivo">En vivo</span>}
                 </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="tarjetas">
-            <div className="tarjeta">
-              <span className="etiqueta">Eventos detectados</span>
-              <span className="valor">{totalEventosHoy}</span>
-              <span className="detalle">hoy</span>
-            </div>
-            <div className="tarjeta alerta">
-              <span className="etiqueta">Alertas activas</span>
-              <span className="valor">{totalAlertas}</span>
-              <span className="detalle">
-                {totalAlertas > 0 ? (
-                  <>
-                    <AlertTriangle size={14} /> revisar
-                  </>
+                {todasLasAlertas.length === 0 ? (
+                  <p className="vacio">No hay alertas en las últimas 24 horas.</p>
                 ) : (
-                  "🟢 sin alertas"
+                  <ul className="lista-alertas">
+                    {todasLasAlertas.slice(0, 8).map((a) => {
+                      const atendida = alertasResueltas.get(a.id);
+                      const Icono = iconoTipo(a.tipo);
+                      return (
+                        <li key={a.id} className={atendida ? "atendida" : "pendiente"}>
+                          <time className="alerta-hora">{hora(a.timestamp)}</time>
+                          <Icono className="alerta-icono" size={20} aria-hidden="true" />
+                          <div className="alerta-texto">
+                            <strong>{nombreTipo(a.tipo)}</strong>
+                            <span>{nombreHabitacion(a.habitacion)}</span>
+                          </div>
+                          {atendida ? (
+                            <span className="sello-atendida">
+                              <CircleCheck size={16} aria-hidden="true" /> Atendida {hora(atendida)}
+                            </span>
+                          ) : (
+                            <button className="btn-secundario" onClick={() => resolverAlerta(a.id)} disabled={resolviendoId === a.id}>
+                              {resolviendoId === a.id ? "Registrando…" : "Atender"}
+                            </button>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
                 )}
-              </span>
+              </section>
+
+              <section className="panel">
+                <div className="panel-cabecera">
+                  <h2>Última actividad</h2>
+                  <button className="btn-enlace" onClick={() => setPestana("historial")}>Ver historial</button>
+                </div>
+                {ultimaActividad.length === 0 ? (
+                  <p className="vacio">Aún no hay lecturas registradas.</p>
+                ) : (
+                  <ul className="lista-actividad">
+                    {ultimaActividad.map((e) => {
+                      const Icono = iconoTipo(e.tipo);
+                      return (
+                        <li key={e.id}>
+                          <time>{hora(e.timestamp)}</time>
+                          <Icono size={18} aria-hidden="true" />
+                          <span className="actividad-tipo">{nombreTipo(e.tipo)}</span>
+                          <span className="actividad-lugar">{nombreHabitacion(e.habitacion)}</span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+              </div>
+
+              <div className="columna">
+                <section className="panel">
+                  <div className="panel-cabecera">
+                    <h2>Actividad de hoy</h2>
+                    <span className="panel-nota">{eventosHoy.length} lecturas, {alertasHoy} con alerta</span>
+                  </div>
+                  <div className="grafico" aria-label="Lecturas por hora en las últimas 12 horas">
+                    <ResponsiveContainer width="100%" height={180}>
+                      <BarChart data={datosActividad} margin={{ top: 4, right: 4, left: -24, bottom: 0 }}>
+                        <CartesianGrid vertical={false} stroke="var(--linea)" />
+                        <XAxis dataKey="hora" tick={{ fontSize: 12, fill: "var(--tinta-suave)" }} tickLine={false} axisLine={false} interval={2} />
+                        <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "var(--tinta-suave)" }} tickLine={false} axisLine={false} />
+                        <Tooltip cursor={{ fill: "var(--fondo)" }} contentStyle={{ borderRadius: 8, border: "1px solid var(--linea)", fontFamily: "inherit" }} />
+                        <Bar dataKey="eventos" name="Lecturas" stackId="a" fill="var(--petroleo)" />
+                        <Bar dataKey="alertas" name="Alertas" stackId="a" fill="var(--rojo)" radius={[3, 3, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </section>
+
+                <section className="panel">
+                  <div className="panel-cabecera">
+                    <h2>Estado del sistema</h2>
+                  </div>
+                  <ul className="lista-sistema">
+                    {estadoSistema.map((s) => {
+                      const c = componenteSistema(s.nombre);
+                      const Icono = c.icono;
+                      const clase = s.simulado ? "simulado" : s.online ? "ok" : "caido";
+                      return (
+                        <li key={s.nombre} title={`${c.detalle}: ${s.mensaje}`}>
+                          <Icono size={18} aria-hidden="true" />
+                          <span className="sistema-nombre">{c.nombre}</span>
+                          <span className={`sistema-estado ${clase}`}>
+                            {s.simulado ? "Simulado" : s.online ? "Funcionando" : "Sin conexión"}
+                          </span>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                  {minutosInactivo !== null && (
+                    <p className="panel-pie">
+                      <Clock size={15} aria-hidden="true" /> Sin movimiento hace {minutosInactivo} min
+                      {minutosInactivo >= 30 ? " — conviene comunicarse" : ""}
+                    </p>
+                  )}
+                </section>
+              </div>
             </div>
-            <div className="tarjeta">
-              <span className="etiqueta">Sensores operativos</span>
-              <span className="valor">
-                {sensoresOnline}/{totalSensores}
-              </span>
-              <span className="detalle">
-                {sensoresOnline === totalSensores && totalSensores > 0
-                  ? "● todos online"
-                  : `⚠ ${totalSensores - sensoresOnline} offline`}
-              </span>
+          </>
+        )}
+
+        {/* ===================== HISTORIAL ===================== */}
+        {pestana === "historial" && (
+          <section className="panel">
+            <div className="panel-cabecera">
+              <h2>Historial de lecturas</h2>
+              <span className="panel-nota">{eventosFiltrados.length} de {eventos.length}</span>
             </div>
-            <div className="tarjeta advertencia">
-              <span className="etiqueta">Inactividad</span>
-              <span className="valor">
-                {minutosInactivo !== null ? `${minutosInactivo} min` : "Sin datos"}
-              </span>
-              <span className="detalle">
-                {minutosInactivo === null
-                  ? "—"
-                  : minutosInactivo < 30
-                  ? "🟢 normal"
-                  : "⚠ revisar"}
-              </span>
+            <div className="filtros">
+              <label>
+                Sensor
+                <select value={filtroSensor} onChange={(e) => setFiltroSensor(e.target.value)}>
+                  <option value="todos">Todos</option>
+                  {sensoresUnicos.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </label>
+              <label>
+                Tipo
+                <select value={filtroTipo} onChange={(e) => setFiltroTipo(e.target.value)}>
+                  <option value="todos">Todos</option>
+                  {tiposUnicos.map((t) => <option key={t} value={t}>{nombreTipo(t)}</option>)}
+                </select>
+              </label>
+              <label>
+                Habitación
+                <select value={filtroHabitacion} onChange={(e) => setFiltroHabitacion(e.target.value)}>
+                  <option value="todas">Todas</option>
+                  {habitacionesUnicas.map((h) => <option key={h} value={h}>{nombreHabitacion(h)}</option>)}
+                </select>
+              </label>
+              <label>
+                Alertas
+                <select value={filtroAlerta} onChange={(e) => setFiltroAlerta(e.target.value)}>
+                  <option value="todos">Todas las lecturas</option>
+                  <option value="solo_alertas">Solo alertas</option>
+                  <option value="sin_alertas">Sin alertas</option>
+                </select>
+              </label>
+              {hayFiltrosActivos && (
+                <button className="btn-quiet" onClick={limpiarFiltros}>
+                  <X size={15} aria-hidden="true" /> Quitar filtros
+                </button>
+              )}
+            </div>
+            <div className="tabla-envoltura">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha y hora</th>
+                    <th>Tipo</th>
+                    <th>Habitación</th>
+                    <th>Sensor</th>
+                    <th>Resultado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {eventosFiltrados.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="vacio">No hay lecturas con estos filtros. Pruebe quitando alguno.</td>
+                    </tr>
+                  ) : (
+                    eventosFiltrados.slice(0, 50).map((e) => {
+                      const alerta = e.alerta || e.caida_detectada;
+                      return (
+                        <tr key={e.id} className={alerta ? "fila-alerta" : ""}>
+                          <td className="num">{new Date(e.timestamp).toLocaleString("es-CL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</td>
+                          <td>{nombreTipo(e.tipo)}</td>
+                          <td>{nombreHabitacion(e.habitacion)}</td>
+                          <td className="tenue">{e.sensor_id}</td>
+                          <td>{alerta ? <span className="etiqueta-alerta">Alerta</span> : <span className="tenue">Normal</span>}</td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
             </div>
           </section>
+        )}
 
-          <section className="graficos">
-            <div className="grafico">
-              <h3>Actividad del hogar (últimas lecturas)</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <LineChart data={datosActividad}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="hora" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line
-                    type="monotone"
-                    dataKey="movimiento"
-                    stroke="#10b981"
-                    strokeWidth={2}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+        {/* ===================== SENSORES ===================== */}
+        {pestana === "sensores" && (
+          <section className="panel">
+            <div className="panel-cabecera">
+              <h2>Sensores del hogar</h2>
+              <span className="panel-nota">{sensoresOnline} de {totalSensores} funcionando</span>
             </div>
-
-            <div className="grafico">
-              <h3>Alertas por tipo</h3>
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
-                  <Pie
-                    data={datosAlertasTipo}
-                    dataKey="value"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    label
-                  >
-                    {datosAlertasTipo.map((_, i) => (
-                      <Cell key={i} fill={COLORES[i % COLORES.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
-
-          <section className="alertas-lista">
-            <h3>
-              Alertas recientes
-              {wsConectado && <span className="live-badge">● EN VIVO</span>}
-            </h3>
-            {todasLasAlertas.length === 0 ? (
-              <p className="vacio">Sin alertas activas</p>
+            {sensores.length === 0 ? (
+              <p className="vacio">Aún no hay lecturas de sensores.</p>
             ) : (
-              <ul>
-                {todasLasAlertas.slice(0, 8).map((a) => {
-                  const horaAtencion = alertasResueltas.get(a.id);
-                  const resuelta = horaAtencion !== undefined;
-                  const resolviendo = resolviendoId === a.id;
-
+              <ul className="lista-sensores">
+                {sensores.map((s) => {
+                  const Icono = iconoTipo(s.tipo);
                   return (
-                    <li key={a.id} className={`alerta-item ${a.severidad || "alta"}${resuelta ? " resuelta" : ""}`}>
-                      <div className="alerta-info">
-                        <strong>{a.tipo}</strong>
-                        {a.habitacion && ` · ${a.habitacion}`}
-                        <span className="hora">
-                          {new Date(a.timestamp).toLocaleTimeString("es-CL")}
-                        </span>
+                    <li key={s.sensor_id}>
+                      <Icono size={20} aria-hidden="true" />
+                      <div className="sensor-texto">
+                        <strong>{nombreTipo(s.tipo)}</strong>
+                        <span>{nombreHabitacion(s.habitacion)}, {s.sensor_id}</span>
                       </div>
-
-                      {resuelta ? (
-                        <span className="alerta-resuelta-badge">
-                          ✓ Atendida {horaAtencion.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit" })}
-                        </span>
-                      ) : (
-                        <button
-                          className="btn-atender"
-                          onClick={() => resolverAlerta(a.id)}
-                          disabled={resolviendo}
-                        >
-                          {resolviendo ? "Atendiendo..." : "✓ Atender"}
-                        </button>
-                      )}
+                      <span className="tenue">Última lectura {haceCuanto(s.ultima_lectura)}</span>
+                      <span className={`sistema-estado ${s.online ? "ok" : "caido"}`}>{s.online ? "Funcionando" : "Sin señal"}</span>
                     </li>
                   );
                 })}
               </ul>
             )}
           </section>
-        </>
-      )}
+        )}
 
-      {pestana === "historial" && (
-        <section className="tabla">
-          <div className="tabla-header">
-            <h3>Últimos eventos</h3>
-            <span className="contador-eventos">
-              {eventosFiltrados.length} de {eventos.length} eventos
-            </span>
-          </div>
+        {/* ===================== MAPA ===================== */}
+        {pestana === "ubicacion" && (
+          <section className="panel">
+            <MapaHogar sensores={sensores} />
+          </section>
+        )}
+      </main>
 
-          <div className="filtros">
-            <div className="filtros-header">
-              <Filter size={16} />
-              <span>Filtros</span>
-              {hayFiltrosActivos && (
-                <button className="btn-limpiar-filtros" onClick={limpiarFiltros}>
-                  <X size={14} /> Limpiar
-                </button>
-              )}
-            </div>
-
-            <div className="filtros-grid">
-              <div className="filtro-item">
-                <label>Sensor</label>
-                <select
-                  value={filtroSensor}
-                  onChange={(e) => setFiltroSensor(e.target.value)}
-                >
-                  <option value="todos">Todos los sensores</option>
-                  {sensoresUnicos.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="filtro-item">
-                <label>Tipo</label>
-                <select
-                  value={filtroTipo}
-                  onChange={(e) => setFiltroTipo(e.target.value)}
-                >
-                  <option value="todos">Todos los tipos</option>
-                  {tiposUnicos.map((t) => (
-                    <option key={t} value={t}>
-                      {t}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="filtro-item">
-                <label>Habitación</label>
-                <select
-                  value={filtroHabitacion}
-                  onChange={(e) => setFiltroHabitacion(e.target.value)}
-                >
-                  <option value="todas">Todas las habitaciones</option>
-                  {habitacionesUnicas.map((h) => (
-                    <option key={h} value={h}>
-                      {h}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="filtro-item">
-                <label>Alerta</label>
-                <select
-                  value={filtroAlerta}
-                  onChange={(e) => setFiltroAlerta(e.target.value)}
-                >
-                  <option value="todos">Todas</option>
-                  <option value="solo_alertas">Solo con alerta</option>
-                  <option value="sin_alertas">Sin alerta</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>Sensor</th>
-                <th>Tipo</th>
-                <th>Habitación</th>
-                <th>Alerta</th>
-                <th>Hora</th>
-              </tr>
-            </thead>
-            <tbody>
-              {eventosFiltrados.length === 0 ? (
-                <tr>
-                  <td colSpan={5} className="tabla-vacia">
-                    No hay eventos que coincidan con los filtros
-                  </td>
-                </tr>
-              ) : (
-                eventosFiltrados.slice(0, 50).map((e) => (
-                  <tr
-                    key={e.id}
-                    className={e.alerta || e.caida_detectada ? "fila-alerta" : ""}
-                  >
-                    <td>{e.sensor_id}</td>
-                    <td>{e.tipo}</td>
-                    <td>{e.habitacion || "-"}</td>
-                    <td>{e.alerta || e.caida_detectada ? "🚨 Sí" : "No"}</td>
-                    <td>{new Date(e.timestamp).toLocaleString("es-CL")}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </section>
-      )}
-
-      {pestana === "sensores" && (
-        <section className="sensores">
-          <h3>Estado de sensores</h3>
-          <div className="grid-sensores">
-            {sensores.map((s) => (
-              <div
-                key={s.sensor_id}
-                className={`sensor-card ${s.online ? "online" : "offline"}`}
-              >
-                <h4>{s.sensor_id}</h4>
-                <p>Tipo: {s.tipo}</p>
-                <p>Habitación: {s.habitacion}</p>
-                <p>
-                  Última lectura:{" "}
-                  {new Date(s.ultima_lectura).toLocaleTimeString("es-CL")}
-                </p>
-                <p>
-                  <strong>{s.online ? "✅ Online" : "⚠️ Inactivo"}</strong>
-                </p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {pestana === "ubicacion" && (
-        <section className="ubicacion">
-          <MapaHogar sensores={sensores} />
-        </section>
-      )}
+      <footer className="pie">
+        DomoVida, proyecto de título de Ingeniería en Informática (Duoc UC). Datos seudonimizados según la Ley N° 21.719.
+      </footer>
     </div>
   );
 }

@@ -51,8 +51,8 @@ export default function Consentimiento({ onAceptar, onRechazar }: Consentimiento
           <div className="modal-header-titulo">
             <Shield size={28} />
             <div>
-              <h2>Consentimiento Informado</h2>
-              <p>Ley N° 21.719 · Protección de Datos Personales</p>
+              <h2>Consentimiento informado</h2>
+              <p>Protección de datos personales, Ley N° 21.719</p>
             </div>
           </div>
         </div>
