@@ -8,7 +8,7 @@ Busco **cuidadores o ex cuidadores** que me ayuden a probarlo: son **15 a 20 min
 ¿Me podría ayudar? Si conoce a alguien que cuide a un adulto mayor, también puede reenviarle este mensaje. ¡Muchas gracias!
 
 ## Versión correo
-**Asunto:** Invitación a probar DomoVida (proyecto de título, 15 minutos)
+**Asunto:** Invitación a probar DomoVida (proyecto de título, 15 a 20 minutos)
 
 Estimado/a:
 

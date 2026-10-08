@@ -541,7 +541,7 @@ body.dark .login-enviar { color: var(--fondo); }
 .leyenda-item { display: inline-flex; align-items: center; gap: 8px; }
 .leyenda-punto { width: 12px; height: 12px; border-radius: 50%; }
 .leyenda-punto.online { background: #0e5566; }
-.leyenda-punto.offline { background: #b42318; }
+.leyenda-punto.offline { background: #9a5b06; }
 .leyenda-circulo { width: 14px; height: 14px; border-radius: 50%; border: 2px dashed #0e5566; }
 .popup-sensor { font-family: "Atkinson Hyperlegible", system-ui, sans-serif; line-height: 1.4; }
 .popup-sensor p { margin: 2px 0; }
@@ -580,3 +580,17 @@ body.dark .login-enviar { color: var(--fondo); }
   vertical-align: 2px;
 }
 .lista-alertas li.atendida .alerta-texto .repeticiones { background: var(--fondo); color: var(--tinta-suave); }
+
+/* Evento ≠ alerta: solo las lecturas en alerta se destacan */
+.lista-actividad li.es-alerta { color: var(--rojo); }
+.lista-actividad li.es-alerta .actividad-tipo { color: var(--rojo); font-weight: 700; }
+.actividad-veces {
+  margin-left: 8px;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--tinta-suave);
+}
+.sistema-estado.parcial { background: var(--ambar-tenue); color: var(--ambar); }
+.vacio.sin-pendientes { display: flex; align-items: center; gap: 8px; color: var(--verde); font-weight: 700; }
+.estado-hogar.sin-datos { border-left-color: var(--ambar); background: var(--ambar-tenue); }
+.estado-hogar.sin-datos .estado-icono { color: var(--ambar); }

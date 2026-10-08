@@ -30,10 +30,10 @@
 | N° | Tarea que se lee al participante | Se considera completada cuando… | Tiempo esperado |
 |---|---|---|---|
 | T1 | «Ingrese al panel como cuidador.» | Aparece el correo del cuidador arriba a la derecha | < 1 min |
-| T2 | «Dígame si en este momento hay alguna alerta activa y si el sistema está funcionando.» | Menciona el número de alertas activas y el estado del sistema | < 1 min |
-| T3 | *(El facilitador genera una caída de prueba.)* «Le llegó un aviso. Atienda la alerta.» | La alerta queda como «Atendida» con su hora | < 2 min |
-| T4 | «Busque en el historial las caídas registradas hoy.» | Usa los filtros del Historial y muestra las caídas de hoy | < 2 min |
-| T5 | «Dígame en qué parte de la casa ocurrió la última alerta.» | Indica la habitación (en la tarjeta o en la pestaña Ubicación) | < 1 min |
+| T2 | «Dígame si en este momento hay alguna alerta activa y si el sistema está funcionando.» | Menciona si hay alertas (aviso principal y «Alertas recientes») y el estado del sistema («Estado del sistema») | < 1 min |
+| T3 | *(El facilitador genera una caída de prueba.)* «Le llegó un aviso. Atienda la alerta.» | Pulsa «Marcar como atendida» (o «Atender») y el panel vuelve a «Todo en orden en casa» | < 2 min |
+| T4 | «Busque en el historial las caídas registradas hoy.» | En «Historial» elige Tipo «Caída» y muestra las de hoy (columna «Fecha y hora») | < 2 min |
+| T5 | «Dígame en qué parte de la casa ocurrió la última alerta.» | Indica la habitación (en el aviso principal, en «Alertas recientes» o en la pestaña «Mapa del hogar») | < 1 min |
 
 ## 5. Indicadores que se calculan
 

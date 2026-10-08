@@ -33,9 +33,9 @@ const COORDENADAS_HABITACIONES: Record<string, [number, number]> = {
   wearable: [-33.4489, -70.6693],
 };
 
-// Marcador: círculo con el ícono del tipo de sensor (petróleo = funcionando, rojo = sin señal)
+// Marcador: círculo con el ícono del tipo de sensor (petróleo = activo, ámbar = sin datos recientes)
 function crearIcono(sensor: Sensor) {
-  const color = sensor.online ? "#0E5566" : "#B42318";
+  const color = sensor.online ? "#0E5566" : "#9A5B06";
   const svg = renderToStaticMarkup(createElement(iconoTipo(sensor.tipo), { size: 18, color: "#ffffff", strokeWidth: 2.2 }));
   return divIcon({
     html: `<div style="background:${color};width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 1px 4px rgba(16,38,45,.35)">${svg}</div>`,
@@ -95,7 +95,7 @@ export default function MapaHogar({ sensores }: MapaHogarProps) {
                   <div className="popup-sensor">
                     <strong>{nombreTipo(sensor.tipo)}</strong>
                     <p>{nombreHabitacion(sensor.habitacion)}</p>
-                    <p>{sensor.online ? "Funcionando" : "Sin señal"}, última lectura {haceCuanto(sensor.ultima_lectura)}</p>
+                    <p>{sensor.online ? "Activo" : "Sin datos recientes"}, última lectura {haceCuanto(sensor.ultima_lectura)}</p>
                     <p className="tenue">{sensor.sensor_id}</p>
                   </div>
                 </Popup>
@@ -109,11 +109,11 @@ export default function MapaHogar({ sensores }: MapaHogarProps) {
       <div className="mapa-leyenda">
         <div className="leyenda-item">
           <span className="leyenda-punto online"></span>
-          <span>Funcionando</span>
+          <span>Activo (lectura en la última hora)</span>
         </div>
         <div className="leyenda-item">
           <span className="leyenda-punto offline"></span>
-          <span>Sin señal</span>
+          <span>Sin datos recientes</span>
         </div>
         <div className="leyenda-item">
           <span className="leyenda-circulo"></span>

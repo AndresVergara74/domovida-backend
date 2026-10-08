@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import {
-  House, Moon, Sun, Shield, LogIn, LogOut, Bell, X, CircleCheck, TriangleAlert, Clock, WifiOff,
+  House, Moon, Sun, Shield, LogIn, LogOut, Bell, X, CircleCheck, TriangleAlert, Clock, WifiOff, Footprints, Radio, RefreshCw,
 } from "lucide-react";
 import { useDomovida } from "./useDomovida";
 import { useWebSocket } from "./useWebSocket";
@@ -10,7 +10,7 @@ import Consentimiento from "./Consentimiento";
 import MapaHogar from "./MapaHogar";
 import LoginCuidador from "./LoginCuidador";
 import { authHabilitada, leerSesion, cerrarSesion, type Sesion } from "./auth";
-import { nombreTipo, iconoTipo, nombreHabitacion, componenteSistema, haceCuanto, hora, esHoy } from "./etiquetas";
+import { nombreTipo, nombreAlerta, describirEvento, iconoTipo, nombreHabitacion, componenteSistema, haceCuanto, hora, esHoy, inventarioSensores, MINUTOS_SENSOR_ACTIVO } from "./etiquetas";
 import "./App.css";
 
 // URL base de la API (usa variable de entorno o fallback)
@@ -257,12 +257,48 @@ function App() {
   }
   const gruposPendientes = agrupar(pendientes);
   const gruposAlertas = agrupar(todasLasAlertas);
+  const esAlerta = (e: (typeof eventos)[number]) => !!(e.alerta || e.caida_detectada);
   const eventosHoy = eventos.filter((e) => esHoy(e.timestamp));
-  const alertasHoy = eventosHoy.filter((e) => e.alerta || e.caida_detectada).length;
+
+  // Episodios de alerta de hoy: lecturas en alerta del mismo sensor separadas por menos de 10 min cuentan como una
+  const episodiosHoy = (() => {
+    const ultimos = new Map<string, number>();
+    let n = 0;
+    for (const e of [...eventosHoy].filter(esAlerta).sort((a, b) => +new Date(a.timestamp) - +new Date(b.timestamp))) {
+      const t = +new Date(e.timestamp);
+      const prev = ultimos.get(e.sensor_id);
+      if (prev === undefined || t - prev > VENTANA_GRUPO_MS) n++;
+      ultimos.set(e.sensor_id, t);
+    }
+    return n;
+  })();
+
+  // Última actividad: lecturas iguales y seguidas se juntan en una fila
+  const ultimaActividad = (() => {
+    const filas: Array<{ e: (typeof eventos)[number]; n: number }> = [];
+    for (const e of eventos) {
+      const f = filas[filas.length - 1];
+      if (
+        f &&
+        f.e.sensor_id === e.sensor_id &&
+        describirEvento(f.e) === describirEvento(e) &&
+        +new Date(f.e.timestamp) - +new Date(e.timestamp) <= VENTANA_GRUPO_MS
+      ) {
+        f.n++;
+      } else {
+        if (filas.length === 6) break;
+        filas.push({ e, n: 1 });
+      }
+    }
+    return filas;
+  })();
+
   const ultimoMovimiento = eventos.find((e) => (e.tipo === "pir" || e.tipo === "movimiento") && e.valor?.movimiento);
-  const ultimaActividad = eventos.slice(0, 6);
-  const sensoresOnline =sensores.filter((s) => s.online).length;
-  const totalSensores = sensores.length;
+  const ultimoDato = eventos[0]?.timestamp;
+  const minutosSinDatos = ultimoDato ? Math.floor((Date.now() - +new Date(ultimoDato)) / 60000) : null;
+  const inventario = inventarioSensores(sensores);
+  const sensoresOnline = inventario.filter((s) => s.online).length;
+  const totalSensores = inventario.length;
   const sinAcceso = lecturasProtegidas && !sesion;
 
   // Actividad por hora (últimas 12 horas), a partir de los eventos cargados
@@ -309,16 +345,17 @@ function App() {
   // ------------------------------------------------------------
   const grupoPrimero = gruposPendientes[0];
   const primera = grupoPrimero?.principal;
-  let estado: "ok" | "alerta" | "sin-acceso" | "sin-conexion" = "ok";
+  let estado: "ok" | "alerta" | "sin-acceso" | "sin-conexion" | "sin-datos" = "ok";
   if (sinAcceso) estado = "sin-acceso";
   else if (pendientes.length > 0) estado = "alerta";
   else if (!conectado) estado = "sin-conexion";
+  else if (!cargando && (minutosSinDatos === null || minutosSinDatos > MINUTOS_SENSOR_ACTIVO)) estado = "sin-datos";
 
   const lineaDetalle = [
     ultimoMovimiento
       ? `Último movimiento: ${nombreHabitacion(ultimoMovimiento.habitacion)}, ${haceCuanto(ultimoMovimiento.timestamp)}`
       : `Sin movimiento en las últimas ${eventos.length} lecturas`,
-    totalSensores > 0 ? `${sensoresOnline} de ${totalSensores} sensores funcionando` : null,
+    `${sensoresOnline} de ${totalSensores} sensores enviando datos`,
   ].filter(Boolean);
 
   return (
@@ -337,7 +374,7 @@ function App() {
         <div className="aviso-vivo" role="alert">
           <Bell size={22} aria-hidden="true" />
           <div>
-            <strong>{nombreTipo(ultimaAlertaRT.tipo)} en {nombreHabitacion(ultimaAlertaRT.habitacion).toLowerCase()}</strong>
+            <strong>{nombreAlerta(ultimaAlertaRT.tipo)} en {nombreHabitacion(ultimaAlertaRT.habitacion).toLowerCase()}</strong>
             <span>Alerta recibida a las {hora(ultimaAlertaRT.timestamp || new Date())}</span>
           </div>
           <button className="icono-btn" onClick={() => setNotificacionVisible(false)} aria-label="Cerrar aviso">
@@ -422,7 +459,7 @@ function App() {
                   <TriangleAlert className="estado-icono" size={30} aria-hidden="true" />
                   <div className="estado-texto">
                     <h1>
-                      {nombreTipo(primera.tipo)} en {nombreHabitacion(primera.habitacion).toLowerCase()} a las {hora(primera.timestamp)}
+                      {nombreAlerta(primera.tipo)} en {nombreHabitacion(primera.habitacion).toLowerCase()} a las {hora(primera.timestamp)}
                     </h1>
                     <p>
                       {gruposPendientes.length === 1
@@ -449,6 +486,15 @@ function App() {
                   </button>
                 </>
               )}
+              {estado === "sin-datos" && (
+                <>
+                  <Clock className="estado-icono" size={30} aria-hidden="true" />
+                  <div className="estado-texto">
+                    <h1>{minutosSinDatos === null ? "Aún no llegan datos del hogar." : `No llegan datos del hogar desde ${haceCuanto(ultimoDato)}.`}</h1>
+                    <p>Revise que el equipo del hogar esté encendido y con internet. Sin datos, DomoVida no puede detectar emergencias.</p>
+                  </div>
+                </>
+              )}
               {estado === "sin-conexion" && (
                 <>
                   <WifiOff className="estado-icono" size={30} aria-hidden="true" />
@@ -468,7 +514,7 @@ function App() {
                   {wsConectado && <span className="en-vivo">En vivo</span>}
                 </div>
                 {todasLasAlertas.length === 0 ? (
-                  <p className="vacio">No hay alertas en las últimas 24 horas.</p>
+                  <p className="vacio sin-pendientes"><CircleCheck size={18} aria-hidden="true" /> No hay alertas sin atender.</p>
                 ) : (
                   <ul className="lista-alertas">
                     {gruposAlertas.slice(0, 6).map(({ principal: a, ids }) => {
@@ -480,7 +526,7 @@ function App() {
                           <Icono className="alerta-icono" size={20} aria-hidden="true" />
                           <div className="alerta-texto">
                             <strong>
-                              {nombreTipo(a.tipo)}
+                              {nombreAlerta(a.tipo)}
                               {ids.length > 1 && <span className="repeticiones">{ids.length} avisos</span>}
                             </strong>
                             <span>{nombreHabitacion(a.habitacion)}</span>
@@ -510,13 +556,16 @@ function App() {
                   <p className="vacio">Aún no hay lecturas registradas.</p>
                 ) : (
                   <ul className="lista-actividad">
-                    {ultimaActividad.map((e) => {
+                    {ultimaActividad.map(({ e, n }) => {
                       const Icono = iconoTipo(e.tipo);
                       return (
-                        <li key={e.id}>
+                        <li key={e.id} className={esAlerta(e) ? "es-alerta" : ""}>
                           <time>{hora(e.timestamp)}</time>
                           <Icono size={18} aria-hidden="true" />
-                          <span className="actividad-tipo">{nombreTipo(e.tipo)}</span>
+                          <span className="actividad-tipo">
+                            {describirEvento(e)}
+                            {n > 1 && <span className="actividad-veces">{n} lecturas</span>}
+                          </span>
                           <span className="actividad-lugar">{nombreHabitacion(e.habitacion)}</span>
                         </li>
                       );
@@ -530,7 +579,7 @@ function App() {
                 <section className="panel">
                   <div className="panel-cabecera">
                     <h2>Actividad de hoy</h2>
-                    <span className="panel-nota">{eventosHoy.length} lecturas, {alertasHoy} con alerta</span>
+                    <span className="panel-nota">{eventosHoy.length} lecturas, {episodiosHoy} {episodiosHoy === 1 ? "alerta" : "alertas"}</span>
                   </div>
                   <div className="grafico" aria-label="Lecturas por hora en las últimas 12 horas">
                     <ResponsiveContainer width="100%" height={180}>
@@ -565,7 +614,24 @@ function App() {
                         </li>
                       );
                     })}
+                    <li title="Sensores del hogar con una lectura en la última hora">
+                      <Footprints size={18} aria-hidden="true" />
+                      <span className="sistema-nombre">Sensores</span>
+                      <span className={`sistema-estado ${sensoresOnline === totalSensores ? "ok" : sensoresOnline === 0 ? "caido" : "parcial"}`}>
+                        {sensoresOnline} de {totalSensores} activos
+                      </span>
+                    </li>
+                    <li title="Conexión en vivo (WebSocket) entre el servidor y este panel">
+                      <Radio size={18} aria-hidden="true" />
+                      <span className="sistema-nombre">Actualización en vivo</span>
+                      <span className={`sistema-estado ${wsConectado ? "ok" : "parcial"}`}>{wsConectado ? "Conectada" : "Cada 10 s"}</span>
+                    </li>
                   </ul>
+                  {ultimoDato && (
+                    <p className="panel-pie">
+                      <RefreshCw size={15} aria-hidden="true" /> Último dato recibido del hogar: {haceCuanto(ultimoDato)} ({hora(ultimoDato)})
+                    </p>
+                  )}
                   {minutosInactivo !== null && (
                     <p className="panel-pie">
                       <Clock size={15} aria-hidden="true" /> Sin movimiento hace {minutosInactivo} min
@@ -662,13 +728,13 @@ function App() {
           <section className="panel">
             <div className="panel-cabecera">
               <h2>Sensores del hogar</h2>
-              <span className="panel-nota">{sensoresOnline} de {totalSensores} funcionando</span>
+              <span className="panel-nota">{sensoresOnline} de {totalSensores} con lecturas en la última hora</span>
             </div>
-            {sensores.length === 0 ? (
-              <p className="vacio">Aún no hay lecturas de sensores.</p>
+            {inventario.length === 0 ? (
+              <p className="vacio">Aún no hay sensores registrados.</p>
             ) : (
               <ul className="lista-sensores">
-                {sensores.map((s) => {
+                {inventario.map((s) => {
                   const Icono = iconoTipo(s.tipo);
                   return (
                     <li key={s.sensor_id}>
@@ -677,8 +743,8 @@ function App() {
                         <strong>{nombreTipo(s.tipo)}</strong>
                         <span>{nombreHabitacion(s.habitacion)}, {s.sensor_id}</span>
                       </div>
-                      <span className="tenue">Última lectura {haceCuanto(s.ultima_lectura)}</span>
-                      <span className={`sistema-estado ${s.online ? "ok" : "caido"}`}>{s.online ? "Funcionando" : "Sin señal"}</span>
+                      <span className="tenue">{s.ultima_lectura ? `Última lectura ${haceCuanto(s.ultima_lectura)}` : "Sin lecturas"}</span>
+                      <span className={`sistema-estado ${s.online ? "ok" : "parcial"}`}>{s.online ? "Activo" : "Sin datos recientes"}</span>
                     </li>
                   );
                 })}
@@ -690,7 +756,7 @@ function App() {
         {/* ===================== MAPA ===================== */}
         {pestana === "ubicacion" && (
           <section className="panel">
-            <MapaHogar sensores={sensores} />
+            <MapaHogar sensores={inventario} />
           </section>
         )}
       </main>
