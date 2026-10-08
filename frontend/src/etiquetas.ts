@@ -9,6 +9,7 @@ import {
 const TIPOS: Record<string, { nombre: string; icono: LucideIcon }> = {
   acelerometro: { nombre: "Caída", icono: Activity },
   pir: { nombre: "Movimiento", icono: Footprints },
+  movimiento: { nombre: "Movimiento", icono: Footprints },
   humo: { nombre: "Humo", icono: Flame },
   gas: { nombre: "Gas", icono: CloudFog },
   apertura: { nombre: "Puerta o ventana", icono: DoorOpen },
@@ -17,7 +18,11 @@ const TIPOS: Record<string, { nombre: string; icono: LucideIcon }> = {
 };
 
 export function nombreTipo(tipo?: string): string {
-  return (tipo && TIPOS[tipo]?.nombre) || (tipo ?? "Sensor");
+  if (!tipo) return "Sensor";
+  if (TIPOS[tipo]) return TIPOS[tipo].nombre;
+  // Tipo nuevo sin traducción: al menos mostrarlo legible ("sensor_x" → "Sensor x")
+  const limpio = tipo.replace(/_/g, " ");
+  return limpio.charAt(0).toUpperCase() + limpio.slice(1);
 }
 
 export function iconoTipo(tipo?: string): LucideIcon {

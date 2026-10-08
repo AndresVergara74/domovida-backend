@@ -259,7 +259,7 @@ function App() {
   const gruposAlertas = agrupar(todasLasAlertas);
   const eventosHoy = eventos.filter((e) => esHoy(e.timestamp));
   const alertasHoy = eventosHoy.filter((e) => e.alerta || e.caida_detectada).length;
-  const ultimoMovimiento = eventos.find((e) => e.tipo === "pir" && e.valor?.movimiento);
+  const ultimoMovimiento = eventos.find((e) => (e.tipo === "pir" || e.tipo === "movimiento") && e.valor?.movimiento);
   const ultimaActividad = eventos.slice(0, 6);
   const sensoresOnline =sensores.filter((s) => s.online).length;
   const totalSensores = sensores.length;
@@ -317,7 +317,7 @@ function App() {
   const lineaDetalle = [
     ultimoMovimiento
       ? `Último movimiento: ${nombreHabitacion(ultimoMovimiento.habitacion)}, ${haceCuanto(ultimoMovimiento.timestamp)}`
-      : "Sin movimiento registrado todavía",
+      : `Sin movimiento en las últimas ${eventos.length} lecturas`,
     totalSensores > 0 ? `${sensoresOnline} de ${totalSensores} sensores funcionando` : null,
   ].filter(Boolean);
 
