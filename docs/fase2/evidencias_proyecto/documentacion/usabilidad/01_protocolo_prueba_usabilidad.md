@@ -14,7 +14,7 @@
 
 - Computador o celular con el panel abierto: https://domovida-backend.vercel.app
 - Este protocolo y la planilla `03_resultados_sus.xlsx` para anotar.
-- Cuestionario SUS en Google Forms (texto en `02_cuestionario_sus.md`).
+- Cuestionario SUS en Google Forms: https://docs.google.com/forms/d/e/1FAIpQLSc5GmFuODLVzCtsmN3VFRUdJfa3eODffjQHpLr22xvEHWOYyw/viewform (texto en `02_cuestionario_sus.md`).
 - Script del facilitador `04_generar_alerta_prueba.js` para provocar una alerta de prueba durante la tarea 3.
 
 ## 3. Desarrollo de la sesión (15 a 20 minutos)

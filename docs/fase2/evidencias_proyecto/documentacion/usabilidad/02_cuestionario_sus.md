@@ -1,6 +1,9 @@
 # Cuestionario SUS (System Usability Scale) · versión en español
 
-Texto para crear el formulario en **Google Forms**. Cada pregunta es de **escala lineal de 1 a 5**:
+Texto para crear el formulario en **Google Forms**.
+
+**Formulario publicado (11-10-2026):** https://docs.google.com/forms/d/e/1FAIpQLSc5GmFuODLVzCtsmN3VFRUdJfa3eODffjQHpLr22xvEHWOYyw/viewform  
+Creado con `06_crear_formulario_sus.gs` en la cuenta del proyecto. No recoge correos; las respuestas van a la planilla privada «DomoVida · Respuestas SUS». Cada pregunta es de **escala lineal de 1 a 5**:
 1 = Totalmente en desacuerdo · 5 = Totalmente de acuerdo. Todas obligatorias.
 
 ## Sección 1 · Consentimiento
