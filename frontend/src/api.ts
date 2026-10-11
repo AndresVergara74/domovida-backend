@@ -87,6 +87,27 @@ export async function obtenerHistorial(filtros: FiltrosHistorial, limite: number
 }
 
 /**
+ * Conteo real de lecturas y alertas por hora, hecho en el servidor (ajuste 21).
+ */
+export interface ResumenActividad {
+  horas: { inicio: string; lecturas: number; alertas: number }[];
+  lecturas_hoy: number;
+  alertas_hoy: { sensor_id: string; timestamp: string }[];
+}
+
+export async function obtenerResumen(horas: number, hoyDesde: string): Promise<ResumenActividad | null> {
+  const params = new URLSearchParams({ horas: String(horas), hoy_desde: hoyDesde });
+  try {
+    const response = await fetch(`${API_URL}/api/eventos/resumen?${params}`, { headers: cabecerasSesion() });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error("Error al obtener el resumen de actividad:", error);
+    return null;
+  }
+}
+
+/**
  * Obtiene las alertas activas (últimas 24h)
  */
 export async function obtenerAlertasActivas(): Promise<Alerta[]> {

@@ -7,10 +7,48 @@ from database import get_db
 from models import Evento
 from schemas import EventoOut
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
+from tiempo import ahora_utc, a_utc
 from auth_cuidador import verificar_lectura
 
 router = APIRouter()
+
+
+@router.get("/eventos/resumen", dependencies=[Depends(verificar_lectura)])  # HU-17
+def resumen_actividad(
+    horas: int = Query(12, ge=1, le=48, description="Horas hacia atrás del gráfico"),
+    hoy_desde: Optional[datetime] = Query(None, description="Medianoche local del cuidador (ISO 8601)"),
+    db: Session = Depends(get_db)
+):
+    """Conteo real de lecturas y alertas para el gráfico «Actividad de hoy» (ajuste 21).
+
+    Antes el panel contaba solo las últimas 50 lecturas descargadas y mostraba
+    «0 alertas» aunque hubiera habido una caída horas antes (hallazgo del ensayo SUS).
+    Se cuenta en Python para que funcione igual en Supabase (nube) y en SQLite (borde).
+    """
+    ahora = ahora_utc()
+    fin = ahora.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
+    inicio = fin - timedelta(hours=horas)
+    buckets = [{"inicio": (inicio + timedelta(hours=k)).isoformat(), "lecturas": 0, "alertas": 0}
+               for k in range(horas)]
+    filas = (db.query(Evento.timestamp, Evento.alerta)
+               .filter(Evento.timestamp >= inicio).all())
+    for ts, alerta in filas:
+        ts = a_utc(ts)
+        k = int((ts - inicio).total_seconds() // 3600)
+        if 0 <= k < horas:
+            buckets[k]["alertas" if alerta else "lecturas"] += 1
+
+    desde = a_utc(hoy_desde) if hoy_desde else ahora.replace(hour=0, minute=0, second=0, microsecond=0)
+    lecturas_hoy = db.query(Evento).filter(Evento.timestamp >= desde).count()
+    alertas_hoy = (db.query(Evento.sensor_id, Evento.timestamp)
+                     .filter(Evento.timestamp >= desde, Evento.alerta.is_(True))
+                     .order_by(Evento.timestamp.asc()).limit(500).all())
+    return {
+        "horas": buckets,
+        "lecturas_hoy": lecturas_hoy,
+        "alertas_hoy": [{"sensor_id": sid, "timestamp": a_utc(ts).isoformat()} for sid, ts in alertas_hoy],
+    }
 
 
 @router.get("/eventos", response_model=List[EventoOut], dependencies=[Depends(verificar_lectura)])  # HU-17

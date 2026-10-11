@@ -9,7 +9,7 @@ import { useWebSocket } from "./useWebSocket";
 import Consentimiento from "./Consentimiento";
 import MapaHogar from "./MapaHogar";
 import LoginCuidador from "./LoginCuidador";
-import { obtenerHistorial, type Evento } from "./api";
+import { obtenerHistorial, obtenerResumen, type Evento, type ResumenActividad } from "./api";
 import { authHabilitada, leerSesion, cerrarSesion, type Sesion } from "./auth";
 import { nombreTipo, nombreAlerta, describirEvento, iconoTipo, nombreHabitacion, componenteSistema, haceCuanto, hora, cuando, esHoy, inventarioSensores, MINUTOS_SENSOR_ACTIVO, SENSORES_HOGAR } from "./etiquetas";
 import "./App.css";
@@ -64,6 +64,7 @@ function App() {
   const [filtroAlerta, setFiltroAlerta] = useState<string>("solo_alertas"); // el cuidador ve primero lo que importa
   const [filtroPeriodo, setFiltroPeriodo] = useState<"hoy" | "7d" | "todo">("hoy");
   const [historial, setHistorial] = useState<Evento[] | null>(null);
+  const [resumen, setResumen] = useState<ResumenActividad | null>(null);
   const LIMITE_HISTORIAL = 200;
 
   // ============================================================
@@ -156,6 +157,20 @@ function App() {
     const intervalo = setInterval(cargar, 15000);
     return () => { vigente = false; clearInterval(intervalo); };
   }, [pestana, filtroSensor, filtroTipo, filtroHabitacion, filtroAlerta, filtroPeriodo, lecturasProtegidas, sesion]);
+
+  // «Actividad de hoy»: conteo real hecho en el servidor (ajuste 21), cada 30 s
+  useEffect(() => {
+    if (lecturasProtegidas && !sesion) return;
+    let vigente = true;
+    const cargar = async () => {
+      const medianoche = new Date(); medianoche.setHours(0, 0, 0, 0);
+      const datos = await obtenerResumen(12, medianoche.toISOString());
+      if (vigente && datos) setResumen(datos);
+    };
+    cargar();
+    const intervalo = setInterval(cargar, 30000);
+    return () => { vigente = false; clearInterval(intervalo); };
+  }, [lecturasProtegidas, sesion]);
 
   // ============================================================
   // FUNCIÓN: Marcar una alerta como atendida
@@ -303,7 +318,10 @@ function App() {
   const episodiosHoy = (() => {
     const ultimos = new Map<string, number>();
     let n = 0;
-    for (const e of [...eventosHoy].filter(esAlerta).sort((a, b) => +new Date(a.timestamp) - +new Date(b.timestamp))) {
+    const fuente = resumen
+      ? resumen.alertas_hoy
+      : [...eventosHoy].filter(esAlerta).sort((a, b) => +new Date(a.timestamp) - +new Date(b.timestamp));
+    for (const e of fuente) {
       const t = +new Date(e.timestamp);
       const prev = ultimos.get(e.sensor_id);
       if (prev === undefined || t - prev > VENTANA_GRUPO_MS) n++;
@@ -342,7 +360,13 @@ function App() {
 
   // Actividad por hora (últimas 12 horas), a partir de los eventos cargados
   const ahora = new Date();
-  const datosActividad = Array.from({ length: 12 }, (_, k) => {
+  const datosActividad = resumen
+    ? resumen.horas.map((h) => ({
+        hora: `${String(new Date(h.inicio).getHours()).padStart(2, "0")}:00`,
+        eventos: h.lecturas,
+        alertas: h.alertas,
+      }))
+    : Array.from({ length: 12 }, (_, k) => {
     const inicio = new Date(ahora);
     inicio.setMinutes(0, 0, 0);
     inicio.setHours(inicio.getHours() - (11 - k));
@@ -613,7 +637,7 @@ function App() {
                 <section className="panel">
                   <div className="panel-cabecera">
                     <h2>Actividad de hoy</h2>
-                    <span className="panel-nota">{eventosHoy.length} lecturas, {episodiosHoy} {episodiosHoy === 1 ? "alerta" : "alertas"}</span>
+                    <span className="panel-nota">{(resumen ? resumen.lecturas_hoy : eventosHoy.length).toLocaleString("es-CL")} lecturas, {episodiosHoy} {episodiosHoy === 1 ? "alerta" : "alertas"}</span>
                   </div>
                   <div className="grafico" aria-label="Lecturas por hora en las últimas 12 horas">
                     <ResponsiveContainer width="100%" height={180}>
@@ -622,8 +646,10 @@ function App() {
                         <XAxis dataKey="hora" tick={{ fontSize: 12, fill: "var(--tinta-suave)" }} tickLine={false} axisLine={false} interval={2} />
                         <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: "var(--tinta-suave)" }} tickLine={false} axisLine={false} />
                         <Tooltip cursor={{ fill: "var(--fondo)" }} contentStyle={{ borderRadius: 8, border: "1px solid var(--linea)", fontFamily: "inherit" }} />
-                        <Bar dataKey="eventos" name="Lecturas" stackId="a" fill="var(--petroleo)" />
-                        <Bar dataKey="alertas" name="Alertas" stackId="a" fill="var(--rojo)" radius={[3, 3, 0, 0]} />
+                        <Bar dataKey="eventos" name="Lecturas" fill="var(--petroleo)" />
+                        {/* Las alertas van al lado y con altura mínima: 1 alerta junto a 500 lecturas seguiría siendo visible */}
+                        <Bar dataKey="alertas" name="Alertas" fill="var(--rojo)" radius={[3, 3, 0, 0]}
+                          minPointSize={(v) => (v ? 10 : 0)} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
