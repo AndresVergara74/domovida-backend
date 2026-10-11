@@ -1,7 +1,7 @@
 // src/useDomovida.ts
 // Hook personalizado que conecta el dashboard con el backend
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   obtenerEventos,
   obtenerAlertasActivas,
@@ -13,7 +13,11 @@ import {
   type SensorEstado,
 } from "./api";
 
-export function useDomovida() {
+// pausado = true mientras las lecturas están protegidas y no hay sesión (HU-17):
+// así el panel no consulta cada 10 s para recibir solo respuestas 401.
+export function useDomovida(pausado: boolean = false) {
+  const pausadoRef = useRef(pausado);
+  pausadoRef.current = pausado;
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [alertas, setAlertas] = useState<Alerta[]>([]);
   const [sensores, setSensores] = useState<SensorEstado[]>([]);
@@ -22,6 +26,11 @@ export function useDomovida() {
   const [conectado, setConectado] = useState(false);
 
   async function cargarTodo() {
+    if (pausadoRef.current) {
+      setConectado(await verificarConexion());
+      setCargando(false);
+      return;
+    }
     const [ev, al, se, inac, ok] = await Promise.all([
       obtenerEventos(50),
       obtenerAlertasActivas(),
@@ -42,6 +51,11 @@ export function useDomovida() {
     const intervalo = setInterval(cargarTodo, 10000); // cada 10s
     return () => clearInterval(intervalo);
   }, []);
+
+  // Al iniciar sesión se carga de inmediato, sin esperar el próximo ciclo
+  useEffect(() => {
+    if (!pausado) cargarTodo();
+  }, [pausado]);
 
   return {
     eventos,

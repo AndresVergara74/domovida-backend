@@ -58,6 +58,35 @@ export async function obtenerEventos(limite: number = 50): Promise<Evento[]> {
 }
 
 /**
+ * Historial con filtros aplicados en el servidor (ajuste 20).
+ * Antes el panel filtraba solo las últimas 50 lecturas y una alerta de hace
+ * unos minutos quedaba fuera (hallazgo del ensayo SUS, tarea T4).
+ */
+export interface FiltrosHistorial {
+  sensor_id?: string;
+  tipo?: string;
+  habitacion?: string;
+  solo_alertas?: boolean;
+  sin_alertas?: boolean;
+  desde?: string; // ISO 8601
+}
+
+export async function obtenerHistorial(filtros: FiltrosHistorial, limite: number = 200): Promise<Evento[] | null> {
+  const params = new URLSearchParams({ limit: String(limite) });
+  for (const [clave, valor] of Object.entries(filtros)) {
+    if (valor !== undefined && valor !== false && valor !== "") params.set(clave, String(valor));
+  }
+  try {
+    const response = await fetch(`${API_URL}/api/eventos?${params}`, { headers: cabecerasSesion() });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error("Error al obtener historial:", error);
+    return null;
+  }
+}
+
+/**
  * Obtiene las alertas activas (últimas 24h)
  */
 export async function obtenerAlertasActivas(): Promise<Alerta[]> {

@@ -9,8 +9,9 @@ import { useWebSocket } from "./useWebSocket";
 import Consentimiento from "./Consentimiento";
 import MapaHogar from "./MapaHogar";
 import LoginCuidador from "./LoginCuidador";
+import { obtenerHistorial, type Evento } from "./api";
 import { authHabilitada, leerSesion, cerrarSesion, type Sesion } from "./auth";
-import { nombreTipo, nombreAlerta, describirEvento, iconoTipo, nombreHabitacion, componenteSistema, haceCuanto, hora, cuando, esHoy, inventarioSensores, MINUTOS_SENSOR_ACTIVO } from "./etiquetas";
+import { nombreTipo, nombreAlerta, describirEvento, iconoTipo, nombreHabitacion, componenteSistema, haceCuanto, hora, cuando, esHoy, inventarioSensores, MINUTOS_SENSOR_ACTIVO, SENSORES_HOGAR } from "./etiquetas";
 import "./App.css";
 
 // URL base de la API (usa variable de entorno o fallback)
@@ -25,7 +26,6 @@ const PESTANAS: Array<[Pestana, string]> = [
 ];
 
 function App() {
-  const { eventos, alertas, sensores, minutosInactivo, cargando, conectado, refrescar } = useDomovida();
   const { conectado: wsConectado, alertasTiempoReal } = useWebSocket();
   const [pestana, setPestana] = useState<Pestana>("general");
   const [estadoSistema, setEstadoSistema] = useState<any[]>([]);
@@ -51,6 +51,7 @@ function App() {
   // Sesión del cuidador (PS-01): necesaria para atender alertas
   // ============================================================
   const [sesion, setSesion] = useState<Sesion | null>(() => leerSesion());
+  const { eventos, alertas, sensores, minutosInactivo, cargando, conectado, refrescar } = useDomovida(lecturasProtegidas && !sesion);
   const [mostrarLogin, setMostrarLogin] = useState(false);
   const [alertaPendiente, setAlertaPendiente] = useState<number[] | null>(null);
 
@@ -61,6 +62,9 @@ function App() {
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [filtroHabitacion, setFiltroHabitacion] = useState<string>("todas");
   const [filtroAlerta, setFiltroAlerta] = useState<string>("todos");
+  const [filtroPeriodo, setFiltroPeriodo] = useState<"hoy" | "7d" | "todo">("hoy");
+  const [historial, setHistorial] = useState<Evento[] | null>(null);
+  const LIMITE_HISTORIAL = 200;
 
   // ============================================================
   // Estado para MODO OSCURO
@@ -126,6 +130,32 @@ function App() {
   useEffect(() => {
     if (ultimaAlertaRT && alertasResueltas.has(ultimaAlertaRT.id)) setNotificacionVisible(false);
   }, [alertasResueltas, ultimaAlertaRT]);
+
+  // Historial: los filtros se aplican en el servidor y se refresca cada 15 s mientras la pestaña está abierta
+  useEffect(() => {
+    if (pestana !== "historial" || (lecturasProtegidas && !sesion)) return;
+    let vigente = true;
+    const cargar = async () => {
+      let desde: string | undefined;
+      if (filtroPeriodo === "hoy") {
+        const d = new Date(); d.setHours(0, 0, 0, 0); desde = d.toISOString();
+      } else if (filtroPeriodo === "7d") {
+        desde = new Date(Date.now() - 7 * 24 * 3600 * 1000).toISOString();
+      }
+      const datos = await obtenerHistorial({
+        sensor_id: filtroSensor !== "todos" ? filtroSensor : undefined,
+        tipo: filtroTipo !== "todos" ? filtroTipo : undefined,
+        habitacion: filtroHabitacion !== "todas" ? filtroHabitacion : undefined,
+        solo_alertas: filtroAlerta === "solo_alertas",
+        sin_alertas: filtroAlerta === "sin_alertas",
+        desde,
+      }, LIMITE_HISTORIAL);
+      if (vigente && datos) setHistorial(datos);
+    };
+    cargar();
+    const intervalo = setInterval(cargar, 15000);
+    return () => { vigente = false; clearInterval(intervalo); };
+  }, [pestana, filtroSensor, filtroTipo, filtroHabitacion, filtroAlerta, filtroPeriodo, lecturasProtegidas, sesion]);
 
   // ============================================================
   // FUNCIÓN: Marcar una alerta como atendida
@@ -329,24 +359,19 @@ function App() {
   });
 
   // Filtros del historial
-  const sensoresUnicos = Array.from(new Set(eventos.map((e) => e.sensor_id))).sort();
-  const tiposUnicos = Array.from(new Set(eventos.map((e) => e.tipo))).sort();
-  const habitacionesUnicas = Array.from(new Set(eventos.map((e) => e.habitacion).filter(Boolean))).sort() as string[];
-  const eventosFiltrados = eventos.filter((e) => {
-    if (filtroSensor !== "todos" && e.sensor_id !== filtroSensor) return false;
-    if (filtroTipo !== "todos" && e.tipo !== filtroTipo) return false;
-    if (filtroHabitacion !== "todas" && e.habitacion !== filtroHabitacion) return false;
-    if (filtroAlerta === "solo_alertas" && !e.alerta && !e.caida_detectada) return false;
-    if (filtroAlerta === "sin_alertas" && (e.alerta || e.caida_detectada)) return false;
-    return true;
-  });
+  // Opciones de los filtros: el inventario del hogar (no depende de las lecturas cargadas)
+  const sensoresUnicos = SENSORES_HOGAR.map((x) => x.sensor_id);
+  const tiposUnicos = Array.from(new Set(SENSORES_HOGAR.map((x) => x.tipo)));
+  const habitacionesUnicas = Array.from(new Set(SENSORES_HOGAR.map((x) => x.habitacion)));
+  const eventosFiltrados = historial ?? [];
   const hayFiltrosActivos =
-    filtroSensor !== "todos" || filtroTipo !== "todos" || filtroHabitacion !== "todas" || filtroAlerta !== "todos";
+    filtroSensor !== "todos" || filtroTipo !== "todos" || filtroHabitacion !== "todas" || filtroAlerta !== "todos" || filtroPeriodo !== "hoy";
   function limpiarFiltros() {
     setFiltroSensor("todos");
     setFiltroTipo("todos");
     setFiltroHabitacion("todas");
     setFiltroAlerta("todos");
+    setFiltroPeriodo("hoy");
   }
 
   // ------------------------------------------------------------
@@ -667,9 +692,23 @@ function App() {
           <section className="panel">
             <div className="panel-cabecera">
               <h2>Historial de lecturas</h2>
-              <span className="panel-nota">{eventosFiltrados.length} de {eventos.length}</span>
+              <span className="panel-nota">
+                {historial === null
+                  ? "Cargando…"
+                  : eventosFiltrados.length >= LIMITE_HISTORIAL
+                    ? `Se muestran las ${LIMITE_HISTORIAL} más recientes`
+                    : `${eventosFiltrados.length} ${eventosFiltrados.length === 1 ? "lectura" : "lecturas"}`}
+              </span>
             </div>
             <div className="filtros">
+              <label>
+                Período
+                <select value={filtroPeriodo} onChange={(e) => setFiltroPeriodo(e.target.value as "hoy" | "7d" | "todo")}>
+                  <option value="hoy">Hoy</option>
+                  <option value="7d">Últimos 7 días</option>
+                  <option value="todo">Todo</option>
+                </select>
+              </label>
               <label>
                 Sensor
                 <select value={filtroSensor} onChange={(e) => setFiltroSensor(e.target.value)}>
@@ -719,10 +758,10 @@ function App() {
                 <tbody>
                   {eventosFiltrados.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="vacio">No hay lecturas con estos filtros. Pruebe quitando alguno.</td>
+                      <td colSpan={5} className="vacio">{historial === null ? "Cargando historial…" : "No hay lecturas con estos filtros. Pruebe quitando alguno o ampliando el período."}</td>
                     </tr>
                   ) : (
-                    eventosFiltrados.slice(0, 50).map((e) => {
+                    eventosFiltrados.map((e) => {
                       const alerta = e.alerta || e.caida_detectada;
                       return (
                         <tr key={e.id} className={alerta ? "fila-alerta" : ""}>
