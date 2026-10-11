@@ -186,7 +186,7 @@ El ISP chileno intercepta las conexiones SSL al puerto 5432. La IP `77.112.100.1
 
 ```
 
-postgresql://postgres.hysmouhgnfowyobndzri:Supabase2026DomoVida@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require
+postgresql://postgres.hysmouhgnfowyobndzri:[TU_CLAVE_AQUI]@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require
 
 ```
 
@@ -236,7 +236,7 @@ postgresql://postgres.hysmouhgnfowyobndzri:Supabase2026DomoVida@aws-0-sa-east-1.
 
 \# Base de datos PostgreSQL en Supabase (producción)
 
-DATABASE\_URL=postgresql://postgres.hysmouhgnfowyobndzri:Supabase2026DomoVida@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require
+DATABASE\_URL=postgresql://postgres.hysmouhgnfowyobndzri:[TU_CLAVE_AQUI]@aws-0-sa-east-1.pooler.supabase.com:6543/postgres?sslmode=require
 
 
 
@@ -324,7 +324,7 @@ conn = psycopg2.connect(
 
 &#x20;   'postgresql://postgres.hysmouhgnfowyobndzri:'
 
-&#x20;   'Supabase2026DomoVida@aws-0-sa-east-1.pooler.supabase.com:'
+&#x20;   '[clave guardada solo en .env]@aws-0-sa-east-1.pooler.supabase.com:'
 
 &#x20;   '6543/postgres?sslmode=require'
 
@@ -380,7 +380,7 @@ INFO:     Application startup complete.
 
 | \*\*SSL/TLS obligatorio\*\* | `sslmode=require` en la cadena |
 
-| \*\*Contraseña sin caracteres especiales\*\* | `Supabase2026DomoVida` |
+| \*\*Contraseña sin caracteres especiales\*\* | `[clave guardada solo en .env]` |
 
 | \*\*Session Pooler\*\* | Evita intercepción del ISP |
 
