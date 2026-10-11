@@ -8,7 +8,7 @@
 - **Perfil:** personas que cuidan o han cuidado a un adulto mayor (familiar o profesional), mayores de 18 años.
 - **Cantidad:** mínimo 5, ideal 8 a 10.
 - **Sin datos personales:** cada participante se identifica solo con un código (P01, P02…). Se registra rango de edad, tipo de cuidador y experiencia con tecnología, nada más. No se graba audio ni video.
-- **Cuenta:** todos usan la **cuenta de cuidador de prueba** del proyecto, que inicia sesión el facilitador o el participante con los datos que se le entregan en el momento. Nunca se usa una cuenta personal del participante.
+- **Cuenta:** todos usan la **cuenta de cuidador de prueba** `sistemadomovida+prueba@gmail.com` (creada en Supabase el 11-10-2026, separada de la cuenta principal del proyecto). La contraseña se entrega en el momento y **no se guarda en el repositorio**; al terminar las sesiones se cambia o se elimina la cuenta. Nunca se usa una cuenta personal del participante.
 
 ## 2. Materiales
 
@@ -16,6 +16,14 @@
 - Este protocolo y la planilla `03_resultados_sus.xlsx` para anotar.
 - Cuestionario SUS en Google Forms: https://docs.google.com/forms/d/e/1FAIpQLSc5GmFuODLVzCtsmN3VFRUdJfa3eODffjQHpLr22xvEHWOYyw/viewform (texto en `02_cuestionario_sus.md`).
 - Script del facilitador `04_generar_alerta_prueba.js` para provocar una alerta de prueba durante la tarea 3.
+
+## 2b. Preparación antes de cada sesión (5 minutos, ensayada el 11-10-2026)
+
+1. **Simulador en modo tranquilo** (PowerShell, en la carpeta del repositorio): `DOMOVIDA_API_URL` apuntando a Render, la clave cargada desde el archivo local (`claves-oracle\domovida_api_key.txt`, nunca escrita en pantalla), `DOMOVIDA_SIM_EMERGENCIAS="0"` y `python backend\simulate_sensors.py`. No hacer clic dentro de esa ventana (Windows la pausa).
+2. **Ventana de incógnito nueva** con el panel, para que el participante parta sin consentimiento ni sesión.
+3. **Script de la tarea 3** (`04_generar_alerta_prueba.js`) listo para pegar en la consola del navegador del facilitador.
+4. **Enlace del formulario SUS** listo para entregar al final.
+5. Verificar que el Resumen diga «Todo en orden en casa» y «8 de 8 sensores enviando datos».
 
 ## 3. Desarrollo de la sesión (15 a 20 minutos)
 
@@ -56,3 +64,7 @@
 - Brooke, J. (1996). SUS: A "quick and dirty" usability scale. En P. W. Jordan et al. (Eds.), *Usability Evaluation in Industry* (pp. 189–194). Taylor & Francis.
 - Bangor, A., Kortum, P., y Miller, J. (2009). Determining what individual SUS scores mean: Adding an adjective rating scale. *Journal of Usability Studies, 4*(3), 114–123.
 - Sauro, J. (2011). *A practical guide to the System Usability Scale*. Measuring Usability LLC.
+
+## Ensayo del protocolo (11-10-2026)
+
+Sesión de prueba completa con el panel rediseñado. T1, T2, T3 y T5 se completaron sin problemas. **T4 falló**: el historial filtraba solo las últimas 50 lecturas y la caída de prueba ya no aparecía. Se corrigió el mismo día (ajustes 20 y 21 del registro de pruebas; PU-08 8/8 y PU-09 9/9): filtros en el servidor, historial que abre en «Hoy» y «Solo alertas», y «Actividad de hoy» contada en el servidor. Al repetir T4, la caída apareció de inmediato. También se creó la cuenta de prueba para no entregar la contraseña de la cuenta principal.
