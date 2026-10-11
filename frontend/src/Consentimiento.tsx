@@ -63,7 +63,7 @@ export default function Consentimiento({ onAceptar, onRechazar }: Consentimiento
             <FileText size={20} />
             <p>
               Antes de activar el monitoreo de <strong>DomoVida</strong>, necesitamos
-              tu consentimiento explícito e informado. Lee con atención.
+              su consentimiento explícito e informado. Por favor, lea con atención.
             </p>
           </div>
 
@@ -100,12 +100,12 @@ export default function Consentimiento({ onAceptar, onRechazar }: Consentimiento
 
             <div className="consentimiento-seccion">
               <h3>
-                <UserCheck size={16} /> Tus derechos
+                <UserCheck size={16} /> Sus derechos
               </h3>
               <ul>
-                <li>Acceder a tus datos en cualquier momento</li>
+                <li>Acceder a sus datos en cualquier momento</li>
                 <li>Rectificar datos incorrectos</li>
-                <li>Eliminar tus datos (derecho al olvido)</li>
+                <li>Eliminar sus datos (derecho al olvido)</li>
                 <li>Revocar el consentimiento sin justificación</li>
                 <li>Presentar reclamos ante la Agencia de Protección de Datos</li>
               </ul>

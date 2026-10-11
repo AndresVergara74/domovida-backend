@@ -61,7 +61,7 @@ function App() {
   const [filtroSensor, setFiltroSensor] = useState<string>("todos");
   const [filtroTipo, setFiltroTipo] = useState<string>("todos");
   const [filtroHabitacion, setFiltroHabitacion] = useState<string>("todas");
-  const [filtroAlerta, setFiltroAlerta] = useState<string>("todos");
+  const [filtroAlerta, setFiltroAlerta] = useState<string>("solo_alertas"); // el cuidador ve primero lo que importa
   const [filtroPeriodo, setFiltroPeriodo] = useState<"hoy" | "7d" | "todo">("hoy");
   const [historial, setHistorial] = useState<Evento[] | null>(null);
   const LIMITE_HISTORIAL = 200;
@@ -365,12 +365,12 @@ function App() {
   const habitacionesUnicas = Array.from(new Set(SENSORES_HOGAR.map((x) => x.habitacion)));
   const eventosFiltrados = historial ?? [];
   const hayFiltrosActivos =
-    filtroSensor !== "todos" || filtroTipo !== "todos" || filtroHabitacion !== "todas" || filtroAlerta !== "todos" || filtroPeriodo !== "hoy";
+    filtroSensor !== "todos" || filtroTipo !== "todos" || filtroHabitacion !== "todas" || filtroAlerta !== "solo_alertas" || filtroPeriodo !== "hoy";
   function limpiarFiltros() {
     setFiltroSensor("todos");
     setFiltroTipo("todos");
     setFiltroHabitacion("todas");
-    setFiltroAlerta("todos");
+    setFiltroAlerta("solo_alertas");
     setFiltroPeriodo("hoy");
   }
 
@@ -691,13 +691,15 @@ function App() {
         {!sinAcceso && pestana === "historial" && (
           <section className="panel">
             <div className="panel-cabecera">
-              <h2>Historial de lecturas</h2>
+              <h2>Historial</h2>
               <span className="panel-nota">
                 {historial === null
                   ? "Cargando…"
                   : eventosFiltrados.length >= LIMITE_HISTORIAL
                     ? `Se muestran las ${LIMITE_HISTORIAL} más recientes`
-                    : `${eventosFiltrados.length} ${eventosFiltrados.length === 1 ? "lectura" : "lecturas"}`}
+                    : filtroAlerta === "solo_alertas"
+                      ? `${eventosFiltrados.length} ${eventosFiltrados.length === 1 ? "alerta" : "alertas"}`
+                      : `${eventosFiltrados.length} ${eventosFiltrados.length === 1 ? "lectura" : "lecturas"}`}
               </span>
             </div>
             <div className="filtros">
@@ -733,8 +735,8 @@ function App() {
               <label>
                 Alertas
                 <select value={filtroAlerta} onChange={(e) => setFiltroAlerta(e.target.value)}>
-                  <option value="todos">Todas las lecturas</option>
                   <option value="solo_alertas">Solo alertas</option>
+                  <option value="todos">Todas las lecturas</option>
                   <option value="sin_alertas">Sin alertas</option>
                 </select>
               </label>
@@ -758,7 +760,11 @@ function App() {
                 <tbody>
                   {eventosFiltrados.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="vacio">{historial === null ? "Cargando historial…" : "No hay lecturas con estos filtros. Pruebe quitando alguno o ampliando el período."}</td>
+                      <td colSpan={5} className="vacio">{historial === null
+                        ? "Cargando historial…"
+                        : filtroAlerta === "solo_alertas"
+                          ? "No hubo alertas en este período. Para ver todas las lecturas de los sensores, elija «Todas las lecturas» en Alertas."
+                          : "No hay lecturas con estos filtros. Pruebe quitando alguno o ampliando el período."}</td>
                     </tr>
                   ) : (
                     eventosFiltrados.map((e) => {

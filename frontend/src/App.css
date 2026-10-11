@@ -73,6 +73,7 @@ button:disabled { cursor: progress; opacity: 0.7; }
 
 .tenue { color: var(--tinta-suave); }
 .num, time { font-variant-numeric: tabular-nums; }
+td.num { white-space: nowrap; }
 
 /* ---------- Estructura ---------- */
 .app {
