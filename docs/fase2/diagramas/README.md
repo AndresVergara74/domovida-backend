@@ -73,7 +73,7 @@ flowchart TB
 
 **Qué representa:** dónde corre cada parte. El panel está en Vercel, la API en Render (Oregón, EE. UU.), la base de datos y la autenticación en Supabase (São Paulo, Brasil), y un entorno de prueba con Docker en AWS EC2 (Virginia, EE. UU.).
 
-**Decisión de diseño que muestra:** explica el hallazgo principal de rendimiento. Con la API y la base de datos en continentes distintos, la alerta tarda 1.577 ms en promedio (PR-01); con ambas en la misma máquina, 216 ms (PR-01b). Por eso se planificó un despliegue en Oracle Cloud Santiago, hoy postergado por falta de capacidad gratuita en la región.
+**Decisión de diseño que muestra:** explica el hallazgo principal de rendimiento. Con la API y la base de datos en continentes distintos, la alerta tarda 1.577 ms en promedio (PR-01); con ambas en la misma máquina, 216 ms (PR-01b). Por eso se desplegó una instancia en Oracle Cloud Santiago (11-10-2026, capa Always Free): con API y base en la misma máquina y en Chile, la alerta tarda 54 ms en promedio (PR-01c).
 
 ```mermaid
 flowchart TB
@@ -84,7 +84,7 @@ flowchart TB
       SIM["Simulador de sensores<br/>(prototipo)"]
       BORDE["Modo borde: backend + SQLite<br/>+ panel local (sin internet)"]
     end
-    ORA["Oracle Cloud Santiago<br/>(planificado: sin capacidad gratuita)"]:::futuro
+    ORA["Oracle Cloud Santiago · Always Free<br/>Docker: backend + SQLite<br/><b>PR-01c: alerta en 54 ms</b>"]:::medido
   end
   subgraph US["EE. UU."]
     VER["Vercel CDN<br/>panel React"]
