@@ -84,7 +84,7 @@ flowchart TB
       SIM["Simulador de sensores<br/>(prototipo)"]
       BORDE["Modo borde: backend + SQLite<br/>+ panel local (sin internet)"]
     end
-    ORA["Oracle Cloud Santiago · Always Free<br/>Docker: backend + SQLite<br/><b>PR-01c: alerta en 54 ms</b>"]:::medido
+    ORA["Oracle Cloud Santiago · Always Free<br/>Docker: Caddy (HTTPS) + backend + SQLite<br/>domovida.duckdns.org<br/><b>PR-01c: alerta en 54 ms</b>"]:::medido
   end
   subgraph US["EE. UU."]
     VER["Vercel CDN<br/>panel React"]
@@ -105,6 +105,7 @@ flowchart TB
   NAV -- "inicio de sesión" --> SUP
   REN --> NTFY --> CEL
   NAV -. "comparación" .-> DC
+  NAV -- "HTTPS (Let's Encrypt)" --> ORA
   classDef futuro stroke-dasharray: 5 5,fill:#f2f2f2,color:#52514e
   classDef medido fill:#fff8e1,stroke:#eda100,color:#0b0b0b
 ```
