@@ -1,0 +1,16 @@
+[Unit]
+Description=DomoVida - reintento de creacion de VM Ampere A1 (Oracle Cloud)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+EnvironmentFile=-/home/ubuntu/ampere/ntfy.env
+ExecStart=/bin/bash /home/ubuntu/domovida-backend/infra/oracle/reintentar_ampere.sh
+Restart=on-failure
+RestartSec=600
+RestartPreventExitStatus=2
+
+[Install]
+WantedBy=multi-user.target

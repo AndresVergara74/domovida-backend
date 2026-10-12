@@ -33,6 +33,23 @@
 4. **Cuestionario SUS (3 min):** el participante responde las 10 preguntas en el formulario.
 5. **Comentarios (2 min):** «¿Qué fue lo más fácil? ¿Qué cambiaría?»
 
+## 3b. Sesión por videollamada (participantes de otras comunas)
+
+Se usa cuando el participante no puede asistir en persona. Las tareas, los tiempos y el cuestionario son los mismos; cambia solo la forma de observar.
+
+1. **Plataforma:** Google Meet creado desde la cuenta del proyecto (sistemadomovida), con el enlace enviado el día anterior. De preferencia el participante usa un **computador**; si solo tiene celular, se usa la opción de compartir pantalla del celular.
+2. **10 minutos antes:** abrir el panel en el navegador del facilitador para «despertar» el servidor de Render (el plan gratuito se suspende tras unos 15 minutos sin uso) y dejar listo lo de la sección 2b.
+3. **Un participante a la vez:** si son dos personas del mismo lugar, la segunda no está presente durante la sesión de la primera, para que sus respuestas sean independientes.
+4. **Inicio:** bienvenida y consentimiento verbal (sección 3, paso 1). Se pide al participante abrir una **ventana privada o de incógnito** y se le envía por el chat de Meet el enlace del panel.
+5. **Compartir pantalla:** el participante comparte su pantalla para que el facilitador observe. **No se graba** la llamada.
+6. **Credenciales:** el correo de la cuenta de prueba y su contraseña se envían por el chat de Meet solo al llegar a la tarea T1. El chat de Meet desaparece al terminar la llamada; la contraseña se cambia al cerrar el período de sesiones.
+7. **Tarea T3:** el facilitador ejecuta `04_generar_alerta_prueba.js` en su propio navegador; la alerta llega al panel del participante a través del servidor (1 a 2 segundos).
+8. **Si falla compartir pantalla:** el participante describe en voz alta lo que ve y lo que hace; se anota «sin pantalla» en las observaciones.
+9. **Cierre:** se envía el enlace del formulario SUS por el chat, se espera a que lo envíe y se le pide **cerrar sesión** en el panel y cerrar la ventana privada.
+10. En la planilla se registra la modalidad («presencial» o «videollamada») para poder comparar.
+
+**Calendario de sesiones (según turnos del facilitador):** bloque principal del 15 al 21-10-2026 y bloque de recuperación del 29-10 al 01-11-2026. Sin sesiones del 22 al 28-10.
+
 ## 4. Tareas
 
 | N° | Tarea que se lee al participante | Se considera completada cuando… | Tiempo esperado |
