@@ -797,7 +797,7 @@ function App() {
                       const alerta = e.alerta || e.caida_detectada;
                       return (
                         <tr key={e.id} className={alerta ? "fila-alerta" : ""}>
-                          <td className="num">{new Date(e.timestamp).toLocaleString("es-CL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23" })}</td>
+                          <td className="num">{new Date(e.timestamp).toLocaleString("es-CL", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "America/Santiago" })}</td>
                           <td>{nombreTipo(e.tipo)}</td>
                           <td>{nombreHabitacion(e.habitacion)}</td>
                           <td className="tenue">{e.sensor_id}</td>

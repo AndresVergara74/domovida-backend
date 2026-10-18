@@ -121,11 +121,11 @@ export function haceCuanto(fecha: string | Date | undefined, ahora: number = Dat
   if (min < 60) return `hace ${min} min`;
   const h = Math.floor(min / 60);
   if (h < 24) return `hace ${h} h`;
-  return new Date(fecha).toLocaleDateString("es-CL", { day: "numeric", month: "short" });
+  return new Date(fecha).toLocaleDateString("es-CL", { day: "numeric", month: "short", timeZone: "America/Santiago" });
 }
 
 export function hora(fecha: string | Date): string {
-  return new Date(fecha).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
+  return new Date(fecha).toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "America/Santiago" });
 }
 
 /** Hora si es de hoy; fecha corta y hora si es de otro día (ej. "6/10 13:34"). */
