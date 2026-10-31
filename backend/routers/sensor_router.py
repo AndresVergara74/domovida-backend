@@ -23,6 +23,7 @@ from websocket_manager import notificar_alerta
 
 from reglas_puerta import evaluar_puerta
 from reglas_sensores import evaluar_sensor
+from tiempo import a_utc
 from seguridad import verificar_clave_sensor
 
 router = APIRouter()
@@ -107,7 +108,9 @@ async def recibir_datos_sensor(datos: SensorDataIn, db: Session = Depends(get_db
             "habitacion": datos.habitacion,
             "valor": datos.valor,
             "alerta": datos.alerta,
-            "timestamp": datos.timestamp.isoformat() if datos.timestamp else None,
+            # Hora guardada en la base: si el sensor no envía hora, el servidor pone la actual
+            # (antes se enviaba null y el panel mostraba 31/12 21:00, la fecha cero en hora de Chile).
+            "timestamp": a_utc(evento.timestamp).isoformat() if evento.timestamp else None,
         }
 
         # 2a. Notificación en tiempo real vía WebSocket (primero: es el canal más rápido)
