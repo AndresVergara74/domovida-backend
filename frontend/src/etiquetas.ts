@@ -78,8 +78,10 @@ export const SENSORES_HOGAR: Array<{ sensor_id: string; tipo: string; habitacion
   { sensor_id: "boton_panico_sala", tipo: "boton_panico", habitacion: "sala" },
 ];
 
-/** Un sensor está activo si envió una lectura en la última hora. */
-export const MINUTOS_SENSOR_ACTIVO = 60;
+/** Un sensor está activo si envió una lectura en los últimos 10 minutos (HU-21).
+ *  Los sensores del hogar informan cada pocos segundos; 10 minutos sin datos
+ *  indica un equipo apagado, sin batería o sin conexión. */
+export const MINUTOS_SENSOR_ACTIVO = 10;
 
 export function inventarioSensores(
   lecturas: Array<{ sensor_id: string; ultima_lectura: string }>,

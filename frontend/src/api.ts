@@ -2,6 +2,7 @@
 // Configuración de la API para DomoVida
 
 import { leerSesion } from "./auth";
+import { SENSORES_HOGAR } from "./etiquetas";
 
 const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
 
@@ -132,6 +133,33 @@ export async function obtenerSensores(): Promise<SensorEstado[]> {
 
     for (const evento of eventos) {
       if (!mapaSensores.has(evento.sensor_id)) {
+        mapaSensores.set(evento.sensor_id, {
+          sensor_id: evento.sensor_id,
+          tipo: evento.tipo,
+          habitacion: evento.habitacion || "desconocida",
+          ultima_lectura: evento.timestamp,
+          online: true,
+        });
+      }
+    }
+
+    // HU-21: un sensor que dejó de enviar no aparece entre las últimas 200 lecturas;
+    // se consulta su última lectura en el servidor para mostrar «sin datos desde HH:MM».
+    const faltantes = SENSORES_HOGAR.filter((s) => !mapaSensores.has(s.sensor_id));
+    const ultimas = await Promise.all(
+      faltantes.map(async (s) => {
+        try {
+          const r = await fetch(`${API_URL}/api/eventos?sensor_id=${encodeURIComponent(s.sensor_id)}&limit=1`, { headers: cabecerasSesion() });
+          if (!r.ok) return null;
+          const [ultimo] = (await r.json()) as Evento[];
+          return ultimo ?? null;
+        } catch {
+          return null;
+        }
+      })
+    );
+    for (const evento of ultimas) {
+      if (evento && !mapaSensores.has(evento.sensor_id)) {
         mapaSensores.set(evento.sensor_id, {
           sensor_id: evento.sensor_id,
           tipo: evento.tipo,

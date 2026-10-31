@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import {
-  House, Moon, Sun, Shield, LogIn, LogOut, Bell, X, CircleCheck, TriangleAlert, Clock, WifiOff, Footprints, Radio, RefreshCw,
+  House, Moon, Sun, Shield, LogIn, LogOut, Bell, X, CircleCheck, TriangleAlert, CircleAlert, Clock, WifiOff, Footprints, Radio, RefreshCw,
 } from "lucide-react";
 import { useDomovida } from "./useDomovida";
 import { useWebSocket } from "./useWebSocket";
@@ -355,6 +355,8 @@ function App() {
   const minutosSinDatos = ultimoDato ? Math.floor((Date.now() - +new Date(ultimoDato)) / 60000) : null;
   const inventario = inventarioSensores(sensores);
   const sensoresOnline = inventario.filter((s) => s.online).length;
+  // HU-21: sensores que dejaron de enviar datos (semáforo amarillo)
+  const sensoresSinDatos = inventario.filter((s) => !s.online);
   const totalSensores = inventario.length;
   const sinAcceso = lecturasProtegidas && !sesion;
 
@@ -403,11 +405,16 @@ function App() {
   // ------------------------------------------------------------
   const grupoPrimero = gruposPendientes[0];
   const primera = grupoPrimero?.principal;
-  let estado: "ok" | "alerta" | "sin-acceso" | "sin-conexion" | "sin-datos" = "ok";
+  // Semáforo del hogar (HU-21): rojo = alerta; amarillo = sin conexión, sin datos o algún sensor sin datos; verde = todo en orden.
+  let estado: "ok" | "alerta" | "sin-acceso" | "sin-conexion" | "sin-datos" | "atencion" = "ok";
   if (sinAcceso) estado = "sin-acceso";
   else if (pendientes.length > 0) estado = "alerta";
   else if (!conectado) estado = "sin-conexion";
   else if (!cargando && (minutosSinDatos === null || minutosSinDatos > MINUTOS_SENSOR_ACTIVO)) estado = "sin-datos";
+  else if (!cargando && sensoresSinDatos.length > 0) estado = "atencion";
+
+  const describirSinDatos = (s: (typeof inventario)[number]) =>
+    `${nombreTipo(s.tipo)} (${nombreHabitacion(s.habitacion)}): ${s.ultima_lectura ? `sin datos desde ${cuando(s.ultima_lectura)}` : "sin lecturas registradas"}`;
 
   const lineaDetalle = [
     ultimoMovimiento
@@ -542,6 +549,21 @@ function App() {
                   <button className="btn-primario" onClick={() => setMostrarLogin(true)}>
                     <LogIn size={18} aria-hidden="true" /> Ingresar
                   </button>
+                </>
+              )}
+              {estado === "atencion" && (
+                <>
+                  <CircleAlert className="estado-icono" size={30} aria-hidden="true" />
+                  <div className="estado-texto">
+                    <h1>
+                      {sensoresSinDatos.length === 1
+                        ? "Un sensor no está enviando datos."
+                        : `${sensoresSinDatos.length} sensores no están enviando datos.`}
+                    </h1>
+                    <p>
+                      {sensoresSinDatos.map(describirSinDatos).join(". ")}. Revise que esté encendido y con batería. Los demás sensores siguen vigilando.
+                    </p>
+                  </div>
                 </>
               )}
               {estado === "sin-datos" && (
@@ -817,7 +839,7 @@ function App() {
           <section className="panel">
             <div className="panel-cabecera">
               <h2>Sensores del hogar</h2>
-              <span className="panel-nota">{sensoresOnline} de {totalSensores} con lecturas en la última hora</span>
+              <span className="panel-nota">{sensoresOnline} de {totalSensores} con lecturas en los últimos {MINUTOS_SENSOR_ACTIVO} minutos</span>
             </div>
             {inventario.length === 0 ? (
               <p className="vacio">Aún no hay sensores registrados.</p>
@@ -833,7 +855,7 @@ function App() {
                         <span>{nombreHabitacion(s.habitacion)}, {s.sensor_id}</span>
                       </div>
                       <span className="tenue">{s.ultima_lectura ? `Última lectura ${haceCuanto(s.ultima_lectura)}` : "Sin lecturas"}</span>
-                      <span className={`sistema-estado ${s.online ? "ok" : "parcial"}`}>{s.online ? "Activo" : "Sin datos recientes"}</span>
+                      <span className={`sistema-estado ${s.online ? "ok" : "parcial"}`}>{s.online ? "Activo" : s.ultima_lectura ? `Sin datos desde ${cuando(s.ultima_lectura)}` : "Sin datos"}</span>
                     </li>
                   );
                 })}

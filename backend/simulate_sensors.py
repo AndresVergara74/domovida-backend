@@ -35,6 +35,10 @@ INTERVALO_SEGUNDOS = 5
 # del panel sin llenar el celular de avisos). Las emergencias se provocan aparte.
 #   PowerShell:  $env:DOMOVIDA_SIM_EMERGENCIAS="0"
 EMERGENCIAS = 0.0 if os.getenv("DOMOVIDA_SIM_EMERGENCIAS", "1").strip() == "0" else 1.0
+# HU-21: sensores que se simulan "apagados" (no envían datos), separados por coma.
+# Sirve para probar el semáforo amarillo del panel.
+#   PowerShell:  $env:DOMOVIDA_SIM_SIN="apertura_ventana_living"
+SENSORES_APAGADOS = {s.strip() for s in os.getenv("DOMOVIDA_SIM_SIN", "").split(",") if s.strip()}
 
 # Estado simulado del adulto mayor
 estado_usuario = {
@@ -240,6 +244,8 @@ def generar_datos_boton_panico():
 
 def enviar_datos(datos):
     """Envía los datos al backend FastAPI."""
+    if datos.get("sensor_id") in SENSORES_APAGADOS:
+        return  # sensor simulado como apagado (HU-21)
     try:
         response = requests.post(API_URL, json=datos, headers=CABECERAS, timeout=15)
         if response.status_code in [200, 201]:
@@ -264,6 +270,8 @@ def main():
     print(f"📡 Backend: {API_URL}")
     print(f"⏱️  Intervalo: {INTERVALO_SEGUNDOS} segundos")
     print("🎭 Emergencias al azar: " + ("activadas" if EMERGENCIAS else "desactivadas (demostración tranquila)"))
+    if SENSORES_APAGADOS:
+        print("🔌 Sensores apagados (no envían): " + ", ".join(sorted(SENSORES_APAGADOS)))
     print("🛑 Presiona Ctrl+C para detener")
     print("=" * 65)
 

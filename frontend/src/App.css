@@ -6,18 +6,19 @@
   --fondo: #f4f7f8;
   --superficie: #ffffff;
   --tinta: #10262d;
-  --tinta-suave: #52666d;
+  --tinta-suave: #3f535a;   /* HU-23: 7,5:1 sobre el fondo (antes 5,6:1) */
   --linea: #dbe3e6;
   --petroleo: #0e5566;
   --petroleo-hover: #0a4352;
   --petroleo-tenue: #e3eef1;
   --rojo: #b42318;
   --rojo-tenue: #fdeceb;
-  --verde: #2f7d5b;
+  --verde: #276b4e;         /* HU-23: 5,5:1 sobre verde tenue (antes 4,35:1) */
   --verde-tenue: #e6f2ec;
   --ambar: #9a5b06;
   --ambar-tenue: #fdf2e1;
   --foco: #1b6ec2;
+  --borde-campo: #7d8f96;   /* HU-23: borde de campos y filtros, 3,4:1 (WCAG 1.4.11) */
 
   --radio: 10px;
   --radio-chico: 6px;
@@ -45,6 +46,7 @@ body.dark {
   --verde-tenue: #17332a;
   --ambar: #e7b05b;
   --ambar-tenue: #3a2c14;
+  --borde-campo: #61777e;
   --sombra: none;
 }
 
@@ -376,7 +378,7 @@ body.dark .btn-alerta { color: #1a0d0c; }
   min-height: 40px;
   padding: 0 10px;
   border-radius: var(--radio-chico);
-  border: 1px solid var(--linea);
+  border: 1px solid var(--borde-campo);
   background: var(--superficie);
   color: var(--tinta);
   font-weight: 400;
@@ -460,7 +462,7 @@ tr.fila-alerta td:first-child { box-shadow: inset 4px 0 0 var(--rojo); }
   min-height: 46px;
   padding: 0 12px;
   border-radius: var(--radio-chico);
-  border: 1px solid var(--linea);
+  border: 1px solid var(--borde-campo);
   background: var(--fondo);
 }
 .login-cerrar {
@@ -521,7 +523,7 @@ body.dark .login-enviar { color: var(--fondo); }
   min-height: 44px;
   padding: 0 12px;
   border-radius: var(--radio-chico);
-  border: 1px solid var(--linea);
+  border: 1px solid var(--borde-campo);
   background: var(--fondo);
 }
 .consentimiento-checks { display: flex; flex-direction: column; gap: 10px; }
@@ -611,6 +613,10 @@ body.dark .login-enviar { color: var(--fondo); }
 .vacio.sin-pendientes { display: flex; align-items: center; gap: 8px; color: var(--verde); font-weight: 700; }
 .estado-hogar.sin-datos { border-left-color: var(--ambar); background: var(--ambar-tenue); }
 .estado-hogar.sin-datos .estado-icono { color: var(--ambar); }
+/* HU-21: semáforo amarillo cuando algún sensor deja de enviar datos */
+.estado-hogar.atencion { border-left-color: var(--ambar); background: var(--ambar-tenue); }
+.estado-hogar.atencion .estado-icono, .estado-hogar.atencion h1 { color: var(--ambar); }
+.estado-hogar.atencion p { color: var(--tinta); }
 
 /* Sin sesión: no se muestran datos vacíos que parezcan reales */
 .aviso-acceso { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; color: var(--petroleo); }
