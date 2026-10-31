@@ -31,6 +31,12 @@ services:
       - NTFY_TOPIC=${NTFY_TOPIC:-domovida-seguro-2026}
       # Orígenes CORS extra (por ejemplo, la IP pública de AWS EC2)
       - CORS_ORIGINS=${CORS_ORIGINS:-}
+      # HU-17: consultas de datos con sesión del cuidador (1 = activado)
+      - PROTEGER_LECTURAS=${PROTEGER_LECTURAS:-}
+      # HU-03: sincronización con la nube (servidor Oracle → Render + Supabase)
+      - NUBE_API_URL=${NUBE_API_URL:-}
+      - NUBE_API_KEY=${NUBE_API_KEY:-}
+      - SYNC_INTERVALO_SEG=${SYNC_INTERVALO_SEG:-30}
     volumes:
       # Persistir SQLite fuera del contenedor
       - backend_data:/app/data
