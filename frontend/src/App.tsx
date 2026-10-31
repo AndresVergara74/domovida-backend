@@ -413,6 +413,9 @@ function App() {
   else if (!cargando && (minutosSinDatos === null || minutosSinDatos > MINUTOS_SENSOR_ACTIVO)) estado = "sin-datos";
   else if (!cargando && sensoresSinDatos.length > 0) estado = "atencion";
 
+  // Hora del dato más reciente entre los sensores sin datos (para el título del aviso)
+  const ultimaSinDatos = sensoresSinDatos.map((s) => s.ultima_lectura).filter(Boolean).sort().pop();
+  const desdeSinDatos = ultimaSinDatos ? cuando(ultimaSinDatos) : "";
   const describirSinDatos = (s: (typeof inventario)[number]) =>
     `${nombreTipo(s.tipo)} (${nombreHabitacion(s.habitacion)}): ${s.ultima_lectura ? `sin datos desde ${cuando(s.ultima_lectura)}` : "sin lecturas registradas"}`;
 
@@ -558,10 +561,12 @@ function App() {
                     <h1>
                       {sensoresSinDatos.length === 1
                         ? "Un sensor no está enviando datos."
-                        : `${sensoresSinDatos.length} sensores no están enviando datos.`}
+                        : `${sensoresSinDatos.length} sensores no envían datos${desdeSinDatos ? ` desde ${desdeSinDatos}` : ""}.`}
                     </h1>
                     <p>
-                      {sensoresSinDatos.map(describirSinDatos).join(". ")}. Revise que esté encendido y con batería. Los demás sensores siguen vigilando.
+                      {sensoresSinDatos.length > 3
+                        ? `${sensoresSinDatos.map((s) => nombreTipo(s.tipo)).join(", ")}. Si varios dejan de enviar a la vez, revise que el equipo del hogar esté encendido y con internet.`
+                        : `${sensoresSinDatos.map(describirSinDatos).join(". ")}. Revise que esté encendido y con batería. Los demás sensores siguen vigilando.`}
                     </p>
                   </div>
                 </>
