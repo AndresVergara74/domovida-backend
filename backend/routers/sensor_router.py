@@ -22,6 +22,7 @@ from alertas_servicio import registrar_alerta
 from websocket_manager import notificar_alerta
 
 from reglas_puerta import evaluar_puerta
+from reglas_sensores import evaluar_sensor
 from seguridad import verificar_clave_sensor
 
 router = APIRouter()
@@ -63,6 +64,16 @@ async def recibir_datos_sensor(datos: SensorDataIn, db: Session = Depends(get_db
             valor["minutos_abierta"] = minutos
         datos.valor = valor
         datos.alerta = alerta
+
+    # 0c. HU-04 y HU-05: reglas por umbral (caída > 17 m/s², gas > 500 ppm, humo > 800,
+    #     más de 30 min sin movimiento). La alerta la decide el valor medido, no el sensor.
+    #     Si la lectura no trae el valor, se respeta el aviso del sensor.
+    if datos.origen != "borde":
+        alerta_regla, motivo = evaluar_sensor(datos.sensor_id, datos.tipo, datos.valor, datos.timestamp)
+        if alerta_regla is not None:
+            if motivo:
+                datos.valor = {**(datos.valor or {}), "motivo": motivo}
+            datos.alerta = alerta_regla
 
     # 1. Guardar el evento en la base de datos
     evento = Evento(

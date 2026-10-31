@@ -58,7 +58,7 @@ def generar_datos_acelerometro():
     if random.random() < probabilidad_caida:
         ax = random.uniform(-15, 15)
         ay = random.uniform(-15, 15)
-        az = random.uniform(15, 30)
+        az = random.uniform(18, 30)  # sobre el umbral de caída del backend (17 m/s²)
         gx = random.uniform(-5, 5)
         gy = random.uniform(-5, 5)
         gz = random.uniform(-5, 5)
@@ -94,7 +94,7 @@ def generar_datos_acelerometro():
 
 
 def generar_datos_pir():
-    """Simula sensor PIR de movimiento. Detecta inactividad prolongada (>12h)."""
+    """Simula sensor PIR de movimiento. El backend avisa tras 30 min sin movimiento (reglas_sensores.py)."""
     movimiento = random.random() < 0.8
 
     if movimiento:
@@ -104,7 +104,7 @@ def generar_datos_pir():
         datetime.now() - estado_usuario["ultima_actividad"]
     ).total_seconds() / 60
 
-    alerta = minutos_inactivo > 12 * 60
+    alerta = minutos_inactivo > 30  # misma regla que el backend (HU-05)
 
     return {
         "sensor_id": "pir_living",
@@ -122,7 +122,7 @@ def generar_datos_pir():
 def generar_datos_gas():
     """Simula sensor de gas."""
     fuga = random.random() < 0.02 * EMERGENCIAS
-    nivel_ppm = random.uniform(200, 800) if fuga else random.uniform(0, 50)
+    nivel_ppm = random.uniform(600, 900) if fuga else random.uniform(0, 50)  # umbral del backend: 500 ppm
 
     if fuga:
         print(f"🚨 ¡FUGA DE GAS! Nivel: {nivel_ppm:.2f} ppm")
@@ -140,7 +140,7 @@ def generar_datos_gas():
 def generar_datos_humo():
     """Simula sensor de humo."""
     humo = random.random() < 0.01 * EMERGENCIAS
-    nivel = random.uniform(500, 1000) if humo else random.uniform(0, 30)
+    nivel = random.uniform(850, 1000) if humo else random.uniform(0, 30)  # umbral del backend: 800
 
     if humo:
         print(f"🚨 ¡HUMO DETECTADO! Nivel: {nivel:.2f}")
