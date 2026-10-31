@@ -3,7 +3,7 @@
 // Pide la clave de API de los sensores en una ventana (nunca se escribe en la consola ni en el chat).
 (async () => {
   const CLAVE = (prompt("Clave de API de los sensores (DOMOVIDA_API_KEY)") || "").trim();
-  const r = await fetch("https://domovida-backend.onrender.com/api/sensor-data", {
+  const r = await fetch("https://domovida.duckdns.org/api/sensor-data", {
     method: "POST",
     headers: { "Content-Type": "application/json", "X-API-Key": CLAVE },
     body: JSON.stringify({ sensor_id: "acelerometro_dormitorio", tipo: "acelerometro", habitacion: "dormitorio",
