@@ -155,9 +155,23 @@ def generar_datos_humo():
     }
 
 
+# Estado de cada puerta o ventana: se abre rara vez y queda abierta unos segundos,
+# como en una casa real (antes se abría al azar en el 30 % de los ciclos y, de noche,
+# cada apertura disparaba la alerta nocturna del backend: ajuste 28).
+estado_aperturas = {}
+
+
 def generar_datos_apertura(sensor_id, habitacion):
-    """Simula sensor de apertura."""
-    abierto = random.random() < 0.3
+    """Simula sensor de apertura con estado (cerrada / abierta)."""
+    hora = datetime.now().hour
+    de_noche = hora >= 22 or hora < 7
+    abierto = estado_aperturas.get(sensor_id, False)
+    if abierto:
+        abierto = random.random() < 0.7  # suele cerrarse en 2 o 3 ciclos
+    else:
+        prob = 0.01 if not de_noche else 0.0005 * EMERGENCIAS  # de noche casi nunca
+        abierto = random.random() < prob
+    estado_aperturas[sensor_id] = abierto
     # La alerta de la puerta principal la decide el backend (reglas_puerta.py):
     # apertura nocturna o puerta abierta 10 minutos o más.
     alerta = False
