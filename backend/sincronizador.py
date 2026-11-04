@@ -127,14 +127,20 @@ def estado() -> dict:
 
 def _ciclo(intervalo: int):
     while True:
+        espera = intervalo
         try:
             r = sincronizar_una_vez()
             if r["enviados"] or r["fallo"]:
                 logger.warning("Sincronización: %s enviados, %s pendientes%s", r["enviados"], r["pendientes"],
                                f", fallo: {r['fallo']}" if r["fallo"] else "")
+            # Ajuste 29: si quedan pendientes y el lote salió bien, se sigue de inmediato
+            # en vez de esperar el intervalo completo (antes la cola crecía más rápido
+            # de lo que se vaciaba con el simulador encendido).
+            if r["pendientes"] and not r["fallo"]:
+                espera = 1
         except Exception as e:  # nunca detener el hilo
             logger.warning("Sincronización con error: %s", e)
-        time.sleep(intervalo)
+        time.sleep(espera)
 
 
 def iniciar_en_segundo_plano():

@@ -30,7 +30,10 @@ API_URL = f"{BACKEND_URL}/api/sensor-data"
 #   PowerShell:  $env:DOMOVIDA_API_KEY="la-clave"
 API_KEY = os.getenv("DOMOVIDA_API_KEY", "").strip()
 CABECERAS = {"X-API-Key": API_KEY} if API_KEY else {}
-INTERVALO_SEGUNDOS = 5
+# Ajuste 29: un sensor real informa cada 30 a 60 s (y de inmediato ante un evento);
+# cada 5 s generaba más de 130.000 lecturas al día, más de las que la copia a la nube
+# alcanzaba a subir. Se puede cambiar con DOMOVIDA_SIM_INTERVALO.
+INTERVALO_SEGUNDOS = int(os.getenv("DOMOVIDA_SIM_INTERVALO", "30"))
 # Modo demostración tranquila: sin emergencias al azar (para mostrar el estado normal
 # del panel sin llenar el celular de avisos). Las emergencias se provocan aparte.
 #   PowerShell:  $env:DOMOVIDA_SIM_EMERGENCIAS="0"
