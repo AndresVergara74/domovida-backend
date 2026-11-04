@@ -2,7 +2,7 @@
 
 **Proyecto APT:** DomoVida: Plataforma IoT de Monitoreo y Asistencia para el Adulto Mayor en el Hogar
 **Autor:** Andrés Rodrigo Vergara Acevedo · Capstone PTY4614 · Duoc UC, sede Viña del Mar
-**Versión:** 6 de octubre de 2026 (formato según la Guía de apoyo del estudiante, sección 8)
+**Versión:** 4 de noviembre de 2026 (formato según la Guía de apoyo del estudiante, sección 8)
 
 Este manual permite que otra persona instale, configure, ejecute, pruebe y opere DomoVida sin consultar al autor. La versión breve está en el [README](../../../../README.md).
 
@@ -12,9 +12,9 @@ Este manual permite que otra persona instale, configure, ejecute, pruebe y opere
 
 | Componente | Tecnología | Carpeta | Producción |
 |---|---|---|---|
-| API | Python 3.11, FastAPI, SQLAlchemy, Uvicorn | `backend/` | Render (Oregón, EE. UU.) |
+| API | Python 3.11, FastAPI, SQLAlchemy, Uvicorn | `backend/` | Oracle Cloud Chile Central (Santiago), con SQLite y Caddy (HTTPS); respaldo en Render (Oregón, EE. UU.) |
 | Panel del cuidador | React 18, TypeScript, Vite | `frontend/` | Vercel |
-| Base de datos y autenticación | PostgreSQL + Supabase Auth | — | Supabase (São Paulo, Brasil) |
+| Base de datos de respaldo y autenticación | PostgreSQL + Supabase Auth | — | Supabase (São Paulo, Brasil) |
 | Base local (modo borde) | SQLite | `backend/*.db` (no se sube) | Computador del hogar |
 | Simulador de sensores | Python | `backend/simulate_sensors.py` | Computador del hogar |
 | Notificaciones push | ntfy.sh | `backend/notifier.py` | Servicio público ntfy.sh |
@@ -32,7 +32,7 @@ La arquitectura, el despliegue y los flujos están dibujados en [`docs/fase2/dia
 
 **Recursos mínimos:** 2 GB de RAM libres, 2 GB de disco y los puertos **80** (panel en Docker), **8000** (API) y **5173** (panel en desarrollo) libres.
 
-**Cuentas necesarias solo para producción:** GitHub, Render, Vercel y Supabase (planes gratuitos), y la app **ntfy** en el celular del cuidador.
+**Cuentas necesarias solo para producción:** GitHub, Oracle Cloud (Always Free), Render, Vercel y Supabase (planes gratuitos), un subdominio gratuito de DuckDNS y la app **ntfy** en el celular del cuidador.
 
 ## 3. Instalación y configuración
 
@@ -52,8 +52,11 @@ Todas las variables están explicadas en [`.env.example`](../../../../.env.examp
 | `DOMOVIDA_API_KEY` | API y simulador | Clave que exigen los sensores (cabecera `X-API-Key`) | Se aceptan datos sin clave |
 | `SUPABASE_URL`, `SUPABASE_ANON_KEY` | API | Validar la sesión del cuidador | Atender alertas no exige sesión |
 | `PROTEGER_LECTURAS` | API | Con `1`, las consultas de eventos, alertas y FHIR exigen la sesión del cuidador (HU-17) | Consultas abiertas (protegidas solo por CORS) |
+| `NUBE_API_URL`, `NUBE_API_KEY` | API | Copia de cada evento a la API de respaldo (Render + Supabase) | Sin sincronización |
+| `SYNC_INTERVALO_SEG` | API | Segundos entre ciclos de sincronización; si quedan pendientes, el siguiente lote sale al segundo | 30 |
 | `CORS_ORIGINS` | API | Orígenes web extra permitidos | Solo localhost y Vercel |
 | `PUERTA_HORA_NOCHE_INICIO`, `PUERTA_HORA_NOCHE_FIN`, `PUERTA_MINUTOS_MAX_ABIERTA` | API | Regla de la puerta principal | 22, 7 y 10 |
+| Umbrales de `backend/reglas_sensores.py` | API | Caída, gas, humo e inactividad (ver el archivo) | 17 m/s², 500 ppm, 800 y 30 min |
 | `VITE_API_URL`, `VITE_WS_URL` | Panel | Dirección de la API y del WebSocket | `localhost:8000` |
 | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` | Panel | Inicio de sesión del cuidador | No aparece el botón «Ingresar» |
 
@@ -127,12 +130,33 @@ El cuidador se crea en Supabase → **Authentication → Users → Add user → 
 
 | Servicio | Configuración |
 |---|---|
+| **Oracle Cloud** (API en producción desde el 31/10/2026) | Región Chile Central (Santiago), VM.Standard.E2.1.Micro Always Free (1 OCPU, 1 GB + 2 GB swap), Ubuntu 22.04. El repositorio se clona en `~/domovida-backend` y el backend corre con `docker compose` (servicio `backend`, base SQLite en el volumen `backend_data`). Un contenedor Caddy publica HTTPS con certificado automático en `https://domovida.duckdns.org` y reenvía al puerto 8000. Variables en `~/domovida-backend/.env`: `DOMOVIDA_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `PROTEGER_LECTURAS=1`, `NUBE_API_URL`, `NUBE_API_KEY` y `SYNC_INTERVALO_SEG`. Detalle en la sección 5.1. |
 | **Supabase** | Proyecto PostgreSQL con las tablas `sensores`, `eventos` y `alertas`; triggers `crear_alerta_automatica` y `marcar_como_sincronizado` (ficha técnica 11), ambos con `search_path=public`; RLS activo en las tres tablas (pruebas PI-03 y PI-03b); usuario cuidador en Supabase Auth. |
-| **Render** (API) | Servicio web Python conectado al repositorio de GitHub, rama `main`, con despliegue automático. Comando de inicio: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT` (`backend/Procfile`). Variables: `DATABASE_URL`, `NTFY_TOPIC`, `DOMOVIDA_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `PROTEGER_LECTURAS` y `PYTHON_VERSION`. |
+| **Render** (API de respaldo) | Servicio web Python conectado al repositorio de GitHub, rama `main`, con despliegue automático. Comando de inicio: `cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT` (`backend/Procfile`). Variables: `DATABASE_URL`, `NTFY_TOPIC`, `DOMOVIDA_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `PROTEGER_LECTURAS` y `PYTHON_VERSION`. |
 | **Vercel** (panel) | Proyecto conectado al repositorio, carpeta `frontend`, compilación `npm run build`, despliegue automático. Variables: `VITE_API_URL`, `VITE_WS_URL`, `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (marcadas como no sensibles, porque son públicas). Después de cambiar una variable se necesita **Redeploy**. |
 | **AWS EC2** (entorno de prueba) | Instancia con Docker; `git clone` y `docker compose up --build`; agregar la IP pública en `CORS_ORIGINS`. Sin https: el consentimiento no puede calcular el hash SHA-256 (ajuste 11). |
 
-**Verificación después de cada despliegue:** abrir `https://domovida-backend.onrender.com/api/health` y comprobar `"estado_general": "healthy"`, `"clave_api_sensores": {"activa": true}` y `"auth_cuidador": {"activa": true}`; luego abrir el panel y verificar «API conectada» y «Tiempo real activo».
+### 5.1 Actualizar y operar el servidor de Santiago
+
+Conexión (la llave privada se guarda fuera del repositorio):
+
+```powershell
+ssh -i "C:\ruta\segura\domovida-api.key" ubuntu@domovida.duckdns.org
+```
+
+Actualizar el backend después de un `git push` (dentro del servidor):
+
+```bash
+cd ~/domovida-backend && git pull && sudo docker compose up -d --build --no-deps backend
+sudo docker ps                                   # backend y caddy deben estar «Up»
+sudo docker logs --tail 50 domovida-backend      # revisar errores
+```
+
+Volver a Render si el servidor de Santiago falla: en Vercel, cambiar `VITE_API_URL` a `https://domovida-backend.onrender.com` y `VITE_WS_URL` a `wss://domovida-backend.onrender.com/api/ws/alertas`, y presionar **Redeploy** (prueba PR-05).
+
+Reglas: no presionar «Upgrade» en Oracle ni crear recursos fuera del plan Always Free; no publicar identificadores `ocid1.` ni la llave privada.
+
+**Verificación después de cada despliegue:** abrir `https://domovida.duckdns.org/api/health` (y la de respaldo, `https://domovida-backend.onrender.com/api/health`) y comprobar `"estado_general": "healthy"`, `"clave_api_sensores": {"activa": true}` y `"auth_cuidador": {"activa": true}`; en Santiago, revisar también que `sincronizacion_borde` muestre pocos pendientes y sin error; luego abrir el panel y verificar «API conectada» y «Tiempo real activo».
 
 ## 6. Operación y mantenimiento
 
@@ -141,7 +165,8 @@ El cuidador se crea en Supabase → **Authentication → Users → Add user → 
 | Mantener Supabase activo | Abrir el panel publicado (el plan gratuito pausa el proyecto por inactividad) | Semanal |
 | Revisar la seguridad | Supabase → Advisors → Security Advisor | Al cierre de cada sprint |
 | Cambiar la clave de los sensores | Generar una nueva (sección 3), reemplazarla en Render y en el simulador, y comparar la huella en `/api/health` (largo 43 y los mismos 8 caracteres que la clave local) | Si se expone o cada 6 meses |
-| Revisar errores | Render → Logs; Vercel → Deployments; consola del navegador (F12) | Ante cualquier falla |
+| Revisar errores | Oracle: `sudo docker logs --tail 50 domovida-backend`; Render → Logs; Vercel → Deployments; consola del navegador (F12) | Ante cualquier falla |
+| Revisar la cola de sincronización | `/api/health` de Santiago → `sincronizacion_borde.pendientes` debe bajar a cerca de 0 | Semanal |
 | Respaldar la base | `python scripts/respaldo_supabase.py` (carpeta backend; guarda JSON en `Documentos\respaldos_domovida`, fuera del repositorio), o Supabase → Database → Backups | Antes de cualquier cambio de estructura |
 | Cambiar la estructura de la base | Solo con una migración nueva en `backend/migrations/` (número siguiente). Pasos: respaldo, detener el simulador, ejecutar el archivo en el SQL Editor de Supabase y verificar con `SELECT * FROM public.schema_migrations`. Detalle en `backend/migrations/README.md` | Cada cambio |
 
@@ -151,6 +176,7 @@ El plan, los resultados y las evidencias están en [`pruebas/registro_pruebas.md
 
 ```bash
 # Pruebas automatizadas (carpeta backend) · requieren: pip install httpx "fhir.resources>=8"
+python test_reglas_sensores.py      # PU-02
 python test_reglas_puerta.py        # PU-04
 python test_tiempo.py               # PU-05
 python test_alertas.py              # PU-06
@@ -162,13 +188,15 @@ python ../docs/fase2/evidencias_proyecto/documentacion/pruebas/PI-04_validacion_
 python ../docs/fase2/evidencias_proyecto/documentacion/pruebas/PI-05_validacion_fhir_patient.py
 ```
 
-Las pruebas en producción (PR-01, PR-02, PR-03, PS-01 y PS-01b) se ejecutan pegando el script `.js` correspondiente en la consola del navegador (F12) con el panel publicado abierto, porque la API solo acepta peticiones desde los orígenes permitidos por CORS.
+Las pruebas en producción (PR-01, PR-01c, PR-02, PR-03, PS-01 y PS-01b) se ejecutan pegando el script `.js` correspondiente en la consola del navegador (F12) con el panel publicado abierto, porque la API solo acepta peticiones desde los orígenes permitidos por CORS.
 
 ## 8. Solución de problemas
 
 | Síntoma | Causa probable | Solución |
 |---|---|---|
 | El puerto 80, 8000 o 5173 está ocupado | Otra aplicación lo usa | Cerrarla o cambiar el puerto en `docker-compose.yml` o en el comando |
+| `/api/health` de Santiago no responde | Contenedor detenido o instancia reiniciada | Entrar por SSH, `sudo docker ps` y `cd ~/domovida-backend && sudo docker compose up -d`; si no se resuelve, volver a Render (sección 5.1) |
+| `sincronizacion_borde.pendientes` sube sin parar | Render dormido o sin conexión | Abrir la API de respaldo para despertarla; la cola se vacía sola en los ciclos siguientes |
 | La API en Render tarda hasta 1 minuto | El plan gratuito suspende el servicio sin uso | Esperar y recargar |
 | La API no arranca: error de conexión a la base | Supabase pausado por inactividad | Reactivar el proyecto en el panel de Supabase |
 | No se conecta a PostgreSQL desde el computador | El proveedor de internet bloquea el puerto 5432 | Usar el Session Pooler (puerto 6543) |
@@ -178,7 +206,8 @@ Las pruebas en producción (PR-01, PR-02, PR-03, PS-01 y PS-01b) se ejecutan peg
 | «blocked by CORS policy» en la consola | El script se ejecutó desde otra página | Ejecutarlo en la pestaña del panel (`domovida-backend.vercel.app`) |
 | El panel no muestra «Ingresar» | Faltan las variables `VITE_SUPABASE_*` o no se hizo Redeploy | Agregarlas en Vercel y redesplegar |
 | No llegan avisos al celular | La app ntfy no está suscrita o Android limita la batería | Suscribirse al tópico y permitir uso en segundo plano |
-| El panel muestra «API desconectada» | El despliegue de Vercel falló | Revisar Vercel → Deployments y corregir el error de compilación |
+| El panel muestra «API desconectada» | El servidor no responde o el despliegue de Vercel falló | Revisar `/api/health` y Vercel → Deployments |
+| El resumen del panel está en amarillo | Un sensor no envía datos hace más de 10 minutos | Revisar el simulador o el sensor indicado en el aviso |
 | El panel muestra horas corridas en 3 o 4 horas | Un cliente envía la fecha sin zona horaria y no es hora de Chile | Enviar la fecha en ISO 8601 con zona (`...Z` o `-03:00`); el backend interpreta como hora de Chile solo las fechas sin zona |
 | `git push` falla con «Connection was reset» | Corte momentáneo de la red | Repetir `git push` |
 
@@ -187,6 +216,7 @@ Las pruebas en producción (PR-01, PR-02, PR-03, PS-01 y PS-01b) se ejecutan peg
 ```
 domovida-backend/
 ├── README.md · .env.example · docker-compose.yml · .gitignore
+├── infra/oracle/       Scripts de apoyo de la instancia Oracle
 ├── backend/            API FastAPI, simulador, pruebas automatizadas, Dockerfile
 ├── frontend/           Panel React + Vite, Dockerfile
 └── docs/
@@ -194,12 +224,14 @@ domovida-backend/
     ├── fase2/
     │   ├── diagramas/              8 diagramas de diseño (Mermaid y PNG)
     │   ├── evidencias_grupales/    Guías 2.4 y 2.6
+    │   ├── evidencias_proyecto/presentacion/  Presentación y guion
     │   └── evidencias_proyecto/documentacion/
     │       ├── agil/               Product Vision, Product Backlog, DoD, fichas de sprint
     │       ├── capturas/           Evidencias de las pruebas
     │       ├── fichas_tecnicas/    Fichas técnicas del sistema
     │       ├── pruebas/            Registro de pruebas y scripts
     │       ├── manual_tecnico.md   Este documento
-    │       └── trazabilidad.xlsx   Matriz de trazabilidad
-    └── fase3/          Evaluación de usabilidad (SUS), pendiente
+    │       ├── trazabilidad.xlsx   Matriz de trazabilidad
+    │       └── usabilidad/         Escala SUS: protocolo, cuestionario, resultados y sesiones
+    └── fase3/          Innovación y documento de cierre (semana 15)
 ```
