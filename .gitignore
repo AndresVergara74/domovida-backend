@@ -46,3 +46,4 @@ package-lock.json
 
 # Carpeta temporal de archivos por borrar (no subir)
 _to_delete/
+~$*
