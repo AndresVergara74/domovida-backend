@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tarjetero DomoVida</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
+<style>
+/* Layout: barra fija con los números de lámina y temas; debajo, una tarjeta por lámina, lista para saltar con el teclado. */
+:root{
+  --bg:#f3f6f6; --surface:#ffffff; --ink:#122a31; --muted:#4a6168; --line:#d3dee0;
+  --petroleo:#0f4c5c; --petroleo-soft:#e1edef; --verde:#276b4e; --verde-soft:#e3f1ea;
+  --rojo:#b3261e; --ambar:#8a5a00; --ambar-soft:#fbf0d9; --focus:#e08a00;
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Atkinson Hyperlegible","Segoe UI",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1719; --surface:#132226; --ink:#e4eef0; --muted:#a3b8bd; --line:#2a3e43;
+  --petroleo:#7cc3d3; --petroleo-soft:#173a43; --verde:#7fd0a8; --verde-soft:#16332a;
+  --rojo:#ff8a80; --ambar:#f2c46b; --ambar-soft:#3a2e14; --focus:#ffb347; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0c1719; --surface:#132226; --ink:#e4eef0; --muted:#a3b8bd; --line:#2a3e43;
+  --petroleo:#7cc3d3; --petroleo-soft:#173a43; --verde:#7fd0a8; --verde-soft:#16332a;
+  --rojo:#ff8a80; --ambar:#f2c46b; --ambar-soft:#3a2e14; --focus:#ffb347; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--surface)}
+.wrap{max-width:980px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
+header.top .wrap{padding-block:10px;display:grid;gap:8px}
+.row1{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.brand{font-family:var(--f-display);font-weight:800;font-size:20px;color:var(--petroleo);letter-spacing:-.01em;margin-right:auto}
+.brand small{font-family:var(--f-body);font-weight:400;font-size:14px;color:var(--muted);margin-left:6px}
+#q{flex:1 1 220px;min-width:0;font:inherit;font-size:16px;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}
+.nums{display:flex;flex-wrap:wrap;gap:5px}
+.nums a{font-variant-numeric:tabular-nums;min-width:36px;text-align:center;padding:4px 6px;border-radius:6px;text-decoration:none;color:var(--petroleo);background:var(--petroleo-soft);font-weight:700;font-size:15px}
+.nums a.tema{background:transparent;border:1px solid var(--line);color:var(--ink);font-weight:400}
+.nums a.on{background:var(--petroleo);color:var(--surface)}
+a:focus-visible,input:focus-visible,button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.hint{font-size:13px;color:var(--muted)}
+main .wrap{padding-block:20px 60px;display:grid;gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px 20px;scroll-margin-top:150px}
+.card:target,.card.flash{box-shadow:0 0 0 3px var(--focus)}
+.card h2{font-family:var(--f-display);font-weight:800;font-size:24px;line-height:1.2;margin:0 0 10px;display:flex;gap:12px;align-items:baseline;text-wrap:balance}
+.card h2 .n{font-variant-numeric:tabular-nums;color:var(--petroleo);font-size:30px;min-width:1.4em}
+.card h2 .t{font-size:13px;font-family:var(--f-body);font-weight:400;color:var(--muted);margin-left:auto;white-space:nowrap}
+.digo{background:var(--verde-soft);border-left:4px solid var(--verde);padding:10px 14px;border-radius:0 8px 8px 0;margin:0 0 12px}
+.digo b{display:block;font-size:13px;color:var(--verde);letter-spacing:.04em;margin-bottom:2px}
+.ojo{background:var(--ambar-soft);color:var(--ink);padding:8px 12px;border-radius:8px;font-size:15px;margin:0 0 12px}
+.ojo b{color:var(--ambar)}
+dl{margin:0;display:grid;gap:10px}
+dt{font-weight:700;color:var(--petroleo)}
+dt::before{content:"P · ";color:var(--muted);font-weight:400}
+dd{margin:2px 0 0 0;padding-left:14px;border-left:2px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:16px}
+.tbl{overflow-x:auto}
+th,td{text-align:left;padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{color:var(--muted);font-weight:700;font-size:14px}
+td.num{font-variant-numeric:tabular-nums;font-weight:700;color:var(--petroleo);white-space:nowrap}
+.empty{color:var(--muted);text-align:center;padding:30px}
+mark{background:var(--ambar-soft);color:var(--ink);padding:0 2px}
+@media (max-width:560px){.card h2{font-size:20px}.card h2 .n{font-size:24px}.card h2 .t{display:none}body{font-size:16px}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+html{scroll-behavior:smooth}
+</style>
+
+</head><body>
+<header class="top"><div class="wrap">
+  <div class="row1">
+    <div class="brand">Tarjetero DomoVida<small>comisión y ensayo</small></div>
+    <input id="q" type="search" placeholder="Buscar: FHIR, SUS, Oracle, caída…" aria-label="Buscar en el tarjetero">
+  </div>
+  <nav class="nums" id="nav" aria-label="Ir a una lámina o tema"></nav>
+  <div class="hint">Escribe el número de la lámina en el teclado (por ejemplo 1 y 1 para la 11) y salta directo. Esc limpia la búsqueda.</div>
+</div></header>
+
+<main><div class="wrap" id="cards"></div></main>
+
+<script>
+const D = [
+{id:"num", label:"Números", title:"Los números que tienes que saber", table:[
+ ["Tiempo de la alerta, servidor en Santiago","54 ms"],
+ ["Antes, con servicios en EE. UU. y Brasil","1.577 ms (más de 1,5 s)"],
+ ["En AWS Virginia (comparación)","216 ms"],
+ ["Mejora Santiago vs. Render + Supabase","29 veces más rápido"],
+ ["Cuidadores en la evaluación SUS","7"],
+ ["Puntaje SUS (meta 70, promedio mundial 68)","92,1 de 100"],
+ ["Prueba de carga (Locust)","20 usuarios, 976 solicitudes, 0 errores"],
+ ["Avisos al celular (ntfy)","30 de 30 (100 %)"],
+ ["Caídas sin internet sincronizadas","10 de 10, sin duplicados"],
+ ["Historias de usuario","24, de ellas 21 terminadas"],
+ ["Commits","más de 175 (184 al 8/11)"],
+ ["Sensores del prototipo","8 (simulados)"],
+ ["Umbrales","caída 17 m/s² · gas 500 ppm · humo 800 · inactividad 30 min"],
+ ["Semáforo amarillo","sensor sin datos por más de 10 min"],
+ ["Calendario","15 semanas · 5 sprints · comisión en la semana 15"]]},
+{n:1,title:"Portada",t:"20 s",digo:"Buenas tardes, profesor, compañeros. Mi nombre es Andrés Vergara Acevedo. Mi proyecto se llama DomoVida y cuida a personas mayores que viven solas. Funciona sin cámaras y avisa al cuidador en el momento de la caída.",
+ qa:[["¿Qué es DomoVida en una frase?","Un sistema de sensores para el hogar que detecta caídas y otros riesgos, y avisa al cuidador en menos de un segundo, sin cámaras ni micrófonos."],
+     ["¿Para quién es?","Para personas mayores que viven solas y para su cuidador: un familiar o un cuidador contratado."]]},
+{n:2,title:"Integrantes",t:"15 s",digo:"Este es un proyecto individual: asumí tres roles, Product Owner, Scrum Master y desarrollador. Mi formación como tecnólogo en informática biomédica me ayudó a entender el área de la salud.",
+ qa:[["¿Cómo hiciste Scrum solo?","Asumí los tres roles y reemplacé la reunión diaria por una bitácora semanal. Mantuve el backlog, el tablero Kanban, las fichas de sprint y las retrospectivas."],
+     ["¿Qué aportó tu formación biomédica?","Entender el estándar HL7 FHIR y las terminologías de salud (SNOMED CT para caídas, LOINC para frecuencia cardíaca), y el cuidado de los datos sensibles según la Ley 21.719."]]},
+{n:3,title:"Descripción del proyecto",t:"25 s",digo:"Chile envejece rápido: casi un tercio de la población tendrá 60 años o más en 2050, y uno de cada tres mayores de 65 se cae al año. Quien vive solo puede pasar horas en el suelo. Las cámaras podrían ayudar, pero a nadie le gustaría que grabaran a su mamá bañándose o vistiéndose. DomoVida no graba: funciona solo con sensores, avisa en segundos y sigue funcionando aunque se corte internet.",
+ ojo:"No digas «como todos sabemos»: parte directo con el dato.",
+ qa:[["¿Cuántas personas mayores viven solas en Chile?","Según el Observatorio del Envejecimiento UC, con datos CASEN 2017, son 459.686 personas de 60 años o más: el 13,4 % de ese grupo."],
+     ["¿Por qué no un botón de pánico?","Depende de que la persona lo presione. Después de una caída puede estar desorientada o inconsciente, o simplemente no llevarlo puesto. DomoVida detecta sin que la persona haga nada."],
+     ["¿Por qué no cámaras?","Invaden la intimidad, especialmente en el baño y el dormitorio, que es justo donde más ocurren las caídas. Un participante del SUS valoró justamente que no se grabe a su madre."]]},
+{n:4,title:"¿Cómo funciona DomoVida?",t:"20 s",digo:"¿Cómo funciona DomoVida? Primero, el sensor detecta la caída. Segundo, el servidor aplica la regla de alerta. Tercero, el aviso llega al panel y al celular, y eso toma solo 54 milisegundos. Cuarto, el cuidador la atiende.",
+ ojo:"Los 54 ms son hasta que el aviso llega al panel. No incluyen al cuidador.",
+ qa:[["¿Cómo se detecta una caída?","Con un acelerómetro: si la magnitud supera 17 m/s² (casi el doble de la gravedad, 9,8 m/s²), el servidor la marca como caída. La regla está en el backend y la prueba PU-02 la valida (17 de 17 casos)."],
+     ["¿Qué mide exactamente el 54 ms?","El tiempo desde que el sensor envía la lectura hasta que la alerta aparece en el panel por WebSocket. Promedio de 30 caídas (PR-01c)."]]},
+{n:5,title:"Objetivos",t:"20 s",digo:"El objetivo general fue construir un sistema que detectara riesgos y avisara al cuidador, protegiendo los datos. Lo dividí en tres objetivos con metas medibles, y los tres se cumplieron: el primero, detectar los eventos de riesgo; el segundo, proteger los datos y seguir funcionando sin internet; y el tercero, el panel del cuidador y los avisos.",
+ qa:[["¿Cómo mediste que se cumplieron?","Cada objetivo tenía una meta: alerta en menos de 1 segundo (se logró 54 ms), más del 95 % de avisos entregados (100 %), funcionamiento sin internet (10 de 10) y usabilidad sobre 70 (92,1)."]]},
+{n:6,title:"Alcances y limitaciones",t:"20 s",digo:"El prototipo incluye todo el software funcionando, con sensores simulados. Lo que queda para después es el hardware real, la inteligencia artificial y un piloto en hogares. Y lo digo claro: no reemplaza la atención médica.",
+ qa:[["¿Por qué sensores simulados?","Para validar el software completo (reglas, servidor, panel, avisos y seguridad) sin depender de comprar e instalar hardware en un hogar. El simulador envía los mismos datos que enviaría un sensor real."],
+     ["¿Qué falta para que sea un producto?","Sensores físicos, un piloto en hogares reales (por ejemplo con una agencia de cuidados) y, con esos datos reales, la detección de anomalías con inteligencia artificial."],
+     ["¿Quién responde si el sistema falla?","DomoVida es un apoyo que avisa al cuidador; no reemplaza la atención médica ni los servicios de emergencia. Por eso lo digo explícitamente."]]},
+{n:7,title:"Metodología",t:"20 s",digo:"Trabajé con Scrum adaptado a una sola persona: sprints de tres semanas, cada uno con planificar, construir, probar y mejorar. Todo está en GitHub: el tablero Kanban, el backlog, las fichas de sprint y un registro de pruebas con evidencias.",
+ qa:[["¿Por qué Scrum y no cascada?","Porque me permitió probar con usuarios reales a mitad del proyecto y corregir a tiempo. Los cuidadores detectaron problemas que se convirtieron en las historias HU-21 y HU-23."],
+     ["¿Qué es la Definition of Done?","La lista de lo que significa «terminado»: programado, probado, con evidencia en el registro de pruebas y documentado. Al revisar el backlog vi que HU-04 y HU-05 no la cumplían y las corregí (PU-02)."],
+     ["¿Qué cambiaste gracias a una retrospectiva?","En el Sprint 4 decidí congelar funcionalidades: en el Sprint 5 solo hago correcciones y preparo las presentaciones."]],
+ link:"scrum"},
+{n:8,title:"Sprints",t:"15 s",digo:"El proyecto tiene 15 semanas: cuatro sprints completos, un sprint de cierre y la defensa ante la comisión. El avance fue más rápido de lo previsto: las pruebas de carga y con usuarios se adelantaron al Sprint 4.",
+ ojo:"Son CINCO sprints en 15 semanas, ya no seis.",
+ qa:[["¿Qué pasó cuando cambió el calendario?","El plan era de 6 sprints en 18 semanas. Cuando el curso se ajustó a 15 semanas, lo reorganicé en 5 sprints y pasé HU-20 y HU-22 a trabajo futuro. Adaptarse al cambio es parte de Scrum."],
+     ["¿Por qué sprints de tres semanas?","Calzan con el calendario del curso y me dan tiempo de construir algo completo trabajando en turnos 7x7."]]},
+{n:9,title:"Tablero Kanban",t:"15 s",digo:"El trabajo se gestionó en un tablero Kanban público en GitHub: 24 historias de usuario, 21 terminadas, y 175 commits que dejan todo trazable.",
+ ojo:"Pronuncia «Kan-ban» (Canva es otra aplicación).",
+ qa:[["¿Por qué el tablero tiene menos tarjetas que historias?","El backlog tiene las historias de usuario; el tablero, las tareas técnicas que las implementan. Una tarea puede cubrir varias historias."],
+     ["¿Por qué no terminaste las tarjetas que quedan en «Todo»?","Fue una decisión de priorización como Product Owner. Machine Learning necesita datos reales para entrenarse, y hoy los sensores son simulados. El registro de turnos y el plano de la casa salieron del SUS; al ajustarse el calendario prioricé el semáforo y el contraste, que afectan la seguridad y la accesibilidad. Están documentadas como trabajo futuro."],
+     ["¿Por qué público?","Transparencia y trazabilidad: cualquiera puede ver cuándo se creó y se cerró cada tarea, y los commits se vinculan con el número del issue."]],
+ link:"kanban"},
+{n:10,title:"Cronograma",t:"15 s",digo:"Este es el cronograma de 15 semanas: lo claro es lo planificado y lo oscuro lo realizado. Varias etapas se adelantaron. Hoy estamos en el sprint de cierre: la próxima semana es la Nota 3 y después, la comisión.",
+ ojo:"Oscuro = ya pinté = hecho. En la comisión (semana 15) di: «hoy estamos en la defensa final».",
+ qa:[["¿Qué se adelantó?","La captura de datos (OE1) se completó en el Sprint 2 en vez del 3, y la prueba de carga y la evaluación con usuarios pasaron del Sprint 5 al 4."]]},
+{n:11,title:"Arquitectura",t:"25 s",digo:"Los sensores del hogar envían sus datos con una clave. El servidor está en Oracle Cloud, región Santiago. Caddy da la conexión segura, y la API FastAPI con su base SQLite están en la misma máquina: por eso la alerta llega en 54 milisegundos. (pausa) De ahí sale al panel en vivo y al celular. Render y Supabase guardan una copia en la nube.",
+ ojo:"Pronuncia «Oracle Claud» y «Cadi».",
+ qa:[["¿Por qué Oracle y no AWS?","Probé los dos. Oracle tiene región en Santiago y un plan gratuito permanente (Always Free). AWS Academy era temporal y estaba en Estados Unidos: 216 ms contra 54 ms."],
+     ["¿Por qué SQLite y no solo PostgreSQL?","SQLite es un solo archivo en la misma máquina, sin viajes por la red: eso da los 54 ms y permite el modo sin internet. PostgreSQL en Supabase queda como respaldo en la nube."],
+     ["¿Qué pasa si se cae el servidor?","El hogar puede seguir en modo borde guardando los eventos, y el panel puede volver a Render cambiando dos variables en Vercel (ajuste 26)."],
+     ["¿Cómo evitas datos falsos?","Solo se aceptan lecturas con la clave de API (cabecera X-API-Key), por HTTPS. Sin clave, el servidor responde 401 (PS-01)."],
+     ["¿Escala?","Con 20 usuarios a la vez no hubo errores (PR-04). Como todo está en Docker, se puede separar la base de datos o sumar servidores."]],
+ link:"arq"},
+{n:12,title:"Modelo de datos",t:"20 s",digo:"El modelo tiene tres tablas: sensores, eventos y alertas. Cada evento lleva un identificador único para que la sincronización no duplique los datos, y la tabla de alertas registra quién atendió y cuándo. La misma estructura funciona en SQLite y en PostgreSQL, y se expone en el estándar de salud HL7 FHIR.",
+ ojo:"Pronuncia «Póstgres» y «ache ele siete fáier».",
+ qa:[["¿Qué es HL7 FHIR?","Un estándar internacional para intercambiar datos de salud entre sistemas. DomoVida expone las lecturas como recursos Observation y al paciente como Patient seudonimizado, validados según FHIR R4 (PI-04 y PI-05)."],
+     ["¿Por qué un identificador único por evento?","Si el hogar pierde internet y reenvía eventos al volver la conexión, el servidor reconoce los repetidos y no los duplica (PR-03b)."],
+     ["¿Cómo manejas las fechas?","Todo se guarda en UTC con zona horaria (timestamptz) y el panel lo muestra en hora de Chile (PU-05, migración 001)."],
+     ["¿Está normalizado?","Sensores y alertas sí. Eventos está desnormalizada a propósito: es una tabla de registro (solo se inserta), y repite tipo y habitación para que cada lectura quede completa aunque llegue desde el hogar sin conexión. Lo tengo diagnosticado (D6) y el modelo v2 lo normaliza con claves foráneas."]],
+ link:"bd"},
+{n:13,title:"Tecnologías",t:"20 s",digo:"Usé tecnologías abiertas. Python y FastAPI en el servidor. SQLite y PostgreSQL para los datos. React con TypeScript en el panel. Oracle Cloud, Docker y Caddy en la infraestructura. HL7 FHIR para integrarse con salud. Y la calidad se probó con Locust.",
+ ojo:"Pausa corta después de cada grupo. Pronuncia «Lócust».",
+ qa:[["¿Por qué FastAPI?","Es rápido, soporta conexiones en tiempo real (WebSocket), valida los datos automáticamente y genera la documentación de la API sola (/docs)."],
+     ["¿Por qué tecnologías abiertas?","No se pagan licencias, así el sistema es de bajo costo, y se pueden revisar y auditar."],
+     ["¿Qué es Locust?","Una herramienta de pruebas de carga: simula muchos usuarios a la vez. La usé con 20 usuarios concurrentes (PR-04)."]]},
+{n:14,title:"Seguridad y privacidad",t:"20 s",digo:"La privacidad está desde el diseño. No hay cámaras ni micrófonos. Solo los sensores con clave pueden enviar datos, y solo el cuidador con sesión puede verlos. Los datos se seudonimizan, y la persona acepta un consentimiento informado, según la Ley 21.719.",
+ qa:[["¿Qué es seudonimizar?","Reemplazar los datos que identifican a la persona por un código. El RUT nunca se guarda en texto plano: se guarda un hash SHA-256 con sal, y en la base y en FHIR no hay nombre, RUT ni dirección."],
+     ["¿Qué es RLS?","Row Level Security, en Supabase: la base decide fila por fila quién puede leer. El rol anónimo obtiene 0 filas (PI-03). Separar los datos por cuidador queda como HU-24."],
+     ["¿Qué es la Ley 21.719?","La nueva ley chilena de protección de datos personales. Trata los datos de salud como sensibles: piden consentimiento, finalidad clara y medidas de seguridad."],
+     ["¿Cómo se valida la sesión del cuidador?","Con Supabase Auth: el cuidador inicia sesión y el servidor revisa su token antes de mostrar datos o atender alertas. Sin sesión, 401 (PS-01b y PS-01c)."]]},
+{n:15,title:"Demostración",t:"60 s",digo:"Uno: «Aquí está el panel en verde: todo en orden, 8 de 8 sensores.» Dos: «Ahora genero una caída… y aparece en rojo al instante.» Tres: «Y el aviso llega al celular del cuidador.» Cuatro: «La marco como atendida y queda registrado quién y a qué hora.»",
+ ojo:"Ensayo: video dentro de la lámina, narrado en pasado. Comisión: en vivo, con PowerShell listo y ntfy abierto. Si algo falla: «tengo un video de respaldo».",
+ qa:[["¿Esto es real o simulado?","El servidor, el panel, los avisos y la base de datos son reales y están en producción. Lo simulado es solo la fuente de las lecturas: los sensores."],
+     ["¿Puedes mostrar que funciona sin internet?","Está probado en PR-03: con la conexión cortada se registraron 10 de 10 caídas, y al volver se sincronizaron sin duplicados."]]},
+{n:16,title:"Panel del cuidador",t:"15 s",digo:"Así se ve el panel: en verde cuando todo está bien, y en rojo, al instante, cuando hay una caída. El cuidador la atiende con un clic.",
+ qa:[["¿Es accesible?","Los colores cumplen el contraste de WCAG 2.1 nivel AA: texto secundario 7,5:1, verde 5,5:1 y bordes 3,4:1 (PU-10). Tiene modo claro y oscuro."],
+     ["¿Qué más muestra?","Historial filtrable, estado de los 8 sensores, actividad del día y estado del sistema."]]},
+{n:17,title:"Aviso al celular y semáforo",t:"15 s",digo:"El aviso llega al celular del cuidador en el mismo segundo. Y si un sensor deja de enviar datos, el resumen se pone amarillo e indica cuál y desde qué hora. Así, el sistema avisa solo cuando algo requiere atención.",
+ ojo:"No olvides el «Y si…»: sin el «si», suena a que el aviso apaga el sensor.",
+ qa:[["¿Por qué 10 minutos para el amarillo?","Es suficiente para no alarmar por una demora momentánea, y lo bastante corto para que el cuidador sepa pronto que un sensor no está protegiendo. Salió de un hallazgo del SUS (HU-21, prueba PI-09)."],
+     ["¿Cómo llega al celular?","Con ntfy.sh, un servicio de notificaciones push: la app ntfy recibe el aviso aunque esté cerrada. 30 de 30 entregados (PR-02)."]]},
+{n:18,title:"Resultados",t:"25 s",digo:"Los resultados se midieron. Con el servidor en Santiago, la alerta llega en 54 milisegundos; con los servicios en Estados Unidos y Brasil tardaba más de un segundo y medio. Con 20 usuarios a la vez no hubo errores. Llegaron los 30 avisos al celular. (pausa) Y sin internet, las caídas se sincronizaron después, sin duplicados.",
+ ojo:"La pausa va ANTES de «Y sin internet».",
+ qa:[["Detalle de la prueba de carga","976 solicitudes, 0 errores. Envío de lecturas: mediana 25 ms, p95 57 ms. Consulta de eventos: mediana 22 ms, p95 110 ms. Todo bajo la meta de 200 ms."],
+     ["¿Por qué era lento antes?","La API estaba en Oregón (EE. UU.) y la base en São Paulo (Brasil): cada alerta cruzaba el continente varias veces."]]},
+{n:19,title:"Validación SUS",t:"20 s",digo:"Siete cuidadores reales probaron el sistema. El puntaje de usabilidad fue noventa y dos coma uno de 100, un nivel excelente, sobre la meta de 70. Un participante valoró justamente que no se grabe imagen ni sonido de su madre.",
+ qa:[["¿Qué es SUS?","System Usability Scale: un cuestionario estándar de 10 preguntas que da un puntaje de 0 a 100. El promedio de referencia es 68; sobre 80 se considera excelente."],
+     ["¿Siete personas son suficientes?","Para usabilidad, con 5 a 8 usuarios ya aparece la mayoría de los problemas. El intervalo de confianza al 95 % fue de 83,4 a 100: aun en el peor caso supera la meta de 70."],
+     ["¿Qué hallazgos salieron?","Cuatro historias nuevas: HU-20 registro de turnos, HU-21 semáforo, HU-22 plano de la casa y HU-23 contraste. HU-21 y HU-23 ya están implementadas."]]},
+{n:20,title:"Obstáculos",t:"20 s",digo:"Hubo obstáculos y cada uno dejó una mejora. La alerta era lenta, y la llevé a Santiago. Encontré brechas de seguridad, y las cerré. Corregí los datos inconsistentes con migraciones. Los cuidadores detectaron problemas que se convirtieron en mejoras. Y organicé mi trabajo en bloques según mis turnos.",
+ qa:[["¿Qué brecha de seguridad encontraste?","Las consultas de lectura estaban abiertas: cualquiera con la dirección podía ver los datos. Las protegí con la sesión del cuidador (HU-17, PS-01c)."],
+     ["¿Qué datos inconsistentes?","Fechas guardadas sin zona horaria y alertas registradas en dos lugares. Lo corregí con migraciones: fechas en UTC y la tabla de alertas como fuente única (PU-05, PU-06, 1.463 diferencias corregidas)."],
+     ["¿Qué harías distinto?","Medir la latencia desde el primer sprint: habría llevado el servidor a Santiago antes."]]},
+{n:21,title:"Preguntas",t:"5 s",digo:"Muchas gracias. Quedo atento a sus preguntas.",
+ qa:[["Si no sabes una respuesta","Di con calma: «Buena pregunta. No lo medí en este prototipo; lo dejo anotado para el piloto». Es mejor que inventar."]]},
+{id:"scrum",label:"Scrum",title:"Scrum en DomoVida",paras:[
+ "<b>Qué es:</b> trabajar en ciclos cortos (sprints) y que al final de cada uno haya algo que funcione y se pueda mostrar. La alternativa clásica, cascada, descubre los errores al final.",
+ "<b>Roles:</b> Product Owner decide qué se construye y en qué orden; Scrum Master cuida el método y quita obstáculos; el equipo construye. Los tres los asumí yo.",
+ "<b>Artefactos:</b> Product Backlog (24 historias priorizadas), Sprint Backlog (las elegidas para un sprint, en el Kanban), Incremento (lo que funciona al final del sprint) y Definition of Done.",
+ "<b>Historia de usuario:</b> «Como cuidador, quiero recibir un aviso en el celular cuando hay una caída, para actuar de inmediato.» Con criterios de aceptación, por ejemplo: llega en menos de 1 s.",
+ "<b>El ciclo, con el Sprint 4:</b> ① Planificar: objetivo y elegir historias (SUS, semáforo, contraste, Oracle). ② Construir: commits y bitácora semanal en vez de la reunión diaria. ③ Probar: PR-04, PR-05, PI-09, PU-10 y SUS. ④ Mejorar: retrospectiva (qué funcionó, qué problemas, qué cambiar y una acción concreta)."]},
+{id:"kanban",label:"Kanban",title:"Kanban en GitHub",paras:[
+ "<b>Qué es:</b> «tarjeta» en japonés; nació en Toyota. Cada tarea es una tarjeta que avanza por columnas: Todo → In Progress → Done.",
+ "<b>Principios:</b> visualizar el trabajo, limitar el trabajo en curso (una tarjeta a la vez) y hacer fluir las tarjetas.",
+ "<b>En GitHub Projects:</b> cada tarjeta es un issue del repositorio, con fecha de creación y de cierre. Hoy: 19 en Done, 3 en Todo (trabajo futuro).",
+ "<b>Scrum + Kanban (Scrumban):</b> Scrum organiza el tiempo en sprints; Kanban, el flujo de tareas del día a día."]},
+{id:"arq",label:"Arquitectura",title:"Arquitectura: el camino de una caída",paras:[
+ "<b>1. Sensor:</b> envía la lectura por HTTPS a domovida.duckdns.org con la clave X-API-Key. DuckDNS da un nombre fijo y gratuito a la IP del servidor.",
+ "<b>2. Caddy:</b> proxy inverso, la puerta de entrada. Obtiene y renueva solo el certificado HTTPS y pasa la petición a la API (puerto 8000).",
+ "<b>3. FastAPI:</b> revisa la clave, aplica las reglas (reglas_sensores.py y reglas_puerta.py), guarda el evento en SQLite y, si es alerta, la registra.",
+ "<b>4. Dos caminos a la vez:</b> WebSocket (conexión siempre abierta, la alerta aparece sin recargar) y ntfy.sh (push al celular).",
+ "<b>5. Panel:</b> React con TypeScript en Vercel. El cuidador inicia sesión con Supabase Auth; sin sesión, 401.",
+ "<b>6. Respaldo:</b> un sincronizador envía cada 30 s los eventos pendientes a la API en Render, que los guarda en Supabase PostgreSQL con RLS. El identificador único evita duplicados.",
+ "<b>Decisiones clave:</b> todo en la misma máquina en Santiago (54 ms); Docker para levantarlo igual en AWS, Oracle o una Raspberry Pi; modo borde (edge computing) para funcionar sin internet.",
+ "<b>Servidor:</b> Oracle Cloud Chile Central, VM.Standard.E2.1.Micro Always Free: 1 OCPU, 1 GB de RAM más 2 GB de swap, Ubuntu 22.04."]},
+{id:"bd",label:"Base de datos",title:"Base de datos a fondo",paras:[
+ "<b>Cómo llegamos:</b> ① Sprint 2: esquema inicial en Supabase, creado a mano, con dos triggers PL/pgSQL (crear_alerta_automatica y marcar_como_sincronizado). ② Sprint 3: aparecen problemas reales (horas corridas, atención guardada en dos tablas). ③ Sprint 4: diagnóstico formal de 12 problemas, D1 a D12 (ficha técnica 19). ④ Cuatro migraciones versionadas, 000 a 003, cada una con respaldo previo, transacción y consulta de verificación. ⑤ Modelo v2 propuesto para el piloto.",
+ "<b>sensores:</b> id (serial, PK), sensor_id (UNIQUE, ej. acelerometro_dormitorio), tipo, habitacion, activo, creado_en (timestamptz).",
+ "<b>eventos:</b> id (serial, PK), uuid (UNIQUE, generado en el origen), sensor_id, tipo, habitacion, valor (JSON), alerta (boolean), timestamp (timestamptz, UTC), origen (borde o nube), sync_status, notificado. Las columnas resuelto* están obsoletas y se eliminarán.",
+ "<b>alertas:</b> id (serial, PK), evento_id (FK a eventos, UNIQUE: relación 1 a 0..1), tipo_alerta, nivel_severidad (critica o alta), payload_fhir (JSONB), resuelto, resuelto_en, resuelto_por (correo del cuidador), notas_resolucion, creado_en.",
+ "<b>schema_migrations:</b> version (PK: 000, 001, 002, 003), descripcion, aplicada_en. Registra qué cambios tiene cada base.",
+ "<b>Migración 001 (D4):</b> timestamp sin zona → timestamptz. Los datos viejos se convirtieron con un CASE según su origen: los de pruebas venían en UTC; los del simulador, en hora de Chile.",
+ "<b>Migración 002 (D1):</b> la tabla alertas pasa a ser la única fuente de verdad de la atención. Se copiaron las atenciones desde eventos (1.463 diferencias corregidas), se eliminó el trigger y el backend crea la alerta en la misma transacción que el evento (flush para obtener el id, luego commit). Así funciona igual en SQLite, que no tiene PL/pgSQL.",
+ "<b>Migración 003 (D2, D3):</b> columna uuid con índice UNIQUE. Los id enteros chocaban entre el hogar (SQLite) y la nube (PostgreSQL); el uuid es la identidad global y hace el reenvío idempotente: si el uuid ya existe, no se inserta de nuevo.",
+ "<b>Índices:</b> parciales para lo que más se consulta: eventos con alerta (WHERE alerta = true) y alertas activas (WHERE resuelto = false, por creado_en DESC); además timestamp DESC y sensor_id para el historial.",
+ "<b>Una estructura, dos motores:</b> los modelos están en SQLAlchemy (models.py), así el mismo código crea las tablas en SQLite (Oracle y modo borde) y trabaja con PostgreSQL (Supabase).",
+ "<b>Debilidades que reconozco y su solución (modelo v2):</b> eventos.sensor_id sin clave foránea y tipo/habitación repetidos (D6) → FK lecturas.sensor_id → sensores.id. Texto libre en tipo y severidad (D7) → restricciones CHECK. JSON y JSONB mezclados (D8) → todo JSONB. Un solo hogar fijo (D5) → tablas hogares, pacientes, cuidadores y cuidador_hogar (N a M) con RLS por cuidador (HU-24). Consentimiento solo en el navegador (D9) → tabla consentimientos. Sin auditoría (D10) → tabla auditoria. Sin retención (D11) → resumir por hora las lecturas normales y borrarlas a los 30 días. En SQLite falta activar PRAGMA foreign_keys = ON para que respete las claves foráneas."],
+ qa:[["¿Por qué una PK entera y además un uuid?","El id entero es local de cada base y es cómodo para las claves foráneas; el uuid es la identidad global del evento entre el hogar y la nube. En el modelo v2 el uuid pasa a ser directamente la clave primaria."],
+     ["¿Por qué valor es JSON?","Cada tipo de sensor mide cosas distintas: el acelerómetro tres ejes y la magnitud, el sensor cardíaco frecuencia y saturación, la puerta abierto o cerrado. JSON evita una tabla con muchas columnas vacías. Las reglas leen el campo que necesitan."],
+     ["¿Cómo garantizas que evento y alerta queden consistentes?","Se guardan en la misma transacción: si algo falla, no queda un evento con alerta sin su fila en alertas. La migración 002 verifica con una consulta que hay 0 eventos con alerta sin fila en alertas."],
+     ["¿Cómo migraste sin perder datos?","Respaldo antes de cada migración, todo dentro de BEGIN y COMMIT, sentencias idempotentes (IF NOT EXISTS, ON CONFLICT DO NOTHING) y una consulta de verificación al final. Probado en PI-06 y PI-07."],
+     ["¿Cuánto crece la base?","Con 8 sensores cada 30 segundos son unas 23.000 lecturas al día. Supabase usa 56,8 MB de 500 MB. Por eso el modelo v2 incluye una política de retención."],
+     ["¿Qué hace el trigger que queda?","marcar_como_sincronizado pone sync_status = synced al insertar en la nube. Lo diagnostiqué como poco útil (D3), porque siempre vale lo mismo; en v2 se reemplaza por origen, medido_en y recibido_en, que además miden el retraso de la sincronización."]]},
+{id:"dif",label:"Difíciles",title:"Preguntas difíciles",
+ qa:[["¿No es solo un simulador?","No. El servidor, la base de datos, el panel, los avisos y la seguridad son reales y están en producción. Solo la fuente de datos es simulada, y envía exactamente el formato que enviaría un sensor físico."],
+     ["¿Por qué no implementaste inteligencia artificial?","Porque un modelo necesita datos reales para aprender. Entrenarlo con datos simulados daría un modelo que aprende patrones inventados. Primero el piloto con hogares reales; después la detección de anomalías."],
+     ["¿Por qué trabajaste solo?","Fue un proyecto individual del curso. Lo compensé con evidencia: 7 cuidadores reales validaron el sistema y todo el trabajo es trazable en GitHub."],
+     ["¿Es viable como negocio?","El modelo es un kit de sensores más una suscripción mensual para familias y agencias de cuidado. El siguiente paso es un piloto con una agencia de cuidados de la región y postular a Semilla Inicia de Corfo."],
+     ["¿En qué se diferencia de lo que ya existe?","Los botones de pánico dependen de que la persona los presione, y las cámaras invaden la intimidad. DomoVida detecta sin intervención, sin grabar, y sigue funcionando sin internet."],
+     ["¿Qué pasa con los falsos positivos?","Las reglas tienen umbrales probados (PU-02), y la puerta principal solo alerta de noche o si queda abierta más de 10 minutos, lo que redujo las falsas alarmas (PU-04, 10 de 10)."]]}
+];
+
+const esc = s => s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function cardHTML(c){
+  const id = c.id || ("l" + c.n);
+  const head = c.n ? `<h2><span class="n">${c.n}</span><span>${esc(c.title)}</span><span class="t">${c.t}</span></h2>` : `<h2>${esc(c.title)}</h2>`;
+  let h = `<article class="card" id="${id}" data-search="">${head}`;
+  if (c.digo) h += `<p class="digo"><b>Lo que digo</b>${esc(c.digo)}</p>`;
+  if (c.ojo) h += `<p class="ojo"><b>Ojo:</b> ${esc(c.ojo)}</p>`;
+  if (c.table) h += `<div class="tbl"><table><thead><tr><th>Dato</th><th>Valor</th></tr></thead><tbody>${c.table.map(r=>`<tr><td>${esc(r[0])}</td><td class="num">${esc(r[1])}</td></tr>`).join("")}</tbody></table></div>`;
+  if (c.paras) h += c.paras.map(p=>`<p>${p}</p>`).join("");
+  if (c.qa) h += `<dl>${c.qa.map(q=>`<div><dt>${esc(q[0])}</dt><dd>${esc(q[1])}</dd></div>`).join("")}</dl>`;
+  if (c.link) h += `<p class="hint">Más detalle en el tema <a href="#${c.link}">${({scrum:"Scrum",kanban:"Kanban",arq:"Arquitectura",bd:"Base de datos"})[c.link]}</a>.</p>`;
+  return h + `</article>`;
+}
+const cards = document.getElementById("cards"), nav = document.getElementById("nav"), q = document.getElementById("q");
+cards.innerHTML = D.map(cardHTML).join("") + `<p class="empty" id="none" hidden>No hay tarjetas con esa palabra. Prueba con otra o presiona Esc.</p>`;
+nav.innerHTML = D.map(c => c.n ? `<a href="#l${c.n}">${c.n}</a>` : `<a class="tema" href="#${c.id}">${c.label}</a>`).join("");
+const arts = [...cards.querySelectorAll(".card")];
+arts.forEach(a => a.dataset.search = a.textContent.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,""));
+function go(id){
+  const el = document.getElementById(id); if (!el) return;
+  if (q.value){ q.value = ""; filter(); }
+  el.scrollIntoView({block:"start"});
+  el.classList.add("flash"); setTimeout(()=>el.classList.remove("flash"), 1500);
+  nav.querySelectorAll("a").forEach(a => a.classList.toggle("on", a.getAttribute("href") === "#" + id));
+  try { history.replaceState(null, "", "#" + id); } catch(e){}
+}
+nav.addEventListener("click", e => { const a = e.target.closest("a"); if (!a) return; e.preventDefault(); go(a.getAttribute("href").slice(1)); });
+cards.addEventListener("click", e => { const a = e.target.closest("a[href^='#']"); if (!a) return; e.preventDefault(); go(a.getAttribute("href").slice(1)); });
+function filter(){
+  const t = q.value.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();
+  let n = 0;
+  arts.forEach(a => { const show = !t || a.dataset.search.includes(t); a.hidden = !show; if (show) n++; });
+  document.getElementById("none").hidden = n > 0;
+}
+q.addEventListener("input", filter);
+let buf = "", timer;
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape"){ q.value = ""; filter(); q.blur(); return; }
+  if (document.activeElement === q || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (/^[0-9]$/.test(e.key)){
+    buf += e.key; clearTimeout(timer);
+    timer = setTimeout(() => { const n = parseInt(buf, 10); buf = ""; if (n >= 1 && n <= 21) go("l" + n); }, 650);
+  }
+});
+if (location.hash) setTimeout(() => go(location.hash.slice(1)), 50);
+</script>
+
+</body></html>
