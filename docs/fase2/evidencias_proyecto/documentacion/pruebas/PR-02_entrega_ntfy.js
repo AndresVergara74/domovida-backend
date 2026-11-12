@@ -8,7 +8,7 @@
   // Pegar aquí la clave (la misma de DOMOVIDA_API_KEY en Render). No subirla al repositorio.
   const CLAVE = "PEGA_AQUI_LA_CLAVE";
   const API = "https://domovida-backend.onrender.com";
-  const TOPICO = "domovida-seguro-2026";
+  const TOPICO = "PEGA_AQUI_EL_TOPICO"; // tópico secreto (NTFY_TOPIC del servidor); no subirlo al repositorio
   const N = 30;
   const ESPERA_MS = 3000; // separación entre caídas (respeta el límite de ntfy.sh)
   const inicio = Math.floor(Date.now() / 1000) - 2;

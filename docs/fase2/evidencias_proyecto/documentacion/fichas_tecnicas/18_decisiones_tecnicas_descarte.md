@@ -154,7 +154,7 @@ DomoVida requiere notificaciones push para alertas críticas (caídas, fugas de 
 
 
 
-2\. \*\*Simplicidad:\*\* ntfy permite notificaciones push vía HTTP GET/POST a un topic (ej: `domovida-seguro-2026`). No requiere autenticación compleja ni SDK.
+2\. \*\*Simplicidad:\*\* ntfy permite notificaciones push vía HTTP GET/POST a un topic (ej: `<tu-topico>`). No requiere autenticación compleja ni SDK.
 
 
 

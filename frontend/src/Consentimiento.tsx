@@ -23,7 +23,8 @@ export default function Consentimiento({ onAceptar, onRechazar }: Consentimiento
     if (!puedeAceptar) return;
 
     // Seudonimización con SHA-256 con sal (Ley N° 21.719)
-    // La sal es un valor fijo del proyecto, no secreto, pero evita ataques de diccionario
+    // La sal es fija y pública: seudonimización básica de prototipo (no usar con datos reales;
+    // en producción se usará una clave secreta en el servidor)
     const SAL = "domovida-2026-ley21719";
     const encoder = new TextEncoder();
     const datos = encoder.encode(rut.trim() + SAL);
@@ -34,7 +35,7 @@ export default function Consentimiento({ onAceptar, onRechazar }: Consentimiento
     // Guardar en localStorage (seudonimizado: solo iniciales + hash SHA-256)
     const registro = {
       iniciales: nombre.trim().split(" ").map((p) => p[0]).join("").toUpperCase(),
-      rutHash: rutHash, // SHA-256 con sal (irreversible)
+      rutHash: rutHash, // SHA-256 con sal fija (seudonimización de prototipo)
       fecha: new Date().toISOString(),
       version: "1.0",
     };

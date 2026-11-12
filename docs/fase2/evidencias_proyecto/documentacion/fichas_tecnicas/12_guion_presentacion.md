@@ -1,8 +1,10 @@
 \# Guion de Presentación — DomoVida
 
+> Versión histórica (octubre de 2026). El guion vigente está en `docs/fase2/evidencias_proyecto/presentacion/`.
 
 
-\*\*Proyecto:\*\* DomoVida — Plataforma IoT de Monitoreo Predictivo y Asistencia Inteligente para el Adulto Mayor en el Hogar
+
+\*\*Proyecto:\*\* DomoVida — Plataforma de Monitoreo y Asistencia para el Adulto Mayor en el Hogar
 
 
 
@@ -34,7 +36,7 @@
 
 \- \*\*Título:\*\* DomoVida
 
-\- \*\*Subtítulo:\*\* Plataforma IoT de Monitoreo Predictivo y Asistencia Inteligente para el Adulto Mayor en el Hogar
+\- \*\*Subtítulo:\*\* Plataforma de Monitoreo y Asistencia para el Adulto Mayor en el Hogar
 
 \- \*\*Autor:\*\* Andrés Rodrigo Vergara Acevedo
 
