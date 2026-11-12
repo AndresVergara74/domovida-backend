@@ -35,11 +35,11 @@ Una plataforma IoT que monitorea el hogar con sensores (caídas, movimiento, gas
 
 ## 5. ¿Cuál es la propuesta de valor?
 
-- **Rapidez:** la alerta llega al panel en 216 ms en una infraestructura con backend y base de datos en la misma región, y el 100 % de las notificaciones llegó al celular en las pruebas (PR-01b y PR-02).
+- **Rapidez:** la alerta llega al panel en 54 ms en promedio, con el backend y la base de datos en la misma máquina en Oracle Cloud Santiago (PR-01c), y el 100 % de las notificaciones llegó al celular en las pruebas (PR-02).
 - **Continuidad:** sin internet, el modo borde guardó y mostró el 100 % de las caídas (PR-03).
 - **Confianza:** consentimiento informado, seudonimización del RUT, RLS, clave para los sensores y sesión para el cuidador (PU-03, PI-03, PS-01 y PS-01b).
 - **Interoperabilidad:** los eventos y el paciente seudonimizado se exponen como recursos HL7 FHIR R4 válidos (PI-04 y PI-05).
-- **Bajo costo:** el prototipo funciona sobre servicios gratuitos (Render, Vercel y Supabase).
+- **Bajo costo:** el prototipo funciona sobre planes gratuitos (Oracle Cloud Always Free, Vercel, Render y Supabase), suficientes para una demostración.
 
 ## 6. ¿Qué incluye el MVP?
 
@@ -53,7 +53,7 @@ Una plataforma IoT que monitorea el hogar con sensores (caídas, movimiento, gas
 | Consentimiento informado, seudonimización y RLS | |
 | Recursos HL7 FHIR R4 (Observation y Patient) | |
 
-El backlog priorizado (HU-01 a HU-12, método MoSCoW) está en la Guía 1.5 y en el tablero Kanban: https://github.com/users/AndresVergara74/projects/1
+El backlog priorizado (HU-01 a HU-24, método MoSCoW) está en la Guía 1.5 y en el tablero Kanban: https://github.com/users/AndresVergara74/projects/1
 
 ---
 
