@@ -226,7 +226,7 @@ La Guía sugiere una estructura de carpetas (sección 11). Para no romper los en
 | 6. Pruebas (7) | Plan, casos, scripts y evidencias (PU, PI, PR, PS) | [`registro_pruebas.md`](docs/fase2/evidencias_proyecto/documentacion/pruebas/registro_pruebas.md) · [`pruebas/`](docs/fase2/evidencias_proyecto/documentacion/pruebas) · [`capturas/`](docs/fase2/evidencias_proyecto/documentacion/capturas) · pruebas `backend/test_*.py` |
 | 6. Pruebas con usuarios | Escala SUS (7 cuidadores) | [`usabilidad/`](docs/fase2/evidencias_proyecto/documentacion/usabilidad) |
 | 7. Despliegue (8) | Manual técnico y README | [`manual_tecnico.md`](docs/fase2/evidencias_proyecto/documentacion/manual_tecnico.md) · este README |
-| 7. Cierre (9) | Innovación y documento de cierre | Fase 3 (semana 15), en `docs/fase3/` |
+| 7. Cierre (9) | Innovación y documento de cierre | Fase 3 (semanas 16 a 18), en `docs/fase3/` |
 | 10. Trazabilidad | Matriz Problema → Requisito → HU → Componente → Prueba → Evidencia | [`trazabilidad.xlsx`](docs/fase2/evidencias_proyecto/documentacion/trazabilidad.xlsx) |
 
 ## 10. Protección de datos

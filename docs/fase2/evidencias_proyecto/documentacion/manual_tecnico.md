@@ -233,5 +233,5 @@ domovida-backend/
     │       ├── manual_tecnico.md   Este documento
     │       ├── trazabilidad.xlsx   Matriz de trazabilidad
     │       └── usabilidad/         Escala SUS: protocolo, cuestionario, resultados y sesiones
-    └── fase3/          Innovación y documento de cierre (semana 15)
+    └── fase3/          Innovación, documento de cierre y defensa (semanas 16 a 18)
 ```
