@@ -8,7 +8,7 @@
 - **Perfil:** personas que cuidan o han cuidado a un adulto mayor (familiar o profesional), mayores de 18 años.
 - **Cantidad:** mínimo 5, ideal 8 a 10.
 - **Sin datos personales:** cada participante se identifica solo con un código (P01, P02…). Se registra rango de edad, tipo de cuidador y experiencia con tecnología, nada más. No se graba audio ni video.
-- **Cuenta:** todos usan la **cuenta de cuidador de prueba** `sistemadomovida+prueba@gmail.com` (creada en Supabase el 11-10-2026, separada de la cuenta principal del proyecto). La contraseña se entrega en el momento y **no se guarda en el repositorio**; al terminar las sesiones se cambia o se elimina la cuenta. Nunca se usa una cuenta personal del participante.
+- **Cuenta:** todos usan la **cuenta de cuidador de prueba** de prueba (correo no publicado) (creada en Supabase el 11-10-2026, separada de la cuenta principal del proyecto). La contraseña se entrega en el momento y **no se guarda en el repositorio**; al terminar las sesiones se cambia o se elimina la cuenta. Nunca se usa una cuenta personal del participante.
 
 ## 2. Materiales
 

@@ -296,7 +296,7 @@ Yo, \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_
 
 \*\*Responsable:\*\* Andrés Rodrigo Vergara Acevedo
 
-\*\*Email:\*\* vergara.calleparis@gmail.com
+\*\*Email:\*\* disponible a solicitud del profesor guía
 
 \*\*Institución:\*\* Duoc UC — Escuela de Ingeniería en Informática
 

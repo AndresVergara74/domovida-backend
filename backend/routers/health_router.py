@@ -27,7 +27,7 @@ router = APIRouter()
 # ============================================================
 # CONFIGURACIÓN
 # ============================================================
-NTFY_TOPIC = os.getenv("NTFY_TOPIC", "domovida-seguro-2026")
+NTFY_TOPIC = os.getenv("NTFY_TOPIC") or "domovida-demo"
 NTFY_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
 
 

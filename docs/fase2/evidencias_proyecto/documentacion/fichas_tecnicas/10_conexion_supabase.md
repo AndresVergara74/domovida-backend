@@ -242,7 +242,7 @@ DATABASE\_URL=postgresql://postgres.hysmouhgnfowyobndzri:[TU_CLAVE_AQUI]@aws-0-s
 
 \# Notificaciones push (ntfy)
 
-NTFY\_TOPIC=domovida-seguro-2026
+NTFY\_TOPIC=(tópico secreto, definido en el .env del servidor)
 
 
 

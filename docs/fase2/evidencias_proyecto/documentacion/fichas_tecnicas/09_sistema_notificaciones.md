@@ -106,7 +106,7 @@ Para cumplir con la \*\*Ley N° 21.719\*\* de protección de datos personales, e
 
 ```
 
-NTFY\_TOPIC=domovida-seguro-2026
+NTFY\_TOPIC=(tópico secreto, definido en el .env del servidor)
 
 ```
 

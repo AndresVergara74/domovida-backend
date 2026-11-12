@@ -9,6 +9,7 @@ Ley N° 21.719. Las notificaciones NO contienen datos biomédicos sensibles
 completos quedan disponibles únicamente en el dashboard autenticado.
 """
 
+import os
 import requests
 from datetime import datetime
 from zoneinfo import ZoneInfo
@@ -19,8 +20,9 @@ ZONA_CHILE = ZoneInfo("America/Santiago")
 # ============================================================
 # CONFIGURACIÓN
 # ============================================================
-# Topic seudonimizado (difícil de adivinar)
-NTFY_TOPIC = "domovida-seguro-2026"
+# Tópico de ntfy: se lee de la variable de entorno NTFY_TOPIC (secreta, en el .env del servidor).
+# El valor por defecto es solo para pruebas locales; nunca escribir aquí el tópico real.
+NTFY_TOPIC = os.getenv("NTFY_TOPIC") or "domovida-demo"
 NTFY_URL = f"https://ntfy.sh/{NTFY_TOPIC}"
 
 
