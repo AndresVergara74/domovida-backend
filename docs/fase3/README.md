@@ -13,7 +13,7 @@ Defensa: jueves 3 de diciembre de 2026, 13:10 a 13:35 (grupo 11). Bloque de 25 m
 
 ## Estructura de la presentación
 
-1. Portada · 2. Integrante · 3. Descripción del proyecto · 4. Objetivos · 5. Alcances y limitaciones · 6. Metodología · 7. Cronograma · 8. Arquitectura del software · 9. Modelo de datos · 10. Tecnologías utilizadas · 11. Demostración del resultado (en vivo) · 13. Resultados obtenidos · 14. Validación con usuarios (SUS) · 15. Obstáculos · 16. Preguntas de la comisión.
+1. Portada · 2. Integrante · 3. Descripción del proyecto · 4. Objetivos · 5. Alcances y limitaciones · 6. Metodología · 7. Cronograma · 8. Arquitectura del software · 9. Modelo de datos · 10. Tecnologías utilizadas · 11. Demostración del resultado (en vivo) · 13. Resultados obtenidos · 14. Validación con usuarios (SUS) · 15. Obstáculos · 16. Competencias del perfil de egreso demostradas · 17. Cierre y preguntas de la comisión.
 
 ## Evidencias que respaldan la defensa
 
